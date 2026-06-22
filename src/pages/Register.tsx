@@ -11,8 +11,6 @@ export const Register: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [showOtpInput, setShowOtpInput] = useState(false);
-  const [otp, setOtp] = useState('');
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +22,7 @@ export const Register: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    const { error: signUpError } = await supabase.auth.signUp({
+    const { data: authData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
     });
@@ -35,33 +33,11 @@ export const Register: React.FC = () => {
       return;
     }
 
-    setShowOtpInput(true);
-    setLoading(false);
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    const { data, error: otpError } = await supabase.auth.verifyOtp({
-      email,
-      token: otp,
-      type: 'signup'
-    });
-
-    if (otpError) {
-      setError(otpError.message);
-      setLoading(false);
-      return;
-    }
-
-    // Insert into profiles table now that email is verified
-    if (data.user) {
+    if (authData.user) {
       const { error: profileError } = await supabase
         .from('profiles')
         .insert([{
-          id: data.user.id,
+          id: authData.user.id,
           email: email,
           full_name: fullName,
           role: role
@@ -75,7 +51,6 @@ export const Register: React.FC = () => {
       }
     }
 
-    setShowOtpInput(false);
     setSuccess(true);
     setLoading(false);
   };
@@ -153,70 +128,6 @@ export const Register: React.FC = () => {
               >
                 Return to login
               </Link>
-            </div>
-          ) : showOtpInput ? (
-            <div className="animate-slide-up">
-              <div className="w-16 h-16 rounded-2xl bg-gold/10 border-2 border-gold/20 mx-auto flex items-center justify-center mb-6">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fbbc04" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
-                </svg>
-              </div>
-              <h2 className="font-poppins text-2xl font-bold text-teal dark:text-cream tracking-tight text-center">
-                Verify your email
-              </h2>
-              <p className="text-teal/50 dark:text-cream/40 text-sm mt-2 text-center leading-relaxed">
-                We've sent a 6-digit verification code to <strong className="text-teal dark:text-cream">{email}</strong>.
-              </p>
-
-              <form className="mt-8 space-y-5" onSubmit={handleVerifyOtp}>
-                <div className="space-y-1.5">
-                  <label htmlFor="otp" className="block text-[11px] font-bold uppercase tracking-[0.1em] text-teal/50 dark:text-cream/40 text-center">
-                    6-Digit Code
-                  </label>
-                  <input
-                    id="otp"
-                    name="otp"
-                    type="text"
-                    required
-                    maxLength={6}
-                    placeholder="000000"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    className="w-full text-center tracking-[0.5em] font-mono text-2xl py-4 rounded-xl bg-white dark:bg-white/5 border border-teal/8 dark:border-white/8 text-teal dark:text-cream placeholder:text-teal/20 dark:placeholder:text-cream/10 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/30 transition-all"
-                  />
-                </div>
-
-                {error && (
-                  <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-status-hold/10 border border-status-hold/20">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-status-hold shrink-0">
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="15" y1="9" x2="9" y2="15" />
-                      <line x1="9" y1="9" x2="15" y2="15" />
-                    </svg>
-                    <p className="text-sm text-status-hold font-medium">{error}</p>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading || otp.length < 6}
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-gold to-[#f5d44a] text-teal text-sm font-bold shadow-lg shadow-gold/20 hover:shadow-xl hover:shadow-gold/30 hover:translate-y-[-1px] active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:ring-offset-2 focus:ring-offset-cream dark:focus:ring-offset-[#001a22] transition-all duration-200 disabled:opacity-50 disabled:hover:translate-y-0"
-                >
-                  {loading ? 'Verifying...' : 'Verify Code'}
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowOtpInput(false);
-                    setOtp('');
-                    setError(null);
-                  }}
-                  className="w-full py-2.5 text-sm font-semibold text-teal/50 dark:text-cream/40 hover:text-teal dark:hover:text-cream transition-colors mt-2"
-                >
-                  Change Email
-                </button>
-              </form>
             </div>
           ) : (
             <>
