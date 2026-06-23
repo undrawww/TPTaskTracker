@@ -9,9 +9,14 @@ interface Props {
 
 export const TaskComments: React.FC<Props> = ({ taskId }) => {
   const { user, role } = useAuth();
-  const { comments, loading, fetchComments, addComment, deleteComment } = useTaskComments(taskId);
+  const { comments, loading, fetchComments, addComment, deleteComment, editComment } = useTaskComments(taskId);
   const [newComment, setNewComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  
+  // Edit state
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -35,6 +40,24 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
     await addComment(newComment, authorName, role || 'intern');
     setNewComment('');
     setSubmitting(false);
+  };
+
+  const startEdit = (commentId: string, content: string) => {
+    setEditingCommentId(commentId);
+    setEditContent(content);
+  };
+
+  const cancelEdit = () => {
+    setEditingCommentId(null);
+    setEditContent('');
+  };
+
+  const handleEditSubmit = async (commentId: string) => {
+    if (!editContent.trim() || savingEdit) return;
+    setSavingEdit(true);
+    await editComment(commentId, editContent);
+    setSavingEdit(false);
+    setEditingCommentId(null);
   };
 
   const formatTime = (iso: string) => {
@@ -101,22 +124,68 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
                     {formatTime(c.created_at)}
                   </span>
                 </div>
-                <p className="text-xs text-[#003946]/90 dark:text-cream/80 leading-relaxed mt-0.5 break-words whitespace-pre-wrap">
-                  {c.content}
-                </p>
+                {editingCommentId === c.id ? (
+                  <div className="mt-1.5 space-y-2">
+                    <textarea
+                      autoFocus
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Escape') cancelEdit();
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleEditSubmit(c.id);
+                        }
+                      }}
+                      className="w-full text-xs px-2 py-1.5 rounded bg-white/50 dark:bg-black/20 border border-[#003946]/20 dark:border-white/10 focus:outline-none focus:ring-1 focus:ring-gold text-[#003946] dark:text-cream resize-none"
+                      rows={2}
+                    />
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => handleEditSubmit(c.id)}
+                        disabled={savingEdit || !editContent.trim()}
+                        className="text-[10px] font-bold text-teal bg-gold/90 hover:bg-gold px-2 py-0.5 rounded transition-colors disabled:opacity-50"
+                      >
+                        {savingEdit ? 'Saving...' : 'Save'}
+                      </button>
+                      <button 
+                        onClick={cancelEdit}
+                        disabled={savingEdit}
+                        className="text-[10px] font-bold text-[#003946]/60 dark:text-cream/60 hover:text-[#003946] dark:hover:text-cream transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-[#003946]/90 dark:text-cream/80 leading-relaxed mt-0.5 break-words whitespace-pre-wrap">
+                    {c.content}
+                  </p>
+                )}
               </div>
-              {/* Delete button (admin only) */}
+              {/* Actions (admin only) */}
               {role === 'admin' && (
-                <button
-                  onClick={() => deleteComment(c.id)}
-                  className="opacity-0 group-hover/comment:opacity-100 p-1 text-[#003946]/20 hover:text-status-hold transition-all self-start mt-0.5"
-                  title="Delete comment"
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </button>
+                <div className="opacity-0 group-hover/comment:opacity-100 flex items-center gap-1 self-start mt-0.5 transition-all">
+                  <button
+                    onClick={() => startEdit(c.id, c.content)}
+                    className="p-1 text-[#003946]/20 hover:text-gold transition-colors"
+                    title="Edit comment"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => deleteComment(c.id)}
+                    className="p-1 text-[#003946]/20 hover:text-status-hold transition-colors"
+                    title="Delete comment"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
               )}
             </div>
           ))

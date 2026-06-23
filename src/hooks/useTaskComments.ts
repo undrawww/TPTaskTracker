@@ -98,6 +98,11 @@ export function useTaskComments(taskId: string) {
             });
           } else if (payload.eventType === 'DELETE') {
             setComments((prev) => prev.filter((c) => c.id !== payload.old.id));
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedComment = payload.new as TaskComment;
+            setComments((prev) =>
+              prev.map((c) => (c.id === updatedComment.id ? { ...c, content: updatedComment.content } : c))
+            );
           }
         }
       )
@@ -179,5 +184,36 @@ export function useTaskComments(taskId: string) {
     []
   );
 
-  return { comments, loading, fetchComments, addComment, deleteComment };
+  const editComment = useCallback(
+    async (commentId: string, newContent: string) => {
+      if (!newContent.trim()) return;
+
+      if (!isSupabaseConfigured) {
+        const all = getStoredComments();
+        const updatedAll = all.map(c => c.id === commentId ? { ...c, content: newContent.trim() } : c);
+        saveStoredComments(updatedAll);
+        setComments((prev) =>
+          prev.map((c) => (c.id === commentId ? { ...c, content: newContent.trim() } : c))
+        );
+        return;
+      }
+
+      try {
+        const { error } = await supabase
+          .from('task_comments')
+          .update({ content: newContent.trim() })
+          .eq('id', commentId);
+
+        if (error) throw error;
+        setComments((prev) =>
+          prev.map((c) => (c.id === commentId ? { ...c, content: newContent.trim() } : c))
+        );
+      } catch (err) {
+        console.error('Error updating comment:', err);
+      }
+    },
+    []
+  );
+
+  return { comments, loading, fetchComments, addComment, deleteComment, editComment };
 }
