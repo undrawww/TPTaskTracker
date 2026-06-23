@@ -8,6 +8,7 @@ export interface TaskComment {
   author_role: 'admin' | 'intern';
   content: string;
   created_at: string;
+  avatar_index?: number;
 }
 
 const STORAGE_KEY = 'padua_task_comments';
@@ -46,7 +47,27 @@ export function useTaskComments(taskId: string) {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setComments(data ?? []);
+      
+      let commentsData = data ?? [];
+      
+      // Fetch avatars based on author_name
+      if (commentsData.length > 0) {
+        const names = Array.from(new Set(commentsData.map(c => c.author_name)));
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('full_name, avatar_index')
+          .in('full_name', names);
+          
+        if (profilesData) {
+          const avatarMap = new Map(profilesData.map(p => [p.full_name, p.avatar_index]));
+          commentsData = commentsData.map(c => ({
+            ...c,
+            avatar_index: avatarMap.get(c.author_name) ?? undefined
+          }));
+        }
+      }
+      
+      setComments(commentsData);
     } catch (err) {
       console.error('Error fetching comments:', err);
     } finally {
@@ -65,8 +86,14 @@ export function useTaskComments(taskId: string) {
         (payload) => {
           if (payload.eventType === 'INSERT') {
             const newComment = payload.new as TaskComment;
+            
+            // For real-time inserts, we can try to find the avatar from existing comments
             setComments((prev) => {
               if (prev.some((c) => c.id === newComment.id)) return prev;
+              const existingAuthor = prev.find(c => c.author_name === newComment.author_name);
+              if (existingAuthor && existingAuthor.avatar_index !== undefined) {
+                newComment.avatar_index = existingAuthor.avatar_index;
+              }
               return [...prev, newComment];
             });
           } else if (payload.eventType === 'DELETE') {
@@ -116,7 +143,15 @@ export function useTaskComments(taskId: string) {
           .single();
 
         if (error) throw error;
-        if (data) setComments((prev) => [...prev, data]);
+        if (data) {
+          // Read local avatar index to show immediately
+          const localAvatar = localStorage.getItem('tp_avatar');
+          const commentWithAvatar: TaskComment = {
+            ...data,
+            avatar_index: localAvatar ? parseInt(localAvatar, 10) : undefined
+          };
+          setComments((prev) => [...prev, commentWithAvatar]);
+        }
       } catch (err) {
         console.error('Error adding comment:', err);
       }

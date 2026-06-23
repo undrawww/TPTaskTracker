@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTaskComments } from '../../hooks/useTaskComments';
 import { useAuth } from '../../contexts/AuthContext';
+import { getAvatarByIndex } from './AvatarIcons';
 
 interface Props {
   taskId: string;
@@ -62,13 +63,18 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
               {/* Avatar initial */}
               <div
                 className={`
-                  w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold mt-0.5
-                  ${c.author_role === 'admin'
+                  w-6 h-6 flex-shrink-0 flex items-center justify-center mt-0.5
+                  ${c.avatar_index !== undefined ? '' : 'rounded-full text-[10px] font-bold'}
+                  ${c.avatar_index !== undefined ? '' : (c.author_role === 'admin'
                     ? 'bg-[#ebbc0f]/25 text-[#8a6d00] dark:text-gold'
-                    : 'bg-[#003946]/10 text-[#003946]/70 dark:bg-white/10 dark:text-cream/60'}
+                    : 'bg-[#003946]/10 text-[#003946]/70 dark:bg-white/10 dark:text-cream/60')}
                 `}
               >
-                {c.author_name.charAt(0).toUpperCase()}
+                {c.avatar_index !== undefined ? (
+                  getAvatarByIndex(c.avatar_index)
+                ) : (
+                  c.author_name.charAt(0).toUpperCase()
+                )}
               </div>
               {/* Content */}
               <div className="flex-1 min-w-0">
