@@ -77,7 +77,7 @@ export function useInterns() {
     if (!isSupabaseConfigured) return;
 
     const channel = supabase
-      .channel('interns_changes')
+      .channel(`interns_changes_${Math.random().toString(36).substring(7)}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'interns' },
@@ -120,24 +120,31 @@ export function useInterns() {
     }
 
     try {
-      // 1. Check if email is registered in profiles
-      const { data: profileData, error: profileError } = await supabase
+      // 1. Must be registered in profiles
+      const { data: profileData } = await supabase
         .from('profiles')
         .select('full_name, role')
         .eq('email', payload.email)
         .single();
         
-      if (profileError || !profileData) {
-        return { success: false, error: 'Email is not registered.' };
+      if (!profileData) {
+        return { success: false, error: 'This email is not registered yet. Please ask them to create an account first.' };
       }
-      
-      if (profileData.role !== 'intern') {
-        return { success: false, error: 'This email is registered as an Admin, not an Intern.' };
+
+      // 2. Prevent adding if already in interns table (no promoting active interns)
+      const { data: existingIntern } = await supabase
+        .from('interns')
+        .select('id')
+        .eq('email', payload.email)
+        .single();
+        
+      if (existingIntern) {
+        return { success: false, error: 'This person is already assigned to the workspace. You cannot change their role here.' };
       }
 
       const { data: userData } = await supabase.auth.getUser();
       
-      // 2. Insert into interns table
+      // 3. Insert into interns table
       const { data, error } = await supabase
         .from('interns')
         .insert([{ 
@@ -150,9 +157,6 @@ export function useInterns() {
         .single();
       
       if (error) {
-        if (error.code === '23505') {
-          return { success: false, error: 'This intern is already assigned to a workspace.' };
-        }
         throw error;
       }
       setInterns(prev => [...prev, data]);

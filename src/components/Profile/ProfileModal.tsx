@@ -25,6 +25,16 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  // Intern Specific Fields
+  const [location, setLocation] = useState('');
+  const [program, setProgram] = useState('');
+  const [currentYear, setCurrentYear] = useState('');
+  const [school, setSchool] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
+  const [personalEmail, setPersonalEmail] = useState('');
+  const [expectedGraduationDate, setExpectedGraduationDate] = useState('');
+  const [requiredHours, setRequiredHours] = useState('');
+
   const [isEditing, setIsEditing] = useState(false);
   const [currentName, setCurrentName] = useState<string>('');
   const [avatarIndex, setAvatarIndex] = useState<number>(getSavedAvatar);
@@ -35,7 +45,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
     if (isOpen && user?.email && isSupabaseConfigured) {
       supabase
         .from('profiles')
-        .select('full_name, avatar_index')
+        .select('full_name, avatar_index, location, program, current_year, school, contact_number, personal_email, expected_graduation_date, required_hours')
         .eq('email', user.email)
         .single()
         .then(({ data }) => {
@@ -48,6 +58,14 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
               setAvatarIndex(data.avatar_index);
               localStorage.setItem('tp_avatar', String(data.avatar_index));
             }
+            if (data.location) setLocation(data.location);
+            if (data.program) setProgram(data.program);
+            if (data.current_year) setCurrentYear(data.current_year);
+            if (data.school) setSchool(data.school);
+            if (data.contact_number) setContactNumber(data.contact_number);
+            if (data.personal_email) setPersonalEmail(data.personal_email);
+            if (data.expected_graduation_date) setExpectedGraduationDate(data.expected_graduation_date);
+            if (data.required_hours) setRequiredHours(String(data.required_hours));
           }
         });
     } else if (!isSupabaseConfigured) {
@@ -100,26 +118,35 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
         if (passError) throw passError;
       }
 
-      if (fullName && fullName !== currentName) {
-        // Update profile table
-        if (user?.email) {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .update({ full_name: fullName })
-            .eq('email', user.email);
-            
-          if (profileError) throw profileError;
+      if (user?.email) {
+        const updateData = {
+          full_name: fullName,
+          location,
+          program,
+          current_year: currentYear,
+          school,
+          contact_number: contactNumber,
+          personal_email: personalEmail,
+          expected_graduation_date: expectedGraduationDate,
+          required_hours: requiredHours ? Number(requiredHours) : null,
+        };
 
-          // If intern, update interns table
-          if (role === 'intern') {
-            const { error: internError } = await supabase
-              .from('interns')
-              .update({ full_name: fullName })
-              .eq('email', user.email);
-            if (internError) throw internError;
-          }
-          setCurrentName(fullName);
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update(updateData)
+          .eq('email', user.email);
+          
+        if (profileError) throw profileError;
+
+        // If intern, update interns table
+        if (role === 'intern') {
+          const { error: internError } = await supabase
+            .from('interns')
+            .update(updateData)
+            .eq('email', user.email);
+          if (internError) throw internError;
         }
+        setCurrentName(fullName);
       }
 
       setSuccess('Profile updated successfully!');
@@ -231,44 +258,90 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSave} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Update Name</label>
-                <input
-                  type="text"
-                  placeholder="New Full Name"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Update Password</label>
-                <input
-                  type="password"
-                  placeholder="Leave blank to keep current"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold"
-                />
-              </div>
-              {password && (
+            <form onSubmit={handleSave} className="flex flex-col max-h-[70vh]">
+              <div className="overflow-y-auto pr-2 space-y-4 pb-4 custom-scrollbar">
                 <div>
-                  <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Confirm Password</label>
+                  <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Update Name</label>
                   <input
-                    type="password"
-                    placeholder="Re-enter new password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    type="text"
+                    placeholder="New Full Name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold"
                   />
                 </div>
-              )}
+                <div>
+                  <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Update Password</label>
+                  <input
+                    type="password"
+                    placeholder="Leave blank to keep current"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold"
+                  />
+                </div>
+                {password && (
+                  <div>
+                    <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Confirm Password</label>
+                    <input
+                      type="password"
+                      placeholder="Re-enter new password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold"
+                    />
+                  </div>
+                )}
 
-              {error && <p className="text-sm text-status-hold bg-status-hold-bg px-3 py-2 rounded-lg">{error}</p>}
-              {success && <p className="text-sm text-status-done bg-status-done-bg px-3 py-2 rounded-lg">{success}</p>}
+                {role === 'intern' && (
+                  <div className="pt-4 mt-4 border-t border-teal/10 dark:border-white/10">
+                    <h4 className="text-sm font-bold text-teal dark:text-cream mb-4">Internship Details</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Location</label>
+                        <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Program</label>
+                        <input type="text" value={program} onChange={(e) => setProgram(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Current Year</label>
+                          <input type="text" value={currentYear} onChange={(e) => setCurrentYear(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Graduation Date</label>
+                          <input type="text" placeholder="e.g. May 2027" value={expectedGraduationDate} onChange={(e) => setExpectedGraduationDate(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-teal dark:text-cream mb-1">School</label>
+                        <input type="text" value={school} onChange={(e) => setSchool(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Contact Number</label>
+                          <input type="text" value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Required Hours</label>
+                          <input type="number" value={requiredHours} onChange={(e) => setRequiredHours(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Personal Email</label>
+                        <input type="email" value={personalEmail} onChange={(e) => setPersonalEmail(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" />
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-              <div className="flex gap-3 pt-2">
+                {error && <p className="text-sm text-status-hold bg-status-hold-bg px-3 py-2 rounded-lg">{error}</p>}
+                {success && <p className="text-sm text-status-done bg-status-done-bg px-3 py-2 rounded-lg">{success}</p>}
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t border-teal/10 dark:border-white/10 shrink-0">
                 <button
                   type="button"
                   onClick={() => {
@@ -284,7 +357,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
                 </button>
                 <button
                   type="submit"
-                  disabled={loading || (!fullName && !password)}
+                  disabled={loading || (!fullName && !password && !location && !program && !currentYear && !school && !contactNumber && !personalEmail && !expectedGraduationDate && !requiredHours)}
                   className="flex-1 py-2.5 rounded-xl bg-gold text-teal font-semibold text-sm hover:bg-gold-light transition-colors disabled:opacity-50"
                 >
                   {loading ? 'Saving...' : 'Save Changes'}

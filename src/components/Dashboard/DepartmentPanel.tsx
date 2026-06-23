@@ -63,18 +63,18 @@ export const DepartmentPanel: React.FC<Props> = ({
   const doneTasks = totalTasks.filter((t) => t.is_verified).length;
 
   return (
-    <div className="bg-white dark:bg-[#003946] border border-cream-dark/30 dark:border-teal-lighter/15 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
-      <div className="bg-gradient-to-r from-teal to-[#004d5e] rounded-t-2xl px-5 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3 text-white">
+    <div className="bg-[#d9caa8] dark:bg-[#003946] border border-cream-dark/30 dark:border-teal-lighter/15 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+      <div className="bg-white dark:bg-gradient-to-r dark:from-teal dark:to-[#004d5e] rounded-t-2xl px-5 py-4 flex items-center justify-between border-b border-teal/10 dark:border-transparent">
+        <div className="flex items-center gap-3 text-teal dark:text-white">
           <div className="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
             {DEPT_ICONS[department]}
           </div>
-          <h3 className="font-poppins text-lg font-bold text-[#fbbc04] uppercase leading-tight tracking-wide">
+          <h3 className="font-poppins text-lg font-bold text-teal dark:text-[#fbbc04] uppercase leading-tight tracking-wide">
             {department}
           </h3>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-white/60 font-semibold tabular-nums">
+          <span className="text-sm text-teal/70 dark:text-white/60 font-semibold tabular-nums">
             {doneTasks}/{totalTasks.length}
           </span>
           <div className="relative w-11 h-11 flex items-center justify-center">
@@ -89,7 +89,7 @@ export const DepartmentPanel: React.FC<Props> = ({
                 className="transition-all duration-700 ease-out"
               />
             </svg>
-            <span className="text-[10px] font-extrabold text-white z-10 relative tabular-nums">
+            <span className="text-[10px] font-extrabold text-teal dark:text-white z-10 relative tabular-nums">
               {totalTasks.length > 0 ? Math.round((doneTasks / totalTasks.length) * 100) : 0}%
             </span>
           </div>

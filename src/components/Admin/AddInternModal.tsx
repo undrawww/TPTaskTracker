@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DEPARTMENTS, type Department, type Intern } from '../../types';
 
 interface Props {
@@ -14,6 +14,13 @@ export const AddInternModal: React.FC<Props> = ({ isOpen, onClose, interns, onSu
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,7 +35,10 @@ export const AddInternModal: React.FC<Props> = ({ isOpen, onClose, interns, onSu
     setSubmitting(true);
     setError(null);
 
-    const result = await onSubmit({ email: trimmedEmail, department });
+    const result = await onSubmit({ 
+      email: trimmedEmail, 
+      department: department
+    });
     setSubmitting(false);
 
     if (!result || result.success !== false) {
@@ -51,7 +61,7 @@ export const AddInternModal: React.FC<Props> = ({ isOpen, onClose, interns, onSu
       >
         {/* Header */}
         <div className="bg-teal dark:bg-[#00151a] text-white px-6 py-4 rounded-t-2xl flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Add New Intern</h2>
+          <h2 className="text-lg font-semibold">Add Intern</h2>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center transition-colors"
@@ -80,22 +90,22 @@ export const AddInternModal: React.FC<Props> = ({ isOpen, onClose, interns, onSu
           </div>
 
           <div>
-            <label htmlFor="intern-department" className="block text-sm font-medium text-teal dark:text-cream mb-1.5">
-              Department
-            </label>
-            <select
-              id="intern-department"
-              value={department}
-              onChange={(e) => setDepartment(e.target.value as Department)}
-              className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent transition-all appearance-none cursor-pointer"
-            >
-              {DEPARTMENTS.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
-            </select>
-          </div>
+              <label htmlFor="intern-department" className="block text-sm font-medium text-teal dark:text-cream mb-1.5">
+                Department
+              </label>
+              <select
+                id="intern-department"
+                value={department}
+                onChange={(e) => setDepartment(e.target.value as Department)}
+                className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent transition-all appearance-none cursor-pointer"
+              >
+                {DEPARTMENTS.map((dept) => (
+                  <option key={dept} value={dept}>
+                    {dept}
+                  </option>
+                ))}
+              </select>
+            </div>
 
           {error && (
             <p className="text-sm text-status-hold bg-status-hold-bg px-3 py-2 rounded-lg">

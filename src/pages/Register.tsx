@@ -4,8 +4,8 @@ import { supabase } from '../lib/supabaseClient';
 
 export const Register: React.FC = () => {
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState<'admin' | 'intern'>('intern');
   const [email, setEmail] = useState('');
+  const [role, setRole] = useState<'intern' | 'admin'>('intern');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -34,13 +34,20 @@ export const Register: React.FC = () => {
     }
 
     if (authData.user) {
+      const { count: adminCount } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'admin');
+        
+      const finalRole = adminCount === 0 ? 'admin' : role;
+
       const { error: profileError } = await supabase
         .from('profiles')
         .insert([{
           id: authData.user.id,
           email: email,
           full_name: fullName,
-          role: role
+          role: finalRole
         }]);
 
       if (profileError) {
@@ -48,6 +55,10 @@ export const Register: React.FC = () => {
         setError(`Profile creation failed: ${profileError.message || JSON.stringify(profileError)}`);
         setLoading(false);
         return;
+      }
+      
+      if (internData) {
+        await supabase.from('interns').update({ full_name: fullName }).eq('email', email);
       }
     }
 
@@ -163,34 +174,36 @@ export const Register: React.FC = () => {
 
                 {/* Role */}
                 <div className="space-y-1.5">
-                  <label htmlFor="role" className="block text-[11px] font-bold uppercase tracking-[0.1em] text-teal/50 dark:text-cream/40">
-                    Register as
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <label className="text-[11px] font-bold text-teal/70 dark:text-cream/50 uppercase tracking-widest px-1">Role</label>
+                  <div className="grid grid-cols-2 gap-2 p-1 bg-white dark:bg-[#00151a] border border-teal/10 dark:border-white/10 rounded-[14px]">
                     <button
                       type="button"
                       onClick={() => setRole('intern')}
-                      className={`py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 border ${
-                        role === 'intern'
-                          ? 'bg-teal text-cream border-teal shadow-md shadow-teal/20'
-                          : 'bg-white dark:bg-white/5 text-teal/50 dark:text-cream/40 border-teal/8 dark:border-white/8 hover:border-teal/20 dark:hover:border-white/15'
-                      }`}
+                      className={`
+                        py-2 text-sm font-semibold rounded-xl transition-all duration-200
+                        ${role === 'intern' 
+                          ? 'bg-teal dark:bg-white/10 text-white dark:text-cream shadow-sm' 
+                          : 'text-teal/50 dark:text-cream/50 hover:bg-teal/5 dark:hover:bg-white/5'}
+                      `}
                     >
                       Intern
                     </button>
                     <button
                       type="button"
                       onClick={() => setRole('admin')}
-                      className={`py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 border ${
-                        role === 'admin'
-                          ? 'bg-teal text-cream border-teal shadow-md shadow-teal/20'
-                          : 'bg-white dark:bg-white/5 text-teal/50 dark:text-cream/40 border-teal/8 dark:border-white/8 hover:border-teal/20 dark:hover:border-white/15'
-                      }`}
+                      className={`
+                        py-2 text-sm font-semibold rounded-xl transition-all duration-200
+                        ${role === 'admin' 
+                          ? 'bg-teal dark:bg-white/10 text-white dark:text-cream shadow-sm' 
+                          : 'text-teal/50 dark:text-cream/50 hover:bg-teal/5 dark:hover:bg-white/5'}
+                      `}
                     >
                       Administrator
                     </button>
                   </div>
                 </div>
+
+
 
                 {/* Email */}
                 <div className="space-y-1.5">

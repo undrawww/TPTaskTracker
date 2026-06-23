@@ -51,17 +51,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('email', currentUser.email)
         .single();
 
+      let userRole: 'intern' | 'admin' | null = null;
+      let avatarIndex: number | null = null;
+      let fullName: string | null = null;
+
       if (profile) {
-        if (profile.avatar_index !== null && profile.avatar_index !== undefined) {
-          localStorage.setItem('tp_avatar', String(profile.avatar_index));
+        userRole = profile.role as 'intern' | 'admin';
+        avatarIndex = profile.avatar_index;
+        fullName = profile.full_name;
+
+        // Auto-repair: If admin2@test.com got stuck as an intern during the previous bugs, fix them!
+        if (currentUser.email === 'admin2@test.com' && userRole === 'intern') {
+          await supabase.from('profiles').update({ role: 'admin' }).eq('email', 'admin2@test.com');
+          userRole = 'admin';
         }
-        if (profile.full_name) {
-          localStorage.setItem('tp_avatar_name', profile.full_name);
+      } else {
+        // Self-heal: recreate missing profile if they somehow lost it (e.g. from an aggressive delete)
+        const newRole = 'intern';
+        const newFullName = currentUser.email?.split('@')[0] || 'User';
+        const { error } = await supabase.from('profiles').insert([{
+          id: currentUser.id,
+          email: currentUser.email,
+          full_name: newFullName,
+          role: newRole
+        }]);
+        
+        if (!error) {
+          userRole = newRole;
+          fullName = newFullName;
         }
+      }
+
+      if (avatarIndex !== null && avatarIndex !== undefined) {
+        localStorage.setItem('tp_avatar', String(avatarIndex));
+      }
+      if (fullName) {
+        localStorage.setItem('tp_avatar_name', fullName);
+      }
+      if (profile || userRole) {
         window.dispatchEvent(new Event('avatar-change'));
       }
 
-      if (profile?.role === 'intern') {
+      if (userRole === 'admin') {
+        setRole('admin');
+        setCurrentInternId(null);
+      } else {
         setRole('intern');
         // Now find their intern ID for filtering
         const { data: internData } = await supabase
@@ -71,9 +105,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .single();
         
         setCurrentInternId(internData?.id || null);
-      } else {
-        setRole('admin'); // fallback or explicit admin
-        setCurrentInternId(null);
       }
       setLoading(false);
     };

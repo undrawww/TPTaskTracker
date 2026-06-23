@@ -10,36 +10,41 @@ import {
   Cell,
 } from 'recharts';
 import { CHART_COLORS } from '../../types';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface Props {
   data: { department: string; rate: number; completed: number; total: number }[];
 }
 
 export const OverallProgressChart: React.FC<Props> = ({ data }) => {
-  const barColors = [
-    CHART_COLORS.teal,
-    CHART_COLORS.tealLight,
-    CHART_COLORS.tealLighter,
-    CHART_COLORS.gold,
-  ];
+  const { theme } = useTheme();
+  
+  const barColors = theme === 'light'
+    ? ['#003946', '#0a5060', '#1a6a7a', '#2a8494']
+    : ['#fbbc04', '#fad02c', '#fce27b', '#fdf3b8'];
+
+  const textColor = theme === 'light' ? '#003946' : '#f5e7c6';
+  const gridColor = theme === 'light' ? 'rgba(0,57,70,0.08)' : 'rgba(245,231,198,0.08)';
+  const tooltipBg = theme === 'light' ? '#d9caa8' : '#003946';
+  const tooltipBorder = theme === 'light' ? '1px solid rgba(0,57,70,0.1)' : 'none';
 
   return (
-    <div className="rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300 bg-gradient-to-br from-[#003946] to-[#004d5e]">
-      <h3 className="text-[11px] font-bold text-[#f5e7c6]/70 uppercase tracking-[0.15em] mb-4">
+    <div className="rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300 bg-[#d9caa8] dark:bg-gradient-to-br dark:from-[#003946] dark:to-[#004d5e] border border-teal/10 dark:border-white/5">
+      <h3 className="text-[11px] font-bold text-teal/70 dark:text-[#f5e7c6]/70 uppercase tracking-[0.15em] mb-4">
         Overall Progress
       </h3>
       <div className="h-52" style={{ minHeight: '208px' }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(245,231,198,0.08)" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
             <XAxis
               dataKey="department"
-              tick={{ fontSize: 11, fill: '#f5e7c6', fontWeight: 'bold' }}
+              tick={{ fontSize: 11, fill: textColor, fontWeight: 'bold' }}
               tickLine={false}
               axisLine={false}
             />
             <YAxis
-              tick={{ fontSize: 11, fill: '#f5e7c6', fontWeight: 'bold' }}
+              tick={{ fontSize: 11, fill: textColor, fontWeight: 'bold' }}
               tickLine={false}
               axisLine={false}
               domain={[0, 100]}
@@ -48,13 +53,13 @@ export const OverallProgressChart: React.FC<Props> = ({ data }) => {
             <Tooltip
               formatter={(value) => [`${value}%`, 'Completion']}
               contentStyle={{
-                backgroundColor: '#003946',
-                border: 'none',
+                backgroundColor: tooltipBg,
+                border: tooltipBorder,
                 borderRadius: '8px',
-                color: '#fff',
+                color: textColor,
               }}
               labelStyle={{ color: '#ebbc0f', fontWeight: 600 }}
-              itemStyle={{ color: '#fff' }}
+              itemStyle={{ color: textColor }}
             />
             <Bar dataKey="rate" radius={[6, 6, 0, 0]} barSize={32}>
               {data.map((_, index) => (

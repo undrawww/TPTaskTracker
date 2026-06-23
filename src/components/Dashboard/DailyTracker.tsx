@@ -30,21 +30,36 @@ export const DailyTracker: React.FC<Props> = ({
           {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
         </span>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {DEPARTMENTS.map((dept) => (
-          <DepartmentPanel
-            key={dept}
-            department={dept}
-            interns={interns}
-            tasks={tasks}
-            onStatusChange={onStatusChange}
-            onVerifyChange={onVerifyChange}
-            onEditTask={onEditTask}
-            onDeleteIntern={onDeleteIntern}
-            onDeleteTask={onDeleteTask}
-          />
-        ))}
-      </div>
+      {interns.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 bg-teal/5 dark:bg-[#002833]/50 rounded-2xl border border-teal/10 dark:border-white/5">
+          <div className="w-16 h-16 rounded-2xl bg-teal/10 dark:bg-white/5 flex items-center justify-center mb-4">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-teal/40 dark:text-cream/30">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <line x1="17" y1="8" x2="23" y2="14" />
+              <line x1="23" y1="8" x2="17" y2="14" />
+            </svg>
+          </div>
+          <h3 className="text-base font-semibold text-teal dark:text-cream mb-1">No interns found</h3>
+          <p className="text-sm text-teal/50 dark:text-cream/40">Add interns to start tracking their tasks.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {DEPARTMENTS.map((dept) => (
+            <DepartmentPanel
+              key={dept}
+              department={dept}
+              interns={interns}
+              tasks={tasks}
+              onStatusChange={onStatusChange}
+              onVerifyChange={onVerifyChange}
+              onEditTask={onEditTask}
+              onDeleteIntern={onDeleteIntern}
+              onDeleteTask={onDeleteTask}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 };

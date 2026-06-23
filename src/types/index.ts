@@ -27,6 +27,15 @@ export interface Intern {
   department: Department;
   email: string;
   avatar_index?: number;
+  location?: string;
+  program?: string;
+  current_year?: string;
+  school?: string;
+  contact_number?: string;
+  personal_email?: string;
+  team_email?: string;
+  expected_graduation_date?: string;
+  required_hours?: number;
 }
 
 export interface DailyTask {
@@ -78,3 +87,29 @@ export const CHART_COLORS = {
   hold: '#ef4444',
   ack: '#0a5060',
 };
+
+/* ──────────────────────────────────────────────
+   Attendance Types
+   ────────────────────────────────────────────── */
+
+export interface AttendanceRecord {
+  id: string;
+  intern_name: string;
+  attendance_date: string;       // YYYY-MM-DD
+  time_in: string | null;         // ISO timestamp
+  break_out: string | null;
+  break_in: string | null;
+  time_out: string | null;
+  total_hours: number | null;     // Auto-computed by DB
+  accomplishments: string;
+  admin_feedback: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type AttendanceAction = 'time_in' | 'break_out' | 'break_in' | 'time_out';
+
+/** Enriched attendance with intern info for display */
+export interface AttendanceWithIntern extends AttendanceRecord {
+  intern?: Intern;
+}

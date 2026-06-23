@@ -66,7 +66,7 @@ export function useDailyTasks(date?: string) {
     if (!isSupabaseConfigured) return;
 
     const channel = supabase
-      .channel('daily_tasks_changes')
+      .channel(`daily_tasks_changes_${Math.random().toString(36).substring(7)}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'daily_tasks' },
