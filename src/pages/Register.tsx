@@ -68,19 +68,14 @@ export const Register: React.FC = () => {
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #f5e7c6 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
 
         <div className="relative z-10 max-w-sm text-center">
-          <div className="w-20 h-20 rounded-3xl bg-gold/15 backdrop-blur-sm border border-gold/20 mx-auto flex items-center justify-center mb-8">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fbbc04" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-              <circle cx="8.5" cy="7" r="4" />
-              <line x1="20" y1="8" x2="20" y2="14" />
-              <line x1="23" y1="11" x2="17" y2="11" />
-            </svg>
+          <div className="w-24 h-24 mx-auto flex items-center justify-center mb-8 drop-shadow-xl">
+            <img src="https://res.cloudinary.com/dqmmfgbf1/image/upload/v1782145581/ICOZ_aatvaa.png" alt="Task Tracker Logo" className="w-full h-full object-contain" />
           </div>
           <h1 className="font-poppins text-4xl font-bold text-cream tracking-tight leading-tight">
             Join the Team
           </h1>
           <p className="text-cream/40 text-sm font-medium mt-4 leading-relaxed">
-            Create your account and start collaborating with Team Padua today.
+            Create your account and start collaborating on Task Tracker today.
           </p>
 
           {/* Decorative dots */}
