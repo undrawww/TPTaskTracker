@@ -47,7 +47,7 @@ export const TaskStatusChart: React.FC<Props> = ({ data }) => {
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 20, right: 10, left: -20, bottom: 5 }}>
+            <BarChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
               <XAxis dataKey="name" tick={{ fontSize: 11, fill: textColor, fontWeight: 'bold' }} tickLine={false} axisLine={false} interval={0} />
               <Tooltip
