@@ -59,7 +59,7 @@ export const TaskStatusChart: React.FC<Props> = ({ data }) => {
                 }}
                 itemStyle={{ color: textColor, fontWeight: 'bold' }}
               />
-              <Legend wrapperStyle={{ fontSize: 11, color: textColor, fontWeight: 'bold' }} iconType="square" iconSize={10} />
+              <Legend verticalAlign="bottom" align="center" wrapperStyle={{ fontSize: 11, color: textColor, fontWeight: 'bold', paddingTop: '10px' }} iconType="square" iconSize={10} />
               <Bar dataKey="On Hold" stackId="a" fill={getStatusColor('On Hold')} />
               <Bar dataKey="In Progress" stackId="a" fill={getStatusColor('In Progress')} />
               <Bar dataKey="Acknowledge" stackId="a" fill={getStatusColor('Acknowledge')} />
