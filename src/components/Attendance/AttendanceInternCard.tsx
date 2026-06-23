@@ -48,10 +48,7 @@ const ICONS = {
   ),
 };
 
-/** Get the initial letter for the avatar fallback */
-function getInitial(name: string): string {
-  return name.charAt(0).toUpperCase();
-}
+
 
 /** Format total hours */
 function formatHours(hours: number | null): string {

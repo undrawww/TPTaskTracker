@@ -4,6 +4,7 @@ import { TASK_STATUSES, type TaskStatus } from '../../types';
 interface Props {
   status: TaskStatus;
   onChange: (newStatus: TaskStatus) => void;
+  disabled?: boolean;
 }
 
 const STATUS_STYLES: Record<TaskStatus, { bg: string; text: string; ring: string; dot: string; dropdownText: string; dropdownDot: string }> = {
@@ -21,7 +22,7 @@ const STATUS_STYLES: Record<TaskStatus, { bg: string; text: string; ring: string
   },
 };
 
-export const StatusBadge: React.FC<Props> = ({ status, onChange }) => {
+export const StatusBadge: React.FC<Props> = ({ status, onChange, disabled }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const style = STATUS_STYLES[status];
@@ -40,18 +41,21 @@ export const StatusBadge: React.FC<Props> = ({ status, onChange }) => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
+        disabled={disabled}
         className={`
           inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold
           ${style.bg} ${style.text}
-          hover:ring-2 ${style.ring} hover:ring-opacity-40
-          transition-all duration-200 cursor-pointer
+          ${disabled ? 'opacity-70 cursor-not-allowed' : `hover:ring-2 ${style.ring} hover:ring-opacity-40 cursor-pointer`}
+          transition-all duration-200
         `}
       >
         <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
         {status}
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
+        {!disabled && (
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        )}
       </button>
 
       {isOpen && (
