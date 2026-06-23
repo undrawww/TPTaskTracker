@@ -127,7 +127,7 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        <span className={`text-sm font-medium leading-snug flex-1 min-w-0 truncate ${status === 'Done' ? 'text-teal/35 dark:text-cream/35 line-through' : 'text-teal dark:text-cream'}`}>
+        <span className={`text-sm font-medium leading-snug flex-1 min-w-0 break-words ${status === 'Done' ? 'text-teal/35 dark:text-cream/35 line-through' : 'text-teal dark:text-cream'}`}>
           {taskName}
         </span>
         <div className="flex items-center gap-3">
