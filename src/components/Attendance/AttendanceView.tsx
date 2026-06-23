@@ -50,8 +50,8 @@ export const AttendanceView: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => {
-              const d = new Date(selectedDate + 'T00:00:00');
-              d.setDate(d.getDate() - 1);
+              const d = new Date(selectedDate);
+              d.setUTCDate(d.getUTCDate() - 1);
               setSelectedDate(d.toISOString().split('T')[0]);
             }}
             className="w-8 h-8 flex items-center justify-center rounded-lg bg-teal/5 dark:bg-white/5 text-teal/50 dark:text-cream/50 hover:bg-teal/10 dark:hover:bg-white/10 hover:text-teal dark:hover:text-cream transition-all duration-200 cursor-pointer"
@@ -78,8 +78,8 @@ export const AttendanceView: React.FC = () => {
 
           <button
             onClick={() => {
-              const d = new Date(selectedDate + 'T00:00:00');
-              d.setDate(d.getDate() + 1);
+              const d = new Date(selectedDate);
+              d.setUTCDate(d.getUTCDate() + 1);
               setSelectedDate(d.toISOString().split('T')[0]);
             }}
             className="w-8 h-8 flex items-center justify-center rounded-lg bg-teal/5 dark:bg-white/5 text-teal/50 dark:text-cream/50 hover:bg-teal/10 dark:hover:bg-white/10 hover:text-teal dark:hover:text-cream transition-all duration-200 cursor-pointer"

@@ -117,7 +117,7 @@ export const AddInternModal: React.FC<Props> = ({ isOpen, onClose, interns, onSu
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 rounded-xl border border-cream-dark text-teal/60 hover:bg-cream transition-colors font-medium text-sm"
+              className="flex-1 px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light text-cream-dark dark:text-teal-light hover:bg-cream/50 dark:hover:bg-[#003946] transition-colors font-medium text-sm"
             >
               Cancel
             </button>

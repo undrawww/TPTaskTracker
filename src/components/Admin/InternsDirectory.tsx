@@ -1,5 +1,6 @@
 import React from 'react';
 import { useInterns } from '../../hooks/useInterns';
+import { getAvatarIcon, getAvatarByIndex } from '../Dashboard/AvatarIcons';
 
 export const InternsDirectory: React.FC = () => {
   const { interns, loading, error } = useInterns();
@@ -57,9 +58,16 @@ export const InternsDirectory: React.FC = () => {
               {interns.map((intern) => (
                 <tr key={intern.id} className="hover:bg-teal/5 dark:hover:bg-white/5 transition-colors duration-200">
                   <td className="px-5 py-4 align-middle">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold text-teal dark:text-cream">{intern.full_name}</span>
-                      <span className="text-[11px] text-teal/60 dark:text-cream/50 mt-0.5">{intern.department}</span>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm">
+                        {intern.avatar_index !== undefined 
+                          ? getAvatarByIndex(intern.avatar_index) 
+                          : getAvatarIcon(intern.full_name)}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-teal dark:text-cream">{intern.full_name}</span>
+                        <span className="text-[11px] text-teal/60 dark:text-cream/50 mt-0.5">{intern.department}</span>
+                      </div>
                     </div>
                   </td>
                   <td className="px-5 py-4 align-middle">

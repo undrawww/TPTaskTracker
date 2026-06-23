@@ -351,7 +351,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
                     setPassword('');
                     setConfirmPassword('');
                   }}
-                  className="flex-1 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light text-teal/60 dark:text-cream/60 font-semibold text-sm hover:bg-cream/50 dark:hover:bg-[#003946] transition-colors"
+                  className="flex-1 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light text-cream-dark dark:text-teal-light font-semibold text-sm hover:bg-cream/50 dark:hover:bg-[#003946] transition-colors"
                 >
                   Cancel
                 </button>
