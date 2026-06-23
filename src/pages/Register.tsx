@@ -43,7 +43,7 @@ export const Register: React.FC = () => {
 
       const { error: profileError } = await supabase
         .from('profiles')
-        .insert([{
+        .upsert([{
           id: authData.user.id,
           email: email,
           full_name: fullName,
