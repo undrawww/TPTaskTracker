@@ -65,7 +65,7 @@ export const TimeStampButton: React.FC<TimeStampButtonProps> = ({
         w-10 h-10 mx-auto flex items-center justify-center rounded-xl
         transition-all duration-200 group relative
         ${disabled
-          ? 'bg-teal/5 dark:bg-white/5 text-teal/40 dark:text-white/30 cursor-not-allowed opacity-60'
+          ? 'bg-teal/10 dark:bg-white/5 text-teal dark:text-white/30 cursor-not-allowed opacity-70'
           : 'bg-teal/10 dark:bg-gold/10 hover:bg-teal/20 dark:hover:bg-gold/20 text-teal dark:text-gold hover:text-[#004d5e] dark:hover:text-gold-dark border border-teal/30 dark:border-gold/30 hover:border-teal/50 dark:hover:border-gold/50 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer shadow-sm hover:shadow'
         }
       `}
