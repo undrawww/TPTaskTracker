@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTaskComments } from '../../hooks/useTaskComments';
 import { useAuth } from '../../contexts/AuthContext';
 import { getAvatarByIndex } from './AvatarIcons';
@@ -12,13 +12,18 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
   const { comments, loading, fetchComments, addComment, deleteComment } = useTaskComments(taskId);
   const [newComment, setNewComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
-
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     fetchComments();
   }, [fetchComments]);
 
-
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+    }
+  }, [newComment]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,7 +101,7 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
                     {formatTime(c.created_at)}
                   </span>
                 </div>
-                <p className="text-xs text-[#003946]/90 dark:text-cream/80 leading-relaxed mt-0.5 break-words">
+                <p className="text-xs text-[#003946]/90 dark:text-cream/80 leading-relaxed mt-0.5 break-words whitespace-pre-wrap">
                   {c.content}
                 </p>
               </div>
@@ -120,13 +125,20 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
       </div>
 
       {/* New comment input */}
-      <form onSubmit={handleSubmit} className="flex items-center gap-2 px-3.5 py-2.5 border-t border-[#003946]/10 dark:border-teal-lighter/10 bg-[#c1b290] dark:bg-[#001a22]">
-        <input
-          type="text"
+      <form onSubmit={handleSubmit} className="flex items-end gap-2 px-3.5 py-2.5 border-t border-[#003946]/10 dark:border-teal-lighter/10 bg-[#c1b290] dark:bg-[#001a22]">
+        <textarea
+          ref={textareaRef}
+          rows={1}
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSubmit(e);
+            }
+          }}
           placeholder="Write a comment…"
-          className="flex-1 text-xs px-3 py-2 rounded-lg border border-[#003946]/15 dark:border-teal-lighter/15 bg-[#c8bda3] dark:bg-[#002b36] text-[#003946] dark:text-cream placeholder:text-[#003946]/50 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-[#ebbc0f]/50 focus:border-[#ebbc0f]/50 transition-all"
+          className="flex-1 resize-none text-xs px-3 py-2 rounded-lg border border-[#003946]/15 dark:border-teal-lighter/15 bg-[#c8bda3] dark:bg-[#002b36] text-[#003946] dark:text-cream placeholder:text-[#003946]/50 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-[#ebbc0f]/50 focus:border-[#ebbc0f]/50 transition-all max-h-[120px] scrollbar-thin"
         />
         <button
           type="submit"
