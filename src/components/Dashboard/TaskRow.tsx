@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { StatusBadge } from './StatusBadge';
 import { TaskComments } from './TaskComments';
 import { useAuth } from '../../contexts/AuthContext';
@@ -24,6 +24,7 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
   const [firstComment, setFirstComment] = useState<string | null>(null);
   const [commentCount, setCommentCount] = useState(0);
   const [hovered, setHovered] = useState(false);
+  const commentsRef = useRef<HTMLDivElement>(null);
 
   // Fetch first comment preview (lightweight — only on mount)
   const loadPreview = useCallback(async () => {
@@ -66,8 +67,13 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
     loadPreview();
   }, [loadPreview]);
 
-  // Refresh preview when comments panel closes
+  // Scroll into view when comments open, refresh preview when they close
   useEffect(() => {
+    if (showComments && commentsRef.current) {
+      setTimeout(() => {
+        commentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    }
     if (!showComments) loadPreview();
   }, [showComments, loadPreview]);
 
@@ -199,7 +205,9 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
       </div>
 
       {/* Expandable comments panel */}
-      {showComments && <TaskComments taskId={id} />}
+      <div ref={commentsRef}>
+        {showComments && <TaskComments taskId={id} />}
+      </div>
     </div>
   );
 };

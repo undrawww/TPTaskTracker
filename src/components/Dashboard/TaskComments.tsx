@@ -46,7 +46,7 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
   };
 
   return (
-    <div className="mt-1.5 ml-4 mr-2 rounded-xl bg-[#f0ebe0] dark:bg-[#002530] border border-[#003946]/15 dark:border-teal-lighter/10 shadow-sm overflow-hidden animate-slide-up">
+    <div className="mt-1.5 ml-4 mr-2 rounded-xl bg-[#c1b290] dark:bg-[#002530] border border-[#003946]/15 dark:border-teal-lighter/10 shadow-sm overflow-hidden animate-slide-up">
       {/* Comments list */}
       <div className="max-h-48 overflow-y-auto px-4 pt-3.5 pb-1.5 space-y-3 scrollbar-thin">
         {loading ? (
