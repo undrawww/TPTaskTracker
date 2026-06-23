@@ -81,6 +81,7 @@ export function useWeeklyTasks(weekNumber: number) {
       }
 
       try {
+        const { data: userData } = await supabase.auth.getUser();
         const { data, error: insertError } = await supabase
           .from('weekly_tasks')
           .insert([{
@@ -88,6 +89,7 @@ export function useWeeklyTasks(weekNumber: number) {
             task_name: taskName,
             status: 'Pending' as TaskStatus,
             week_number: weekNumber,
+            admin_id: userData.user?.id
           }])
           .select()
           .single();

@@ -119,6 +119,7 @@ export function useDailyTasks(date?: string) {
       }
 
       try {
+        const { data: userData } = await supabase.auth.getUser();
         const { data, error: insertError } = await supabase
           .from('daily_tasks')
           .insert([{
@@ -126,6 +127,7 @@ export function useDailyTasks(date?: string) {
             task_name: taskName,
             status: 'Pending' as TaskStatus,
             task_date: targetDate,
+            admin_id: userData.user?.id
           }])
           .select()
           .single();

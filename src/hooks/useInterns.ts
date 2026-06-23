@@ -107,13 +107,16 @@ export function useInterns() {
         return { success: false, error: 'This email is registered as an Admin, not an Intern.' };
       }
 
+      const { data: userData } = await supabase.auth.getUser();
+      
       // 2. Insert into interns table
       const { data, error } = await supabase
         .from('interns')
         .insert([{ 
           full_name: profileData.full_name, 
           department: payload.department,
-          email: payload.email
+          email: payload.email,
+          admin_id: userData.user?.id
         }])
         .select()
         .single();
