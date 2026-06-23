@@ -80,6 +80,7 @@ export const InternTaskGroup: React.FC<Props> = ({ internId, internName, avatarI
             <TaskRow
               key={task.id}
               id={task.id}
+              internId={internId}
               taskName={task.task_name}
               status={task.status}
               isVerified={task.is_verified}

@@ -14,10 +14,11 @@ interface Props {
   onVerifyChange?: (taskId: string, isVerified: boolean) => void;
   onEditTask?: (taskId: string, newName: string) => void;
   onDeleteTask?: (taskId: string) => void;
+  internId?: string; // Optional for backward compatibility with WeeklyTasks
 }
 
-export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onStatusChange, onVerifyChange, onEditTask, onDeleteTask }) => {
-  const { role } = useAuth();
+export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onStatusChange, onVerifyChange, onEditTask, onDeleteTask, internId }) => {
+  const { role, currentInternId } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(taskName);
   const [showComments, setShowComments] = useState(false);
@@ -180,6 +181,7 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
           <StatusBadge
             status={status}
             onChange={(newStatus) => onStatusChange(id, newStatus)}
+            disabled={role === 'intern' && internId !== currentInternId}
           />
           <input
             type="checkbox"

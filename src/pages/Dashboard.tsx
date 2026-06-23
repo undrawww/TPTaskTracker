@@ -43,15 +43,19 @@ export const Dashboard: React.FC = () => {
   const isLoading = internsLoading || tasksLoading;
 
   // Filter data based on role
-  const displayInterns = (role === 'intern' && currentInternId 
-    ? interns.filter(i => i.id === currentInternId) 
-    : interns).filter(i => (i.department as string) !== 'Administrator');
+  const displayInterns = (() => {
+    if (role === 'admin') return interns;
+    if (role === 'intern' && currentInternId) return interns;
+    return []; // intern but not added yet sees nothing
+  })().filter(i => (i.department as string) !== 'Administrator');
 
   const validInternIds = new Set(interns.map(i => i.id));
 
-  const displayDailyTasks = (role === 'intern' && currentInternId
-    ? dailyTasks.filter(t => t.intern_id === currentInternId)
-    : dailyTasks).filter(t => validInternIds.has(t.intern_id));
+  const displayDailyTasks = (() => {
+    if (role === 'admin') return dailyTasks;
+    if (role === 'intern' && currentInternId) return dailyTasks;
+    return [];
+  })().filter(t => validInternIds.has(t.intern_id));
 
   const analytics = useAnalytics(displayInterns, displayDailyTasks);
 

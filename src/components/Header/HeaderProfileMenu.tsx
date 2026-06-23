@@ -20,6 +20,13 @@ export const HeaderProfileMenu: React.FC<Props> = ({ onOpenProfile, onLogout }) 
   };
   const [avatarIdx, setAvatarIdx] = useState(getAvatarIdx);
 
+  const getDisplayName = () => {
+    const rawName = localStorage.getItem('tp_avatar_name') || user?.user_metadata?.full_name;
+    if (rawName) return rawName;
+    return user?.email?.split('@')[0] || 'User';
+  };
+  const [displayName, setDisplayName] = useState(getDisplayName);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -32,7 +39,10 @@ export const HeaderProfileMenu: React.FC<Props> = ({ onOpenProfile, onLogout }) 
 
   // Listen for avatar changes from the ProfileModal
   useEffect(() => {
-    const handler = () => setAvatarIdx(getAvatarIdx());
+    const handler = () => {
+      setAvatarIdx(getAvatarIdx());
+      setDisplayName(getDisplayName());
+    };
     window.addEventListener('avatar-change', handler);
     return () => window.removeEventListener('avatar-change', handler);
   }, []);
@@ -52,7 +62,7 @@ export const HeaderProfileMenu: React.FC<Props> = ({ onOpenProfile, onLogout }) 
         <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-[#082026] rounded-2xl shadow-xl border border-cream-dark dark:border-teal-light py-2 z-50 animate-slide-up">
           <div className="px-4 py-3 border-b border-cream-dark dark:border-teal-light">
             <p className="text-sm font-semibold text-teal dark:text-cream truncate">
-              {user?.email || 'User'}
+              {displayName}
             </p>
           </div>
 

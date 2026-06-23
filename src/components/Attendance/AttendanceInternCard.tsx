@@ -1,6 +1,8 @@
 import React from 'react';
 import type { AttendanceWithIntern, AttendanceAction } from '../../types';
 import { TimeStampButton } from './TimeStampButton';
+import { useAuth } from '../../contexts/AuthContext';
+import { getAvatarIcon, getAvatarByIndex } from '../Dashboard/AvatarIcons';
 
 interface AttendanceInternCardProps {
   record: AttendanceWithIntern;
@@ -66,7 +68,10 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
   onTextChange,
   isAdmin,
 }) => {
+  const { currentInternId, role } = useAuth();
   const { intern_name, time_in, break_out, break_in, time_out, total_hours } = record;
+
+  const isOwner = role === 'intern' && currentInternId === record.intern?.id;
 
   // Sequential lock logic
   const canBreakOut = time_in !== null && break_out === null;
@@ -78,8 +83,10 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
       {/* Intern Info */}
       <td className="px-5 py-4 align-middle">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal to-teal-light flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
-            {getInitial(intern_name)}
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm shrink-0">
+            {record.intern?.avatar_index !== undefined 
+              ? getAvatarByIndex(record.intern.avatar_index) 
+              : getAvatarIcon(intern_name)}
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-bold text-teal dark:text-cream leading-tight whitespace-nowrap">
@@ -99,7 +106,7 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
         <TimeStampButton
           label="Time In"
           timestamp={time_in}
-          disabled={time_in !== null}
+          disabled={!isOwner || time_in !== null}
           onClick={() => onStamp(intern_name, 'time_in')}
           onUndo={() => onUndoStamp(intern_name, 'time_in')}
           icon={ICONS.time_in}
@@ -111,7 +118,7 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
         <TimeStampButton
           label="Break Out"
           timestamp={break_out}
-          disabled={!canBreakOut}
+          disabled={!isOwner || !canBreakOut}
           onClick={() => onStamp(intern_name, 'break_out')}
           onUndo={() => onUndoStamp(intern_name, 'break_out')}
           icon={ICONS.break_out}
@@ -123,7 +130,7 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
         <TimeStampButton
           label="Break In"
           timestamp={break_in}
-          disabled={!canBreakIn}
+          disabled={!isOwner || !canBreakIn}
           onClick={() => onStamp(intern_name, 'break_in')}
           onUndo={() => onUndoStamp(intern_name, 'break_in')}
           icon={ICONS.break_in}
@@ -135,7 +142,7 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
         <TimeStampButton
           label="Time Out"
           timestamp={time_out}
-          disabled={!canTimeOut}
+          disabled={!isOwner || !canTimeOut}
           onClick={() => onStamp(intern_name, 'time_out')}
           onUndo={() => onUndoStamp(intern_name, 'time_out')}
           icon={ICONS.time_out}
@@ -161,15 +168,17 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
           rows={2}
           value={record.accomplishments}
           onChange={(e) => onTextChange(intern_name, 'accomplishments', e.target.value)}
-          placeholder="What did you accomplish today?"
-          className="
+          placeholder={isOwner ? "What did you accomplish today?" : "No accomplishments yet"}
+          disabled={!isOwner}
+          className={`
             w-full px-3 py-2 text-[13px] rounded-xl resize-y min-h-[42px]
             bg-white dark:bg-[#00151a] border border-teal/10 dark:border-white/5
             text-teal dark:text-cream placeholder:text-teal/50 dark:placeholder:text-cream/40
             focus:outline-none focus:ring-2 focus:ring-teal/30 dark:focus:ring-gold/30 focus:border-teal/50 dark:focus:border-gold/50
             hover:border-teal/20 dark:hover:border-white/10
             transition-all duration-200
-          "
+            ${!isOwner ? 'opacity-60 cursor-not-allowed' : ''}
+          `}
         />
       </td>
 
