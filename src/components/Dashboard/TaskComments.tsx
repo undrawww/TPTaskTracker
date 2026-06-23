@@ -46,7 +46,7 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
   };
 
   return (
-    <div className="mt-1.5 ml-4 mr-2 rounded-xl bg-[#c1b290] dark:bg-[#002530] border border-[#003946]/15 dark:border-teal-lighter/10 shadow-sm overflow-hidden animate-slide-up">
+    <div className="mt-1.5 ml-4 mr-2 rounded-xl bg-[#d7cbaf] dark:bg-[#002530] border border-[#003946]/15 dark:border-teal-lighter/10 shadow-sm overflow-hidden animate-slide-up">
       {/* Comments list */}
       <div className="max-h-48 overflow-y-auto px-4 pt-3.5 pb-1.5 space-y-3 scrollbar-thin">
         {loading ? (
@@ -76,11 +76,10 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-1.5">
                   <span
-                    className={`text-[11px] font-bold ${
-                      c.author_role === 'admin'
-                        ? 'text-[#8a6d00] dark:text-gold'
-                        : 'text-[#003946]/80 dark:text-cream/70'
-                    }`}
+                    className={`text-[11px] font-bold ${c.author_role === 'admin'
+                      ? 'text-[#8a6d00] dark:text-gold'
+                      : 'text-[#003946]/80 dark:text-cream/70'
+                      }`}
                   >
                     {c.author_name}
                   </span>
@@ -117,18 +116,18 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
       </div>
 
       {/* New comment input */}
-      <form onSubmit={handleSubmit} className="flex items-center gap-2 px-3.5 py-2.5 border-t border-[#003946]/10 dark:border-teal-lighter/10 bg-[#f8f5ee]/60 dark:bg-[#001a22]">
+      <form onSubmit={handleSubmit} className="flex items-center gap-2 px-3.5 py-2.5 border-t border-[#003946]/10 dark:border-teal-lighter/10 bg-[#c1b290] dark:bg-[#001a22]">
         <input
           type="text"
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Write a comment…"
-          className="flex-1 text-xs px-3 py-2 rounded-lg border border-[#003946]/15 dark:border-teal-lighter/15 bg-white dark:bg-[#002b36] text-[#003946] dark:text-cream placeholder:text-[#003946]/35 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-[#ebbc0f]/50 focus:border-[#ebbc0f]/50 transition-all"
+          className="flex-1 text-xs px-3 py-2 rounded-lg border border-[#003946]/15 dark:border-teal-lighter/15 bg-[#c8bda3] dark:bg-[#002b36] text-[#003946] dark:text-cream placeholder:text-[#003946]/50 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-[#ebbc0f]/50 focus:border-[#ebbc0f]/50 transition-all"
         />
         <button
           type="submit"
           disabled={!newComment.trim() || submitting}
-          className="p-2 rounded-lg bg-[#003946] dark:bg-teal-light text-white hover:bg-[#004d5e] dark:hover:bg-teal-lighter disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
+          className="p-2 rounded-lg bg-[#003946] dark:bg-teal-light text-white hover:bg-[#003946] dark:hover:bg-teal-lighter disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
           title="Send comment"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
