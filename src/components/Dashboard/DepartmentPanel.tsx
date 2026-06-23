@@ -63,8 +63,8 @@ export const DepartmentPanel: React.FC<Props> = ({
   const doneTasks = totalTasks.filter((t) => t.is_verified).length;
 
   return (
-    <div className="bg-white dark:bg-[#003946] border border-cream-dark/30 dark:border-teal-lighter/15 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
-      <div className="bg-gradient-to-r from-teal to-[#004d5e] px-5 py-4 flex items-center justify-between">
+    <div className="bg-white dark:bg-[#003946] border border-cream-dark/30 dark:border-teal-lighter/15 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+      <div className="bg-gradient-to-r from-teal to-[#004d5e] rounded-t-2xl px-5 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3 text-white">
           <div className="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
             {DEPT_ICONS[department]}
