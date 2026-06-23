@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTaskComments } from '../../hooks/useTaskComments';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -11,15 +11,13 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
   const { comments, loading, fetchComments, addComment, deleteComment } = useTaskComments(taskId);
   const [newComment, setNewComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+
 
   useEffect(() => {
     fetchComments();
   }, [fetchComments]);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [comments.length]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,7 +110,7 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
             </div>
           ))
         )}
-        <div ref={bottomRef} />
+
       </div>
 
       {/* New comment input */}
