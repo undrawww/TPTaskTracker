@@ -10,6 +10,7 @@ interface Props {
   onEditTask?: (taskId: string, newName: string) => void;
   onDeleteIntern?: (internId: string) => void;
   onDeleteTask?: (taskId: string) => void;
+  isAdmin?: boolean;
 }
 
 export const DailyTracker: React.FC<Props> = ({ 
@@ -19,7 +20,8 @@ export const DailyTracker: React.FC<Props> = ({
   onVerifyChange,
   onEditTask,
   onDeleteIntern,
-  onDeleteTask
+  onDeleteTask,
+  isAdmin = false
 }) => {
   return (
     <section id="daily-tracker">
@@ -40,8 +42,14 @@ export const DailyTracker: React.FC<Props> = ({
               <line x1="23" y1="8" x2="17" y2="14" />
             </svg>
           </div>
-          <h3 className="text-base font-semibold text-teal dark:text-cream mb-1">No interns found</h3>
-          <p className="text-sm text-teal/50 dark:text-cream/40">Add interns to start tracking their tasks.</p>
+          <h3 className="text-base font-semibold text-teal dark:text-cream mb-1">
+            {isAdmin ? 'No interns found' : 'Not added to system'}
+          </h3>
+          <p className="text-sm text-teal/50 dark:text-cream/40">
+            {isAdmin 
+              ? 'Add interns to start tracking their tasks.' 
+              : 'You have not been added as an intern by an administrator yet.'}
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

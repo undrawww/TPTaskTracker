@@ -179,6 +179,7 @@ export const Dashboard: React.FC = () => {
                   onEditTask={handleEditDailyTask}
                   onDeleteIntern={role === 'admin' ? handleRemoveIntern : undefined}
                   onDeleteTask={role === 'admin' ? removeDailyTask : undefined}
+                  isAdmin={role === 'admin'}
                 />
 
                 <div className="flex items-center gap-5 mt-12 mb-2">
