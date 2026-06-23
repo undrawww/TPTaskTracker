@@ -59,7 +59,39 @@ export function useWeeklyTasks(weekNumber: number) {
 
   useEffect(() => {
     fetchTasks();
-  }, [fetchTasks]);
+
+    if (!isSupabaseConfigured) return;
+
+    const channel = supabase
+      .channel('weekly_tasks_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'weekly_tasks' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newTask = payload.new as WeeklyTask;
+            if (newTask.week_number === weekNumber) {
+              setTasks((prev) => {
+                if (prev.some((t) => t.id === newTask.id)) return prev;
+                return [...prev, newTask];
+              });
+            }
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedTask = payload.new as WeeklyTask;
+            if (updatedTask.week_number === weekNumber) {
+              setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
+            }
+          } else if (payload.eventType === 'DELETE') {
+            setTasks((prev) => prev.filter((t) => t.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchTasks, weekNumber]);
 
   const addTask = useCallback(
     async (internId: string, taskName: string) => {

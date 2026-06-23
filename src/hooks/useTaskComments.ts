@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 
 export interface TaskComment {
@@ -52,6 +52,33 @@ export function useTaskComments(taskId: string) {
     } finally {
       setLoading(false);
     }
+  }, [taskId]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    const channel = supabase
+      .channel(`task_comments_${taskId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'task_comments', filter: `task_id=eq.${taskId}` },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newComment = payload.new as TaskComment;
+            setComments((prev) => {
+              if (prev.some((c) => c.id === newComment.id)) return prev;
+              return [...prev, newComment];
+            });
+          } else if (payload.eventType === 'DELETE') {
+            setComments((prev) => prev.filter((c) => c.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [taskId]);
 
   const addComment = useCallback(

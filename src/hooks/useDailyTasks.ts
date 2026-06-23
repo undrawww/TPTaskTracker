@@ -62,7 +62,39 @@ export function useDailyTasks(date?: string) {
 
   useEffect(() => {
     fetchTasks();
-  }, [fetchTasks]);
+
+    if (!isSupabaseConfigured) return;
+
+    const channel = supabase
+      .channel('daily_tasks_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'daily_tasks' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newTask = payload.new as DailyTask;
+            if (newTask.task_date === targetDate) {
+              setTasks((prev) => {
+                if (prev.some((t) => t.id === newTask.id)) return prev;
+                return [...prev, newTask];
+              });
+            }
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedTask = payload.new as DailyTask;
+            if (updatedTask.task_date === targetDate) {
+              setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
+            }
+          } else if (payload.eventType === 'DELETE') {
+            setTasks((prev) => prev.filter((t) => t.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchTasks, targetDate]);
 
   const toggleVerify = async (taskId: string, isVerified: boolean) => {
     if (!isSupabaseConfigured) {

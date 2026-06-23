@@ -73,6 +73,34 @@ export function useInterns() {
 
   useEffect(() => {
     fetchInterns();
+
+    if (!isSupabaseConfigured) return;
+
+    const channel = supabase
+      .channel('interns_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'interns' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newIntern = payload.new as Intern;
+            setInterns((prev) => {
+              if (prev.some((i) => i.id === newIntern.id)) return prev;
+              return [...prev, newIntern];
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedIntern = payload.new as Intern;
+            setInterns((prev) => prev.map((i) => (i.id === updatedIntern.id ? updatedIntern : i)));
+          } else if (payload.eventType === 'DELETE') {
+            setInterns((prev) => prev.filter((i) => i.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [fetchInterns]);
 
   const addIntern = async (payload: { email: string; department: Department }) => {
