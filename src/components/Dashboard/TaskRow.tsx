@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { StatusBadge } from './StatusBadge';
 import { TaskComments } from './TaskComments';
 import { useAuth } from '../../contexts/AuthContext';
+import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
 import type { TaskStatus } from '../../types';
 
 interface Props {
@@ -20,6 +21,55 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(taskName);
   const [showComments, setShowComments] = useState(false);
+  const [firstComment, setFirstComment] = useState<string | null>(null);
+  const [commentCount, setCommentCount] = useState(0);
+  const [hovered, setHovered] = useState(false);
+
+  // Fetch first comment preview (lightweight — only on mount)
+  const loadPreview = useCallback(async () => {
+    if (!isSupabaseConfigured) {
+      try {
+        const all = JSON.parse(localStorage.getItem('padua_task_comments') || '[]');
+        const taskComments = all.filter((c: any) => c.task_id === id);
+        setCommentCount(taskComments.length);
+        if (taskComments.length > 0) {
+          const latest = taskComments[taskComments.length - 1];
+          setFirstComment(`${latest.author_name}: ${latest.content}`);
+        }
+      } catch { /* ignore */ }
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('task_comments')
+        .select('author_name, content')
+        .eq('task_id', id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (!error && data && data.length > 0) {
+        setFirstComment(`${data[0].author_name}: ${data[0].content}`);
+      }
+
+      // Get count
+      const { count } = await supabase
+        .from('task_comments')
+        .select('*', { count: 'exact', head: true })
+        .eq('task_id', id);
+
+      setCommentCount(count || 0);
+    } catch { /* ignore */ }
+  }, [id]);
+
+  useEffect(() => {
+    loadPreview();
+  }, [loadPreview]);
+
+  // Refresh preview when comments panel closes
+  useEffect(() => {
+    if (!showComments) loadPreview();
+  }, [showComments, loadPreview]);
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const isChecked = e.target.checked;
@@ -68,11 +118,13 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
     <div>
       <div
         className={`
-          flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl
+          relative flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl
           bg-cream/30 hover:bg-cream/60 dark:bg-white/[0.03] dark:hover:bg-white/[0.07]
           border border-transparent hover:border-cream-dark/30 dark:hover:border-teal-lighter/10
           transition-all duration-200 group
         `}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
       >
         <span className={`text-sm font-medium leading-snug flex-1 min-w-0 truncate ${status === 'Done' ? 'text-teal/35 dark:text-cream/35 line-through' : 'text-teal dark:text-cream'}`}>
           {taskName}
@@ -81,16 +133,21 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
           {/* Comment toggle */}
           <button
             onClick={() => setShowComments(!showComments)}
-            className={`p-1.5 rounded-lg transition-all ${
+            className={`relative p-1.5 rounded-lg transition-all ${
               showComments
-                ? 'text-gold bg-gold/10'
-                : 'text-teal/30 dark:text-cream/30 hover:text-teal/60 dark:hover:text-cream/60 hover:bg-teal/5 dark:hover:bg-white/5'
+                ? 'text-[#8a6d00] dark:text-gold bg-[#ebbc0f]/15 dark:bg-gold/10'
+                : 'text-[#003946]/35 dark:text-cream/30 hover:text-[#003946]/70 dark:hover:text-cream/60 hover:bg-[#003946]/5 dark:hover:bg-white/5'
             }`}
             title="Comments"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
             </svg>
+            {commentCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#ebbc0f] text-[#003946] text-[9px] font-bold flex items-center justify-center leading-none shadow-sm">
+                {commentCount > 9 ? '9+' : commentCount}
+              </span>
+            )}
           </button>
 
           {role === 'admin' && (
@@ -100,7 +157,7 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
                   setEditName(taskName);
                   setIsEditing(true);
                 }}
-                className="p-1.5 text-teal/30 hover:text-gold hover:bg-gold/10 rounded-lg transition-colors"
+                className="p-1.5 text-[#003946]/30 dark:text-cream/30 hover:text-[#8a6d00] dark:hover:text-gold hover:bg-[#ebbc0f]/10 dark:hover:bg-gold/10 rounded-lg transition-colors"
                 title="Edit Task"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -110,7 +167,7 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
               </button>
               <button
                 onClick={() => onDeleteTask?.(id)}
-                className="p-1.5 text-teal/30 hover:text-status-hold hover:bg-status-hold/10 rounded-lg transition-colors"
+                className="p-1.5 text-[#003946]/30 dark:text-cream/30 hover:text-status-hold hover:bg-status-hold/10 rounded-lg transition-colors"
                 title="Delete Task"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -132,6 +189,13 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
             className="w-[18px] h-[18px] rounded border-cream-dark text-gold focus:ring-gold focus:ring-offset-0 cursor-pointer transition-colors disabled:opacity-25 disabled:cursor-not-allowed"
           />
         </div>
+
+        {/* First comment hover tooltip */}
+        {hovered && !showComments && firstComment && (
+          <div className="absolute left-4 top-full mt-1 z-30 max-w-xs px-3 py-2 rounded-lg bg-[#003946] dark:bg-[#001a22] text-white text-[11px] leading-relaxed shadow-lg border border-[#004d5e] pointer-events-none animate-slide-up">
+            <p className="truncate">{firstComment}</p>
+          </div>
+        )}
       </div>
 
       {/* Expandable comments panel */}

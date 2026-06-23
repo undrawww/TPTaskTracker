@@ -46,16 +46,16 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
   };
 
   return (
-    <div className="mt-1 ml-4 mr-2 rounded-xl bg-cream/50 dark:bg-white/[0.04] border border-cream-dark/20 dark:border-teal-lighter/10 overflow-hidden animate-slide-up">
+    <div className="mt-1.5 ml-4 mr-2 rounded-xl bg-white dark:bg-[#002530] border border-[#003946]/15 dark:border-teal-lighter/10 shadow-sm overflow-hidden animate-slide-up">
       {/* Comments list */}
-      <div className="max-h-48 overflow-y-auto px-3.5 pt-3 pb-1 space-y-2.5 scrollbar-thin">
+      <div className="max-h-48 overflow-y-auto px-4 pt-3.5 pb-1.5 space-y-3 scrollbar-thin">
         {loading ? (
           <div className="flex items-center gap-2 py-3">
-            <div className="w-3 h-3 rounded-full bg-teal/10 animate-pulse" />
-            <span className="text-[11px] text-teal/40 dark:text-cream/40">Loading comments…</span>
+            <div className="w-3 h-3 rounded-full bg-teal/15 animate-pulse" />
+            <span className="text-[11px] text-[#003946]/50 dark:text-cream/40">Loading comments…</span>
           </div>
         ) : comments.length === 0 ? (
-          <p className="text-[11px] text-teal/35 dark:text-cream/35 italic py-2 text-center">
+          <p className="text-[11px] text-[#003946]/40 dark:text-cream/35 italic py-2 text-center">
             No comments yet
           </p>
         ) : (
@@ -66,8 +66,8 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
                 className={`
                   w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold mt-0.5
                   ${c.author_role === 'admin'
-                    ? 'bg-gold/20 text-gold-dark dark:text-gold'
-                    : 'bg-teal/10 text-teal/60 dark:text-cream/60'}
+                    ? 'bg-[#ebbc0f]/25 text-[#8a6d00] dark:text-gold'
+                    : 'bg-[#003946]/10 text-[#003946]/70 dark:bg-white/10 dark:text-cream/60'}
                 `}
               >
                 {c.author_name.charAt(0).toUpperCase()}
@@ -78,22 +78,22 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
                   <span
                     className={`text-[11px] font-bold ${
                       c.author_role === 'admin'
-                        ? 'text-gold-dark dark:text-gold'
-                        : 'text-teal/70 dark:text-cream/70'
+                        ? 'text-[#8a6d00] dark:text-gold'
+                        : 'text-[#003946]/80 dark:text-cream/70'
                     }`}
                   >
                     {c.author_name}
                   </span>
                   {c.author_role === 'admin' && (
-                    <span className="text-[9px] font-bold text-gold bg-gold/10 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                    <span className="text-[9px] font-bold text-[#8a6d00] dark:text-gold bg-[#ebbc0f]/15 dark:bg-gold/10 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
                       Admin
                     </span>
                   )}
-                  <span className="text-[10px] text-teal/30 dark:text-cream/30 ml-auto flex-shrink-0">
+                  <span className="text-[10px] text-[#003946]/35 dark:text-cream/30 ml-auto flex-shrink-0">
                     {formatTime(c.created_at)}
                   </span>
                 </div>
-                <p className="text-xs text-teal/80 dark:text-cream/80 leading-relaxed mt-0.5 break-words">
+                <p className="text-xs text-[#003946]/90 dark:text-cream/80 leading-relaxed mt-0.5 break-words">
                   {c.content}
                 </p>
               </div>
@@ -101,7 +101,7 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
               {role === 'admin' && (
                 <button
                   onClick={() => deleteComment(c.id)}
-                  className="opacity-0 group-hover/comment:opacity-100 p-1 text-teal/20 hover:text-status-hold transition-all self-start mt-0.5"
+                  className="opacity-0 group-hover/comment:opacity-100 p-1 text-[#003946]/20 hover:text-status-hold transition-all self-start mt-0.5"
                   title="Delete comment"
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -117,18 +117,18 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
       </div>
 
       {/* New comment input */}
-      <form onSubmit={handleSubmit} className="flex items-center gap-2 px-3 py-2.5 border-t border-cream-dark/15 dark:border-teal-lighter/10">
+      <form onSubmit={handleSubmit} className="flex items-center gap-2 px-3.5 py-2.5 border-t border-[#003946]/10 dark:border-teal-lighter/10 bg-[#f8f5ee]/60 dark:bg-[#001a22]">
         <input
           type="text"
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Write a comment…"
-          className="flex-1 text-xs px-3 py-2 rounded-lg border border-cream-dark/30 dark:border-teal-lighter/15 bg-white dark:bg-[#002b36] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all"
+          className="flex-1 text-xs px-3 py-2 rounded-lg border border-[#003946]/15 dark:border-teal-lighter/15 bg-white dark:bg-[#002b36] text-[#003946] dark:text-cream placeholder:text-[#003946]/35 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-[#ebbc0f]/50 focus:border-[#ebbc0f]/50 transition-all"
         />
         <button
           type="submit"
           disabled={!newComment.trim() || submitting}
-          className="p-2 rounded-lg bg-teal dark:bg-teal-light text-white hover:bg-teal-light dark:hover:bg-teal-lighter disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
+          className="p-2 rounded-lg bg-[#003946] dark:bg-teal-light text-white hover:bg-[#004d5e] dark:hover:bg-teal-lighter disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
           title="Send comment"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
