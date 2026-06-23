@@ -23,7 +23,7 @@ import type { TaskStatus } from '../types';
 type ActiveView = 'tracker' | 'attendance' | 'interns';
 
 export const Dashboard: React.FC = () => {
-  const { user, role, currentInternId } = useAuth();
+  const { role, currentInternId } = useAuth();
   const navigate = useNavigate();
 
   // View & sidebar state
@@ -45,7 +45,7 @@ export const Dashboard: React.FC = () => {
   // Filter data based on role
   const displayInterns = (role === 'intern' && currentInternId 
     ? interns.filter(i => i.id === currentInternId) 
-    : interns).filter(i => i.department !== 'Administrator');
+    : interns).filter(i => (i.department as string) !== 'Administrator');
 
   const validInternIds = new Set(interns.map(i => i.id));
 

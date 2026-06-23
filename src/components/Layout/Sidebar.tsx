@@ -8,7 +8,7 @@ interface SidebarProps {
   isAdmin: boolean;
 }
 
-const NAV_ITEMS: { key: 'tracker' | 'attendance'; label: string; icon: React.ReactNode }[] = [
+const NAV_ITEMS: { key: 'tracker' | 'attendance' | 'interns'; label: string; icon: React.ReactNode }[] = [
   {
     key: 'tracker',
     label: 'Task Tracker',

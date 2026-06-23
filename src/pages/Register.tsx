@@ -57,7 +57,7 @@ export const Register: React.FC = () => {
         return;
       }
       
-      if (internData) {
+      if (finalRole === 'intern') {
         await supabase.from('interns').update({ full_name: fullName }).eq('email', email);
       }
     }
