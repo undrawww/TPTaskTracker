@@ -1,0 +1,163 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
+
+export function UpdatePassword() {
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if we actually have a session from the magic link
+    const checkSession = async () => {
+      if (!isSupabaseConfigured) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        // If they landed here without a session, they probably didn't click a valid link
+        setError('No active session found. Please request a new password reset link.');
+      }
+    };
+    checkSession();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      setLoading(false);
+      return;
+    }
+
+    if (!isSupabaseConfigured) {
+      setError('Database connection is not configured.');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: password
+      });
+
+      if (error) throw error;
+      
+      // Successfully updated password, navigate to dashboard
+      navigate('/');
+    } catch (err) {
+      console.error('Update password error:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred updating your password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#002a35] dark:bg-[#001a22] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden transition-colors duration-300">
+      {/* Abstract background shapes */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-[#003946] dark:bg-[#002a35] mix-blend-multiply filter blur-3xl opacity-70 animate-blob" />
+        <div className="absolute top-40 -left-40 w-96 h-96 rounded-full bg-teal/50 dark:bg-teal/30 mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-40 left-20 w-96 h-96 rounded-full bg-[#004d5e] dark:bg-[#003946] mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000" />
+      </div>
+
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #f5e7c6 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+
+      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+        <div className="text-center mb-8">
+          <div className="w-20 h-20 mx-auto flex items-center justify-center mb-6 drop-shadow-xl">
+            <img src="https://res.cloudinary.com/dqmmfgbf1/image/upload/v1782145581/ICOZ_aatvaa.png" alt="Task Tracker Logo" className="w-full h-full object-contain" />
+          </div>
+          <h2 className="text-3xl font-poppins font-bold text-cream tracking-tight">Update Password</h2>
+          <p className="mt-2 text-sm text-cream/60">
+            Please enter your new password below.
+          </p>
+        </div>
+
+        <div className="bg-white/5 dark:bg-white/5 backdrop-blur-xl border border-white/10 dark:border-white/5 py-8 px-4 shadow-2xl rounded-2xl sm:px-10 animate-fade-in">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-cream/80 mb-2">
+                New Password
+              </label>
+              <div className="relative">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-teal/25 dark:text-cream/25">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0110 0v4" />
+                  </svg>
+                </div>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 rounded-xl bg-white dark:bg-white/5 border border-teal/8 dark:border-white/8 text-[#003946] dark:text-cream text-sm placeholder:text-[#003946]/40 dark:placeholder:text-cream/20 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/30 transition-all"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-cream/80 mb-2">
+                Confirm New Password
+              </label>
+              <div className="relative">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-teal/25 dark:text-cream/25">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0110 0v4" />
+                  </svg>
+                </div>
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 rounded-xl bg-white dark:bg-white/5 border border-teal/8 dark:border-white/8 text-[#003946] dark:text-cream text-sm placeholder:text-[#003946]/40 dark:placeholder:text-cream/20 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/30 transition-all"
+                />
+              </div>
+            </div>
+
+            {error && (
+              <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-status-hold/10 border border-status-hold/20">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-status-hold shrink-0">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="15" y1="9" x2="9" y2="15" />
+                  <line x1="9" y1="9" x2="15" y2="15" />
+                </svg>
+                <p className="text-sm text-status-hold font-medium">{error}</p>
+              </div>
+            )}
+
+            <div>
+              <button
+                type="submit"
+                disabled={loading || !password || !confirmPassword || !!error?.includes('No active session')}
+                className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-gold/20 text-sm font-bold text-teal bg-gradient-to-r from-gold to-[#f5d44a] hover:shadow-xl hover:shadow-gold/30 hover:-translate-y-px focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gold/50 focus:ring-offset-cream dark:focus:ring-offset-[#001a22] transition-all duration-200 disabled:opacity-50 disabled:hover:translate-y-0"
+              >
+                {loading ? 'Updating...' : 'Update password'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}

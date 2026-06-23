@@ -44,7 +44,7 @@ export const Login: React.FC = () => {
             <img src="https://res.cloudinary.com/dqmmfgbf1/image/upload/v1782145581/ICOZ_aatvaa.png" alt="Task Tracker Logo" className="w-full h-full object-contain" />
           </div>
           <h1 className="font-poppins text-4xl font-bold text-cream tracking-tight leading-tight">
-            Task Tracker
+            Team Padua Tracker
           </h1>
           <p className="text-cream/40 text-sm font-medium mt-4 leading-relaxed">
             Track progress, manage tasks, and collaborate seamlessly with your team.
@@ -114,9 +114,14 @@ export const Login: React.FC = () => {
 
             {/* Password */}
             <div className="space-y-1.5">
-              <label htmlFor="password" className="block text-[11px] font-bold uppercase tracking-[0.1em] text-teal/50 dark:text-cream/40">
-                Password
-              </label>
+              <div className="flex justify-between items-center">
+                <label htmlFor="password" className="block text-[11px] font-bold uppercase tracking-[0.1em] text-teal/50 dark:text-cream/40">
+                  Password
+                </label>
+                <Link to="/forgot-password" className="text-xs font-semibold text-gold hover:text-gold-light transition-colors">
+                  Forgot Password?
+                </Link>
+              </div>
               <div className="relative">
                 <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-teal/25 dark:text-cream/25">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

@@ -5,6 +5,8 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { ProtectedRoute } from './components/Auth/ProtectedRoute';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { UpdatePassword } from './pages/UpdatePassword';
 import { Dashboard } from './pages/Dashboard';
 
 function App() {
@@ -16,6 +18,8 @@ function App() {
             {/* Public auth routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/update-password" element={<UpdatePassword />} />
             
             {/* Protected dashboard route */}
             <Route
