@@ -8,6 +8,7 @@ import { CreateTaskModal } from '../components/Admin/CreateTaskModal';
 import { DailyTracker } from '../components/Dashboard/DailyTracker';
 import { WeeklyArchive } from '../components/Weekly/WeeklyArchive';
 import { ProfileModal } from '../components/Profile/ProfileModal';
+import { DashboardSkeleton } from '../components/Skeleton/DashboardSkeleton';
 import { HeaderProfileMenu } from '../components/Header/HeaderProfileMenu';
 import { useInterns } from '../hooks/useInterns';
 import { useDailyTasks } from '../hooks/useDailyTasks';
@@ -25,8 +26,10 @@ export const Dashboard: React.FC = () => {
   const [showProfile, setShowProfile] = useState(false);
 
   // Data hooks
-  const { interns, addIntern, removeIntern } = useInterns();
-  const { tasks: dailyTasks, addTask: addDailyTask, updateStatus: updateDailyStatus, toggleVerify: toggleDailyVerify, editTask: editDailyTask, removeTask: removeDailyTask } = useDailyTasks();
+  const { interns, loading: internsLoading, addIntern, removeIntern } = useInterns();
+  const { tasks: dailyTasks, loading: tasksLoading, addTask: addDailyTask, updateStatus: updateDailyStatus, toggleVerify: toggleDailyVerify, editTask: editDailyTask, removeTask: removeDailyTask } = useDailyTasks();
+
+  const isLoading = internsLoading || tasksLoading;
 
   // Filter data based on role
   const displayInterns = role === 'intern' && currentInternId 
@@ -113,6 +116,10 @@ export const Dashboard: React.FC = () => {
       </header>
 
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 space-y-8">
+        {isLoading ? (
+          <DashboardSkeleton />
+        ) : (
+        <>
         <AnalyticsDashboard analytics={analytics} />
 
         {/* Admin action buttons */}
@@ -163,6 +170,8 @@ export const Dashboard: React.FC = () => {
         </div>
 
         <WeeklyArchive interns={displayInterns} />
+        </>
+        )}
       </main>
 
       <footer className="bg-gradient-to-r from-teal via-teal to-[#004d5e] dark:from-[#00151a] dark:to-[#001f2e] text-white/30 text-center text-[11px] py-5 mt-10 font-medium tracking-wide">

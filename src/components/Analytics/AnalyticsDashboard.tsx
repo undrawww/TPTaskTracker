@@ -29,7 +29,7 @@ export const AnalyticsDashboard: React.FC<Props> = ({ analytics }) => {
           }
         />
         <MetricCard
-          title="Total Completed Tasks"
+          title="Verified Completed"
           value={analytics.completedTotal}
           accentColor="gold"
           icon={

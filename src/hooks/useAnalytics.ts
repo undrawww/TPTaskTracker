@@ -21,15 +21,15 @@ const DEPT_INITIALS: Record<Department, string> = {
 export function useAnalytics(interns: Intern[], dailyTasks: DailyTask[]): AnalyticsData {
   return useMemo(() => {
     const todayTotal = dailyTasks.length;
-    const completedTotal = dailyTasks.filter((t) => t.status === 'Done').length;
+    const completedTotal = dailyTasks.filter((t) => t.is_verified).length;
 
-    // Department completion rates
+    // Department completion rates (only verified tasks count)
     const departmentCompletion = DEPARTMENTS.map((dept: Department) => {
       const deptInternIds = interns
         .filter((i) => i.department === dept)
         .map((i) => i.id);
       const deptTasks = dailyTasks.filter((t) => deptInternIds.includes(t.intern_id));
-      const deptDone = deptTasks.filter((t) => t.status === 'Done').length;
+      const deptDone = deptTasks.filter((t) => t.is_verified).length;
       const total = deptTasks.length;
       return {
         department: DEPT_INITIALS[dept],
