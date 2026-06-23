@@ -121,7 +121,12 @@ export function useInterns() {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23505') {
+          return { success: false, error: 'This intern is already assigned to a workspace.' };
+        }
+        throw error;
+      }
       setInterns(prev => [...prev, data]);
       return { success: true };
     } catch (err: any) {
