@@ -52,7 +52,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, coll
       {/* Mobile Overlay */}
       {isMobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
           onClick={onMobileClose}
         />
       )}
@@ -70,8 +70,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, coll
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
           
           /* Desktop behavior: sticky column */
-          md:relative md:translate-x-0 md:sticky md:top-0
-          ${collapsed ? 'md:w-16' : 'md:w-56'}
+          lg:relative lg:translate-x-0 lg:sticky lg:top-0
+          ${collapsed ? 'lg:w-16' : 'lg:w-56'}
         `}
       >
       {/* Branding Logo & Toggle */}

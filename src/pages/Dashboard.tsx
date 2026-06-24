@@ -93,7 +93,7 @@ export const Dashboard: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden flex bg-cream dark:bg-[#001f26] transition-colors duration-300">
+    <div className="min-h-screen flex bg-cream dark:bg-[#001f26] transition-colors duration-300">
       {/* Sidebar Navigation */}
       <Sidebar
         activeView={activeView}
@@ -114,7 +114,7 @@ export const Dashboard: React.FC = () => {
             {/* Mobile Header Title & Toggle */}
             <button 
               onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden flex items-center gap-2 active:scale-95 transition-transform"
+              className="lg:hidden flex items-center gap-2 active:scale-95 transition-transform"
             >
               <img src="https://res.cloudinary.com/dqmmfgbf1/image/upload/v1782145581/ICOZ_aatvaa.png" alt="Logo" className="w-7 h-7 object-contain shrink-0" />
               <h1 className="font-poppins text-base font-bold tracking-tight text-teal dark:text-white whitespace-nowrap">
