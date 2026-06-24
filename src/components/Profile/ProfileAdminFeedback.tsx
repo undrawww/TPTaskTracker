@@ -7,7 +7,15 @@ interface ProfileAdminFeedbackProps {
 
 export const ProfileAdminFeedback: React.FC<ProfileAdminFeedbackProps> = ({ attendance }) => {
   const feedbacks = attendance
-    .filter(a => a.admin_feedback && a.admin_feedback.trim().length > 0)
+    .filter(a => {
+      if (!a.admin_feedback || a.admin_feedback.trim().length === 0) return false;
+      try {
+        const parsed = JSON.parse(a.admin_feedback);
+        return Array.isArray(parsed) && parsed.length > 0;
+      } catch (e) {
+        return a.admin_feedback.trim().length > 0; // Fallback for old string format
+      }
+    })
     .sort((a, b) => new Date(b.attendance_date).getTime() - new Date(a.attendance_date).getTime());
 
   return (
@@ -23,18 +31,39 @@ export const ProfileAdminFeedback: React.FC<ProfileAdminFeedbackProps> = ({ atte
         {feedbacks.length === 0 ? (
           <p className="text-sm text-teal/50 dark:text-cream/40 col-span-full">No feedback received yet.</p>
         ) : (
-          feedbacks.map(f => (
-            <div key={f.id} className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-teal/10 dark:border-white/5 shadow-sm">
-              <div className="flex items-center justify-between mb-3 border-b border-teal/5 dark:border-white/5 pb-2">
-                <span className="text-[11px] font-bold text-teal/60 dark:text-cream/50 uppercase tracking-wider">
-                  {new Date(f.attendance_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                </span>
+          feedbacks.map(f => {
+            let parsedFeedbacks: string[] = [];
+            try {
+              const parsed = JSON.parse(f.admin_feedback!);
+              if (Array.isArray(parsed)) {
+                parsedFeedbacks = parsed;
+              } else {
+                parsedFeedbacks = [f.admin_feedback!];
+              }
+            } catch (e) {
+              parsedFeedbacks = [f.admin_feedback!]; // Fallback for old string format
+            }
+
+            return (
+              <div key={f.id} className="bg-white dark:bg-white/5 rounded-2xl p-5 border border-teal/10 dark:border-white/5 shadow-sm">
+                <div className="flex items-center justify-between mb-3 border-b border-teal/5 dark:border-white/5 pb-2">
+                  <span className="text-[11px] font-bold text-teal/60 dark:text-cream/50 uppercase tracking-wider">
+                    {new Date(f.attendance_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  {parsedFeedbacks.map((item, idx) => (
+                    <div key={idx} className="flex gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-teal/40 dark:bg-gold/40 mt-1.5 shrink-0" />
+                      <p className="text-sm text-teal-dark dark:text-cream whitespace-pre-wrap leading-relaxed">
+                        {item}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <p className="text-sm text-teal-dark dark:text-cream whitespace-pre-wrap leading-relaxed">
-                {f.admin_feedback}
-              </p>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

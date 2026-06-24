@@ -5,11 +5,11 @@ import { getAvatarByIndex } from '../Dashboard/AvatarIcons';
 interface ProfileHeaderProps {
   intern: Intern;
   tasks: DailyTask[];
-  role: string | null;
   onEditClick: () => void;
+  isOwnProfile?: boolean;
 }
 
-export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, role, onEditClick }) => {
+export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, onEditClick, isOwnProfile = true }) => {
   // Tasks marked as 'is_verified' are considered verified completed by the admin
   const completedTasks = tasks.filter(t => t.is_verified).length;
   const formattedStartDate = intern.created_at 
@@ -69,22 +69,24 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, rol
               {intern.status || 'Active'}
             </span>
 
-            <button
-              onClick={onEditClick}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal/5 hover:bg-teal/10 dark:bg-white/5 dark:hover:bg-white/10 text-xs font-bold text-teal dark:text-cream border border-teal/10 dark:border-white/10 transition-colors"
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-              </svg>
-              Edit Profile
-            </button>
+            {isOwnProfile && (
+              <button
+                onClick={onEditClick}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal/5 hover:bg-teal/10 dark:bg-white/5 dark:hover:bg-white/10 text-xs font-bold text-teal dark:text-cream border border-teal/10 dark:border-white/10 transition-colors"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                Edit Profile
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       {/* Right side: Stats */}
-      {role !== 'admin' && (
+      {(intern.department as string) !== 'Administrator' && (
         <div className="flex flex-col gap-6 md:w-[350px] shrink-0 border-t md:border-t-0 md:border-l border-teal/10 dark:border-white/5 pt-6 md:pt-0 md:pl-8 justify-center">
           <div className="grid grid-cols-2 gap-y-6 gap-x-4">
             <div>

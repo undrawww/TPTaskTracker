@@ -27,7 +27,7 @@ export function useProfile(internId?: string) {
     setLoading(true);
     try {
         if (!isSupabaseConfigured) {
-          if (role === 'admin') {
+          if (role === 'admin' && !internId) {
             setIntern({
               id: 'admin',
               full_name: 'Admin User',
@@ -89,7 +89,7 @@ export function useProfile(internId?: string) {
           return;
         }
 
-        if (role === 'admin') {
+        if (role === 'admin' && !internId) {
           const { data: profileData } = await supabase
             .from('profiles')
             .select('*')

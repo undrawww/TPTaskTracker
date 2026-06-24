@@ -62,6 +62,15 @@ function formatHours(hours: number | null): string {
   return `${h}h ${m}m`;
 }
 
+function getItemCount(text: string | null): number {
+  if (!text || text.trim() === '' || text.trim() === '[]') return 0;
+  try {
+    const parsed = JSON.parse(text);
+    if (Array.isArray(parsed)) return parsed.length;
+  } catch {}
+  return text.split('\n').filter((r) => r.trim() !== '').length;
+}
+
 export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
   record,
   onStamp,
@@ -189,14 +198,8 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
           `}
         >
           <span className="truncate opacity-80 group-hover:opacity-100">
-            {record.accomplishments 
-              ? `${(() => {
-                  try {
-                    const parsed = JSON.parse(record.accomplishments);
-                    if (Array.isArray(parsed)) return parsed.length;
-                  } catch {}
-                  return record.accomplishments.split('\n').filter((r) => r.trim() !== '').length;
-                })()} record(s) added` 
+            {getItemCount(record.accomplishments) > 0 
+              ? `${getItemCount(record.accomplishments)} record(s) added` 
               : isOwner ? 'Add a daily record...' : 'No records yet'}
           </span>
           {isOwner ? (
@@ -221,7 +224,7 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
       </td>
 
       {/* Admin Feedback */}
-      <td className="pl-5 pr-8 py-4 align-middle min-w-[250px]">
+      <td className="px-5 py-4 align-middle min-w-[250px]">
         <button
           onClick={() => setIsFeedbackModalOpen(true)}
           className={`
@@ -233,14 +236,8 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
           `}
         >
           <span className="truncate opacity-80 group-hover:opacity-100">
-            {record.admin_feedback 
-              ? `${(() => {
-                  try {
-                    const parsed = JSON.parse(record.admin_feedback);
-                    if (Array.isArray(parsed)) return parsed.length;
-                  } catch {}
-                  return record.admin_feedback.split('\n').filter((r) => r.trim() !== '').length;
-                })()} feedback(s)` 
+            {getItemCount(record.admin_feedback) > 0 
+              ? `${getItemCount(record.admin_feedback)} feedback(s)` 
               : isAdmin ? 'Add feedback...' : 'No feedback yet'}
           </span>
           {isAdmin ? (

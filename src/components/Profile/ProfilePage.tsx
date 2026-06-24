@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import { useProfile } from '../../hooks/useProfile';
 import { ProfileHeader } from './ProfileHeader';
 import { ProfileAbout } from './ProfileAbout';
@@ -12,6 +13,8 @@ import { supabase } from '../../lib/supabaseClient';
 export const ProfilePage: React.FC<{ internId?: string }> = ({ internId }) => {
   const { intern, role, certifications, tasks, attendance, loading, refreshProfile } = useProfile(internId);
   const [isEditingProfile, setIsEditingProfile] = React.useState(false);
+  const { currentInternId, user } = useAuth();
+  const isOwnProfile = !internId || internId === currentInternId || internId === user?.id;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -51,8 +54,8 @@ export const ProfilePage: React.FC<{ internId?: string }> = ({ internId }) => {
       <ProfileHeader 
         intern={intern} 
         tasks={tasks} 
-        role={role}
         onEditClick={() => setIsEditingProfile(true)}
+        isOwnProfile={isOwnProfile}
       />
 
       {/* 2. Main Content Grid */}
@@ -62,14 +65,14 @@ export const ProfilePage: React.FC<{ internId?: string }> = ({ internId }) => {
         <div className="col-span-1 lg:col-span-2 flex flex-col gap-6">
           <ProfileAbout intern={intern} role={role} />
           
-          <div className={`grid grid-cols-1 ${role !== 'admin' ? 'md:grid-cols-2' : ''} gap-6 h-full`}>
-            {role !== 'admin' && <ProfileCertifications certifications={certifications} internId={intern?.id || null} onRefresh={refreshProfile} />}
-            {role !== 'admin' && <ProfilePerformance tasks={tasks} attendance={attendance} />}
+          <div className={`grid grid-cols-1 ${(intern.department as string) !== 'Administrator' ? 'md:grid-cols-2' : ''} gap-6 h-full`}>
+            {(intern.department as string) !== 'Administrator' && <ProfileCertifications certifications={certifications} internId={intern?.id || null} onRefresh={refreshProfile} isOwnProfile={isOwnProfile} />}
+            {(intern.department as string) !== 'Administrator' && <ProfilePerformance tasks={tasks} attendance={attendance} />}
           </div>
         </div>
 
         {/* Right Column (Activity Timeline) */}
-        {role !== 'admin' && (
+        {(intern.department as string) !== 'Administrator' && (
           <div className="col-span-1 h-full">
             <ProfileActivity tasks={tasks} attendance={attendance} />
           </div>
@@ -77,7 +80,7 @@ export const ProfilePage: React.FC<{ internId?: string }> = ({ internId }) => {
       </div>
 
       {/* 3. Bottom Full Width Section */}
-      {role !== 'admin' && <ProfileAdminFeedback attendance={attendance} />}
+      {(intern.department as string) !== 'Administrator' && <ProfileAdminFeedback attendance={attendance} />}
 
       <ProfileModal
         isOpen={isEditingProfile}

@@ -6,9 +6,10 @@ interface ProfileCertificationsProps {
   certifications: Certification[];
   internId: string | null;
   onRefresh: () => void;
+  isOwnProfile?: boolean;
 }
 
-export const ProfileCertifications: React.FC<ProfileCertificationsProps> = ({ certifications, internId, onRefresh }) => {
+export const ProfileCertifications: React.FC<ProfileCertificationsProps> = ({ certifications, internId, onRefresh, isOwnProfile = true }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [name, setName] = useState('');
   const [issuer, setIssuer] = useState('');
@@ -135,7 +136,7 @@ export const ProfileCertifications: React.FC<ProfileCertificationsProps> = ({ ce
           </svg>
           <h2 className="text-lg font-bold text-teal dark:text-cream">Certifications</h2>
         </div>
-        {internId && (
+        {isOwnProfile && (
           <button 
             onClick={() => setIsAdding(true)}
             className="text-xs font-bold text-teal/60 dark:text-gold hover:text-teal dark:hover:text-gold-light transition-colors flex items-center gap-1 bg-teal/5 dark:bg-gold/10 px-3 py-1.5 rounded-lg"
@@ -182,12 +183,14 @@ export const ProfileCertifications: React.FC<ProfileCertificationsProps> = ({ ce
                       View
                     </button>
                   )}
-                  <button 
-                    onClick={() => handleDelete(cert.id)}
-                    className="text-[10px] font-bold text-red-500/70 hover:text-red-500 uppercase tracking-wider"
-                  >
-                    Delete
-                  </button>
+                  {isOwnProfile && (
+                    <button 
+                      onClick={() => handleDelete(cert.id)}
+                      className="text-[10px] font-bold text-red-500/70 hover:text-red-500 uppercase tracking-wider"
+                    >
+                      Delete
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

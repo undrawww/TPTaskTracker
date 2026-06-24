@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
+import { useTheme } from '../../contexts/ThemeContext';
 import { CHART_COLORS } from '../../types';
 import type { DailyTask, AttendanceRecord } from '../../types';
 
@@ -9,12 +10,20 @@ interface ProfilePerformanceProps {
 }
 
 export const ProfilePerformance: React.FC<ProfilePerformanceProps> = ({ tasks, attendance }) => {
+  const { theme } = useTheme();
+  
   const chartData = useMemo(() => {
-    // Generate data for the last 7 days
+    // Generate data for Monday to Sunday of the current week
+    const now = new Date();
+    const currentDay = now.getDay();
+    const daysToMonday = currentDay === 0 ? 6 : currentDay - 1; // 0 is Sunday
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - daysToMonday);
+
     const data = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
       const dateStr = d.toISOString().split('T')[0];
       const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
 
@@ -75,7 +84,7 @@ export const ProfilePerformance: React.FC<ProfilePerformanceProps> = ({ tasks, a
             />
             <Bar dataKey="total" radius={[4, 4, 0, 0]} barSize={16}>
               {chartData.map((_, index) => (
-                <Cell key={`cell-${index}`} fill={index % 2 === 0 ? CHART_COLORS.teal : CHART_COLORS.gold} />
+                <Cell key={`cell-${index}`} fill={theme === 'dark' ? CHART_COLORS.gold : CHART_COLORS.teal} />
               ))}
             </Bar>
           </BarChart>

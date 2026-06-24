@@ -31,11 +31,7 @@ function emptyRecord(internName: string, date: string): AttendanceRecord {
 function computeHours(rec: AttendanceRecord): number | null {
   if (!rec.time_in || !rec.time_out) return null;
   const inMs = new Date(rec.time_out).getTime() - new Date(rec.time_in).getTime();
-  let breakMs = 0;
-  if (rec.break_out && rec.break_in) {
-    breakMs = new Date(rec.break_in).getTime() - new Date(rec.break_out).getTime();
-  }
-  return Math.round(((inMs - breakMs) / 3600000) * 100) / 100;
+  return Math.round((inMs / 3600000) * 100) / 100;
 }
 
 export function useAttendance() {

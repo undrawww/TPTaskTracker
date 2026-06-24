@@ -49,7 +49,9 @@ export const Dashboard: React.FC = () => {
   const [activeView, setActiveView] = useState<ActiveView>(() => {
     return pathToView[location.pathname] || 'tracker';
   });
-  const [viewingProfileId, setViewingProfileId] = useState<string | null>(null);
+  const [viewingProfileId, setViewingProfileId] = useState<string | null>(() => {
+    return localStorage.getItem('tp_viewing_profile_id') || null;
+  });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -58,11 +60,13 @@ export const Dashboard: React.FC = () => {
     navigate(viewToPath[view] || '/tasktracker');
     if (view !== 'profile') {
       setViewingProfileId(null);
+      localStorage.removeItem('tp_viewing_profile_id');
     }
   };
 
   const handleViewProfile = (id: string) => {
     setViewingProfileId(id);
+    localStorage.setItem('tp_viewing_profile_id', id);
     setActiveView('profile');
     navigate('/profile');
   };
