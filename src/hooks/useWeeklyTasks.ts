@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
-import type { WeeklyTask, DailyTask, TaskStatus } from '../types';
+import type { WeeklyTask, TaskStatus } from '../types';
 import { getWeekDateRange, getLocalToday } from '../utils/dateUtils';
 
 export type UnifiedTask = WeeklyTask & {
@@ -36,9 +36,11 @@ export function useWeeklyTasks(weekNumber: number) {
     if (!isSupabaseConfigured) {
       const stored = localStorage.getItem('padua_weekly_tasks');
       if (stored) {
-        setTasks(JSON.parse(stored).filter((t: WeeklyTask) => t.week_number === weekNumber));
+        const parsed = JSON.parse(stored).filter((t: WeeklyTask) => t.week_number === weekNumber);
+        setTasks(parsed.map((t: WeeklyTask) => ({ ...t, type: 'weekly' } as UnifiedTask)));
       } else {
-        setTasks(DEMO_WEEKLY_TASKS.filter((t) => t.week_number === weekNumber));
+        const demo = DEMO_WEEKLY_TASKS.filter((t) => t.week_number === weekNumber);
+        setTasks(demo.map((t) => ({ ...t, type: 'weekly' } as UnifiedTask)));
         localStorage.setItem('padua_weekly_tasks', JSON.stringify(DEMO_WEEKLY_TASKS));
       }
       setLoading(false);
@@ -104,13 +106,13 @@ export function useWeeklyTasks(weekNumber: number) {
             if (newTask.week_number === weekNumber) {
               setTasks((prev) => {
                 if (prev.some((t) => t.id === newTask.id)) return prev;
-                return [...prev, newTask];
+                return [...prev, { ...newTask, type: 'weekly' } as UnifiedTask];
               });
             }
           } else if (payload.eventType === 'UPDATE') {
             const updatedTask = payload.new as WeeklyTask;
             if (updatedTask.week_number === weekNumber) {
-              setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
+              setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? { ...updatedTask, type: 'weekly' } as UnifiedTask : t)));
             }
           } else if (payload.eventType === 'DELETE') {
             setTasks((prev) => prev.filter((t) => t.id !== payload.old.id));
@@ -135,7 +137,8 @@ export function useWeeklyTasks(weekNumber: number) {
           week_number: weekNumber,
         };
         setTasks((prev) => {
-          const next = [...prev, newTask];
+          const unifiedTask = { ...newTask, type: 'weekly' } as UnifiedTask;
+          const next = [...prev, unifiedTask];
           const allStored = JSON.parse(localStorage.getItem('padua_weekly_tasks') || '[]');
           localStorage.setItem('padua_weekly_tasks', JSON.stringify([...allStored, newTask]));
           return next;
