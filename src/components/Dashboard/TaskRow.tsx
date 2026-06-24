@@ -101,7 +101,7 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
 
   if (isEditing) {
     return (
-      <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-cream/40">
+      <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl bg-cream/40">
         <input
           autoFocus
           value={editName}
@@ -119,7 +119,7 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
     <div>
       <div
         className={`
-          relative flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl
+          relative flex items-center justify-between gap-3 px-3 py-1.5 rounded-xl
           bg-cream/30 hover:bg-cream/60 dark:bg-white/[0.03] dark:hover:bg-white/[0.07]
           border border-transparent hover:border-cream-dark/30 dark:hover:border-teal-lighter/10
           transition-all duration-200 group

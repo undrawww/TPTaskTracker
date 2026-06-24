@@ -3,6 +3,8 @@ import type { AttendanceWithIntern, AttendanceAction } from '../../types';
 import { TimeStampButton } from './TimeStampButton';
 import { useAuth } from '../../contexts/AuthContext';
 import { getAvatarIcon, getAvatarByIndex } from '../Dashboard/AvatarIcons';
+import { DailyRecordModal } from './DailyRecordModal';
+import { useState } from 'react';
 
 interface AttendanceInternCardProps {
   record: AttendanceWithIntern;
@@ -10,6 +12,7 @@ interface AttendanceInternCardProps {
   onUndoStamp: (internName: string, action: AttendanceAction) => void;
   onTextChange: (internName: string, field: 'accomplishments' | 'admin_feedback', value: string) => void;
   isAdmin: boolean;
+  showTimeColumns?: boolean;
 }
 
 /** Clock icons for each action */
@@ -64,7 +67,9 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
   onUndoStamp,
   onTextChange,
   isAdmin,
+  showTimeColumns = true,
 }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { currentInternId, role } = useAuth();
   const { intern_name, time_in, break_out, break_in, time_out, total_hours } = record;
 
@@ -99,83 +104,112 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
       </td>
 
       {/* Time In */}
-      <td className="px-5 py-4 align-middle text-center w-[120px]">
-        <TimeStampButton
-          label="Time In"
-          timestamp={time_in}
-          disabled={!isOwner || time_in !== null}
-          onClick={() => onStamp(intern_name, 'time_in')}
-          onUndo={() => onUndoStamp(intern_name, 'time_in')}
-          icon={ICONS.time_in}
-        />
-      </td>
+      {showTimeColumns && (
+        <td className="px-5 py-4 align-middle text-center w-[120px]">
+          <TimeStampButton
+            label="Time In"
+            timestamp={time_in}
+            disabled={!isOwner || time_in !== null}
+            onClick={() => onStamp(intern_name, 'time_in')}
+            onUndo={() => onUndoStamp(intern_name, 'time_in')}
+            icon={ICONS.time_in}
+          />
+        </td>
+      )}
 
       {/* Break Out */}
-      <td className="px-5 py-4 align-middle text-center w-[120px]">
-        <TimeStampButton
-          label="Break Out"
-          timestamp={break_out}
-          disabled={!isOwner || !canBreakOut}
-          onClick={() => onStamp(intern_name, 'break_out')}
-          onUndo={() => onUndoStamp(intern_name, 'break_out')}
-          icon={ICONS.break_out}
-        />
-      </td>
+      {showTimeColumns && (
+        <td className="px-5 py-4 align-middle text-center w-[120px]">
+          <TimeStampButton
+            label="Break Out"
+            timestamp={break_out}
+            disabled={!isOwner || !canBreakOut}
+            onClick={() => onStamp(intern_name, 'break_out')}
+            onUndo={() => onUndoStamp(intern_name, 'break_out')}
+            icon={ICONS.break_out}
+          />
+        </td>
+      )}
 
       {/* Break In */}
-      <td className="px-5 py-4 align-middle text-center w-[120px]">
-        <TimeStampButton
-          label="Break In"
-          timestamp={break_in}
-          disabled={!isOwner || !canBreakIn}
-          onClick={() => onStamp(intern_name, 'break_in')}
-          onUndo={() => onUndoStamp(intern_name, 'break_in')}
-          icon={ICONS.break_in}
-        />
-      </td>
+      {showTimeColumns && (
+        <td className="px-5 py-4 align-middle text-center w-[120px]">
+          <TimeStampButton
+            label="Break In"
+            timestamp={break_in}
+            disabled={!isOwner || !canBreakIn}
+            onClick={() => onStamp(intern_name, 'break_in')}
+            onUndo={() => onUndoStamp(intern_name, 'break_in')}
+            icon={ICONS.break_in}
+          />
+        </td>
+      )}
 
       {/* Time Out */}
-      <td className="px-5 py-4 align-middle text-center w-[120px]">
-        <TimeStampButton
-          label="Time Out"
-          timestamp={time_out}
-          disabled={!isOwner || !canTimeOut}
-          onClick={() => onStamp(intern_name, 'time_out')}
-          onUndo={() => onUndoStamp(intern_name, 'time_out')}
-          icon={ICONS.time_out}
-        />
-      </td>
+      {showTimeColumns && (
+        <td className="px-5 py-4 align-middle text-center w-[120px]">
+          <TimeStampButton
+            label="Time Out"
+            timestamp={time_out}
+            disabled={!isOwner || !canTimeOut}
+            onClick={() => onStamp(intern_name, 'time_out')}
+            onUndo={() => onUndoStamp(intern_name, 'time_out')}
+            icon={ICONS.time_out}
+          />
+        </td>
+      )}
 
       {/* Total Hours */}
-      <td className="px-5 py-4 align-middle text-center w-[100px]">
-        <div className={`
-          inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap
-          ${total_hours !== null
-            ? 'bg-status-done/10 text-status-done'
-            : 'bg-teal/10 dark:bg-white/10 text-teal/60 dark:text-cream/40'
-          }
-        `}>
-          {formatHours(total_hours)}
-        </div>
-      </td>
+      {showTimeColumns && (
+        <td className="px-5 py-4 align-middle text-center w-[100px]">
+          <div className={`
+            inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap
+            ${total_hours !== null
+              ? 'bg-status-done/10 text-status-done'
+              : 'bg-teal/10 dark:bg-white/10 text-teal/60 dark:text-cream/40'
+            }
+          `}>
+            {formatHours(total_hours)}
+          </div>
+        </td>
+      )}
 
-      {/* Accomplishments */}
+      {/* Daily Records */}
       <td className="px-5 py-4 align-middle min-w-[250px]">
-        <textarea
-          rows={2}
-          value={record.accomplishments}
-          onChange={(e) => onTextChange(intern_name, 'accomplishments', e.target.value)}
-          placeholder={isOwner ? "What did you accomplish today?" : "No accomplishments yet"}
-          disabled={!isOwner}
+        <button
+          onClick={() => setIsModalOpen(true)}
           className={`
-            w-full px-3 py-2 text-[13px] rounded-xl resize-y min-h-[42px]
+            w-full text-left px-4 py-3 text-[13px] rounded-xl min-h-[42px]
             bg-white dark:bg-[#00151a] border border-teal/10 dark:border-white/5
-            text-teal dark:text-cream placeholder:text-teal/50 dark:placeholder:text-cream/40
-            focus:outline-none focus:ring-2 focus:ring-teal/30 dark:focus:ring-gold/30 focus:border-teal/50 dark:focus:border-gold/50
-            hover:border-teal/20 dark:hover:border-white/10
-            transition-all duration-200
-            ${!isOwner ? 'opacity-60 cursor-not-allowed' : ''}
+            text-teal dark:text-cream
+            hover:border-teal/30 dark:hover:border-gold/30 hover:bg-teal/5 dark:hover:bg-white/5
+            transition-all duration-200 group flex items-center justify-between
           `}
+        >
+          <span className="truncate opacity-80 group-hover:opacity-100">
+            {record.accomplishments 
+              ? `${record.accomplishments.split('\n').filter(r => r.trim() !== '').length} record(s) added` 
+              : isOwner ? 'Add a daily record...' : 'No records yet'}
+          </span>
+          {isOwner ? (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-teal/40 dark:text-cream/30 group-hover:text-teal dark:group-hover:text-gold transition-colors ml-2 flex-shrink-0">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <line x1="12" y1="5" x2="12" y2="19" />
+            </svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-teal/40 dark:text-cream/30 group-hover:text-teal dark:group-hover:text-gold transition-colors ml-2 flex-shrink-0">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          )}
+        </button>
+
+        <DailyRecordModal
+          record={record}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSave={(value) => onTextChange(intern_name, 'accomplishments', value)}
+          isOwner={isOwner}
+          isAdmin={isAdmin}
         />
       </td>
 

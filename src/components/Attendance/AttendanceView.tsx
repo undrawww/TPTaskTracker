@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAttendance } from '../../hooks/useAttendance';
 import { AttendanceInternCard } from './AttendanceInternCard';
@@ -15,6 +15,8 @@ export const AttendanceView: React.FC = () => {
     undoStampAction,
     updateText,
   } = useAttendance();
+
+  const [showTimeColumns, setShowTimeColumns] = useState(true);
 
   const isAdmin = role === 'admin';
 
@@ -110,6 +112,18 @@ export const AttendanceView: React.FC = () => {
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
               </button>
+
+              <button
+                onClick={() => setShowTimeColumns(!showTimeColumns)}
+                className={`ml-2 px-3 py-2 text-xs font-bold rounded-xl transition-all duration-200 border ${
+                  showTimeColumns 
+                    ? 'bg-teal/10 dark:bg-white/10 text-teal dark:text-cream border-teal/20 dark:border-white/20' 
+                    : 'bg-transparent text-teal/50 dark:text-cream/50 border-teal/10 dark:border-white/10 hover:bg-teal/5 dark:hover:bg-white/5'
+                }`}
+                title={showTimeColumns ? "Hide time columns" : "Show time columns"}
+              >
+                {showTimeColumns ? 'Hide Times' : 'Show Times'}
+              </button>
             </div>
           </div>
 
@@ -160,23 +174,27 @@ export const AttendanceView: React.FC = () => {
                     <th className="px-5 py-4 text-[11px] font-bold text-teal/70 dark:text-cream/60 uppercase tracking-wider">
                       Intern
                     </th>
-                    <th className="px-5 py-4 text-[11px] font-bold text-teal/70 dark:text-cream/60 uppercase tracking-wider text-center w-[120px]">
-                      Time In
-                    </th>
-                    <th className="px-5 py-4 text-[11px] font-bold text-teal/70 dark:text-cream/60 uppercase tracking-wider text-center w-[120px]">
-                      Break Out
-                    </th>
-                    <th className="px-5 py-4 text-[11px] font-bold text-teal/70 dark:text-cream/60 uppercase tracking-wider text-center w-[120px]">
-                      Break In
-                    </th>
-                    <th className="px-5 py-4 text-[11px] font-bold text-teal/70 dark:text-cream/60 uppercase tracking-wider text-center w-[120px]">
-                      Time Out
-                    </th>
-                    <th className="px-5 py-4 text-[11px] font-bold text-teal/70 dark:text-cream/60 uppercase tracking-wider text-center w-[100px]">
-                      Total Hrs
-                    </th>
+                    {showTimeColumns && (
+                      <>
+                        <th className="px-5 py-4 text-[11px] font-bold text-teal/70 dark:text-cream/60 uppercase tracking-wider text-center w-[120px]">
+                          Time In
+                        </th>
+                        <th className="px-5 py-4 text-[11px] font-bold text-teal/70 dark:text-cream/60 uppercase tracking-wider text-center w-[120px]">
+                          Break Out
+                        </th>
+                        <th className="px-5 py-4 text-[11px] font-bold text-teal/70 dark:text-cream/60 uppercase tracking-wider text-center w-[120px]">
+                          Break In
+                        </th>
+                        <th className="px-5 py-4 text-[11px] font-bold text-teal/70 dark:text-cream/60 uppercase tracking-wider text-center w-[120px]">
+                          Time Out
+                        </th>
+                        <th className="px-5 py-4 text-[11px] font-bold text-teal/70 dark:text-cream/60 uppercase tracking-wider text-center w-[100px]">
+                          Total Hrs
+                        </th>
+                      </>
+                    )}
                     <th className="px-5 py-4 text-[11px] font-bold text-teal/70 dark:text-cream/60 uppercase tracking-wider min-w-[250px]">
-                      Accomplishments
+                      Daily Record
                     </th>
                     <th className="px-5 py-4 text-[11px] font-bold text-teal/70 dark:text-cream/60 uppercase tracking-wider min-w-[250px]">
                       Admin Feedback
@@ -192,6 +210,7 @@ export const AttendanceView: React.FC = () => {
                       onUndoStamp={undoStampAction}
                       onTextChange={updateText}
                       isAdmin={isAdmin}
+                      showTimeColumns={showTimeColumns}
                     />
                   ))}
                 </tbody>
