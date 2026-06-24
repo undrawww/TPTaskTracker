@@ -52,7 +52,7 @@ export const DailyTracker: React.FC<Props> = ({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+        <div className="grid grid-cols-1 gap-5 items-start">
           {DEPARTMENTS.map((dept) => (
             <DepartmentPanel
               key={dept}
