@@ -13,9 +13,10 @@ interface Props {
   onEditTask?: (taskId: string, newName: string) => void;
   onDeleteIntern?: (internId: string) => void;
   onDeleteTask?: (taskId: string) => void;
+  onViewProfile?: (internId: string) => void;
 }
 
-export const InternTaskGroup: React.FC<Props> = ({ internId, internName, avatarIndex, tasks, onStatusChange, onVerifyChange, onEditTask, onDeleteIntern, onDeleteTask }) => {
+export const InternTaskGroup: React.FC<Props> = ({ internId, internName, avatarIndex, tasks, onStatusChange, onVerifyChange, onEditTask, onDeleteIntern, onDeleteTask, onViewProfile }) => {
   const [chosenAvatarIdx, setChosenAvatarIdx] = useState<number | null>(() => {
     const savedName = localStorage.getItem('tp_avatar_name');
     if (savedName === internName) {
@@ -42,17 +43,22 @@ export const InternTaskGroup: React.FC<Props> = ({ internId, internName, avatarI
   return (
     <div className="space-y-2.5">
       <div className="flex items-center gap-2.5 px-1 group/intern">
-        <div className="w-8 h-8 rounded-full flex items-center justify-center shadow-sm">
-          {chosenAvatarIdx !== null 
-            ? getAvatarByIndex(chosenAvatarIdx) 
-            : avatarIndex !== undefined 
-              ? getAvatarByIndex(avatarIndex) 
-              : getAvatarIcon(internName)}
+        <div 
+          className={`flex items-center gap-2.5 flex-1 ${onViewProfile ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+          onClick={() => onViewProfile?.(internId)}
+        >
+          <div className="w-8 h-8 rounded-full flex items-center justify-center shadow-sm">
+            {chosenAvatarIdx !== null 
+              ? getAvatarByIndex(chosenAvatarIdx) 
+              : avatarIndex !== undefined 
+                ? getAvatarByIndex(avatarIndex) 
+                : getAvatarIcon(internName)}
+          </div>
+          <h4 className="text-sm font-semibold text-teal dark:text-cream tracking-tight">
+            {internName}
+          </h4>
         </div>
-        <h4 className="text-sm font-semibold text-teal dark:text-cream flex-1 tracking-tight">
-          {internName}
-        </h4>
-        <span className="text-[11px] text-teal/35 dark:text-cream/35 font-semibold tabular-nums">
+        <span className="text-[13px] text-teal/40 dark:text-cream/40 font-bold tabular-nums">
           {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
         </span>
         {onDeleteIntern && (

@@ -11,26 +11,25 @@ interface Props {
   onDeleteIntern?: (internId: string) => void;
   onDeleteTask?: (taskId: string) => void;
   isAdmin?: boolean;
+  onViewProfile?: (internId: string) => void;
 }
 
-export const DailyTracker: React.FC<Props> = ({ 
-  interns, 
-  tasks, 
+export const DailyTracker: React.FC<Props> = ({
+  interns,
+  tasks,
   onStatusChange,
   onVerifyChange,
   onEditTask,
   onDeleteIntern,
   onDeleteTask,
-  isAdmin = false
+  isAdmin = false,
+  onViewProfile
 }) => {
   return (
     <section id="daily-tracker">
       <div className="flex items-center gap-3 mb-4">
         <h2 className="text-lg font-bold text-teal dark:text-gold">Daily Task Tracker</h2>
         <div className="flex-1 h-px bg-teal/20 dark:bg-gold/20" />
-        <span className="text-xs text-teal/60 dark:text-gold font-medium">
-          {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-        </span>
       </div>
       {interns.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 bg-teal/5 dark:bg-[#002833]/50 rounded-2xl border border-teal/10 dark:border-white/5">
@@ -46,13 +45,13 @@ export const DailyTracker: React.FC<Props> = ({
             {isAdmin ? 'No interns found' : 'Not added to system'}
           </h3>
           <p className="text-sm text-teal/50 dark:text-cream/40">
-            {isAdmin 
-              ? 'Add interns to start tracking their tasks.' 
+            {isAdmin
+              ? 'Add interns to start tracking their tasks.'
               : 'You have not been added as an intern by an administrator yet.'}
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-5 items-start">
+        <div className="grid grid-cols-1 gap-5 items-start lg:w-[70%] mx-auto">
           {DEPARTMENTS.map((dept) => (
             <DepartmentPanel
               key={dept}
@@ -64,6 +63,7 @@ export const DailyTracker: React.FC<Props> = ({
               onEditTask={onEditTask}
               onDeleteIntern={onDeleteIntern}
               onDeleteTask={onDeleteTask}
+              onViewProfile={onViewProfile}
             />
           ))}
         </div>

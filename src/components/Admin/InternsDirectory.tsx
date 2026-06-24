@@ -2,7 +2,11 @@ import React from 'react';
 import { useInterns } from '../../hooks/useInterns';
 import { getAvatarIcon, getAvatarByIndex } from '../Dashboard/AvatarIcons';
 
-export const InternsDirectory: React.FC = () => {
+interface Props {
+  onViewProfile?: (id: string) => void;
+}
+
+export const InternsDirectory: React.FC<Props> = ({ onViewProfile }) => {
   const { interns, loading, error } = useInterns();
 
   return (
@@ -56,7 +60,11 @@ export const InternsDirectory: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-teal/5 dark:divide-white/5">
               {interns.map((intern) => (
-                <tr key={intern.id} className="hover:bg-teal/5 dark:hover:bg-white/5 transition-colors duration-200">
+                <tr 
+                  key={intern.id} 
+                  className="hover:bg-teal/5 dark:hover:bg-white/5 transition-colors duration-200 cursor-pointer"
+                  onClick={() => onViewProfile?.(intern.id)}
+                >
                   <td className="px-5 py-4 align-middle">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm">

@@ -34,11 +34,14 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
   const [personalEmail, setPersonalEmail] = useState('');
   const [expectedGraduationDate, setExpectedGraduationDate] = useState('');
   const [requiredHours, setRequiredHours] = useState('');
+  const [bio, setBio] = useState('');
+  const [skills, setSkills] = useState('');
 
   const [isEditing, setIsEditing] = useState(false);
   const [currentName, setCurrentName] = useState<string>('');
   const [avatarIndex, setAvatarIndex] = useState<number>(getSavedAvatar);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [activeTab, setActiveTab] = useState<'profile' | 'academic' | 'security'>('profile');
 
   // Fetch current profile name on open
   React.useEffect(() => {
@@ -64,10 +67,24 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
             if (data.school) setSchool(data.school);
             if (data.contact_number) setContactNumber(data.contact_number);
             if (data.personal_email) setPersonalEmail(data.personal_email);
-            if (data.expected_graduation_date) setExpectedGraduationDate(data.expected_graduation_date);
+              setExpectedGraduationDate(data.expected_graduation_date);
             if (data.required_hours) setRequiredHours(String(data.required_hours));
           }
         });
+
+      if (role === 'intern') {
+        supabase
+          .from('interns')
+          .select('bio, skills')
+          .eq('email', user.email)
+          .single()
+          .then(({ data }) => {
+            if (data) {
+              if (data.bio) setBio(data.bio);
+              if (data.skills && Array.isArray(data.skills)) setSkills(data.skills.join(', '));
+            }
+          });
+      }
     } else if (!isSupabaseConfigured) {
       setCurrentName('Demo User');
       setFullName('Demo User');
@@ -138,14 +155,19 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
           
         if (profileError) throw profileError;
 
-        // If intern, update interns table
         if (role === 'intern') {
+          const skillsArray = skills ? skills.split(',').map(s => s.trim()).filter(Boolean) : [];
           const { error: internError } = await supabase
             .from('interns')
-            .update(updateData)
+            .update({ 
+              ...updateData,
+              bio, 
+              skills: skillsArray
+            })
             .eq('email', user.email);
           if (internError) throw internError;
         }
+        
         setCurrentName(fullName);
       }
 
@@ -167,15 +189,15 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4"
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-[#002b36] rounded-2xl shadow-xl w-full max-w-md mx-4 animate-slide-up overflow-hidden"
+        className={`bg-white dark:bg-[#002b36] rounded-2xl shadow-xl w-full ${!isEditing ? 'max-w-md' : 'max-w-2xl'} mx-auto animate-slide-up overflow-hidden flex flex-col max-h-[90vh]`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-gradient-to-r from-teal to-[#004d5e] dark:from-[#00151a] dark:to-[#001f2e] text-white px-6 py-4 flex items-center justify-between">
-          <h2 className="font-poppins text-lg font-semibold">Profile Settings</h2>
+        <div className="bg-gradient-to-r from-teal to-[#004d5e] dark:from-[#00151a] dark:to-[#001f2e] text-white px-6 py-4 flex items-center justify-between shrink-0">
+          <h2 className="font-poppins text-lg font-semibold">{!isEditing ? 'Profile Settings' : 'Edit Profile'}</h2>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center transition-colors"
@@ -187,7 +209,35 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
           </button>
         </div>
 
-        <div className="p-6">
+        {isEditing && !showAvatarPicker && (
+          <div className="flex px-8 pt-6 border-b border-teal/10 dark:border-white/10 gap-8 shrink-0 overflow-x-auto scrollbar-hide">
+            <button
+              type="button"
+              onClick={() => setActiveTab('profile')}
+              className={`pb-3 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${activeTab === 'profile' ? 'border-gold text-teal dark:text-cream' : 'border-transparent text-teal/50 dark:text-cream/50 hover:text-teal dark:hover:text-cream'}`}
+            >
+              Profile Info
+            </button>
+            {role === 'intern' && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('academic')}
+                className={`pb-3 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${activeTab === 'academic' ? 'border-gold text-teal dark:text-cream' : 'border-transparent text-teal/50 dark:text-cream/50 hover:text-teal dark:hover:text-cream'}`}
+              >
+                Academic Details
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setActiveTab('security')}
+              className={`pb-3 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${activeTab === 'security' ? 'border-gold text-teal dark:text-cream' : 'border-transparent text-teal/50 dark:text-cream/50 hover:text-teal dark:hover:text-cream'}`}
+            >
+              Contact & Security
+            </button>
+          </div>
+        )}
+
+        <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar">
           {/* Avatar Picker Overlay */}
           {showAvatarPicker ? (
             <div className="space-y-4 animate-scale-in">
@@ -247,7 +297,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
                 </div>
               </div>
               <button
-                onClick={() => setIsEditing(true)}
+                onClick={() => { setIsEditing(true); setActiveTab('profile'); }}
                 className="w-full py-2.5 rounded-xl border border-cream-dark dark:border-teal-light text-teal dark:text-cream font-semibold text-sm hover:bg-cream/50 dark:hover:bg-[#003946] transition-colors flex items-center justify-center gap-2"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -258,90 +308,169 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSave} className="flex flex-col max-h-[70vh]">
-              <div className="overflow-y-auto pr-2 space-y-4 pb-4 custom-scrollbar">
-                <div>
-                  <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Update Name</label>
-                  <input
-                    type="text"
-                    placeholder="New Full Name"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Update Password</label>
-                  <input
-                    type="password"
-                    placeholder="Leave blank to keep current"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold"
-                  />
-                </div>
-                {password && (
-                  <div>
-                    <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Confirm Password</label>
-                    <input
-                      type="password"
-                      placeholder="Re-enter new password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold"
-                    />
+            <form onSubmit={handleSave} className="flex flex-col">
+              <div className="space-y-6 pb-4">
+                
+                {/* PROFILE TAB */}
+                {activeTab === 'profile' && (
+                  <div className="space-y-5 animate-fade-in">
+                    <div>
+                      <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Full Name</label>
+                      <input
+                        type="text"
+                        placeholder="Your Full Name"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold"
+                      />
+                    </div>
+                    {role === 'intern' && (
+                      <>
+                        <div>
+                          <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Bio / About Me</label>
+                          <textarea
+                            value={bio}
+                            onChange={(e) => setBio(e.target.value)}
+                            placeholder="Tell us a little about yourself..."
+                            rows={4}
+                            className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold resize-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Skills</label>
+                          <input
+                            type="text"
+                            value={skills}
+                            onChange={(e) => setSkills(e.target.value)}
+                            placeholder="e.g., React, TypeScript, Communication (comma separated)"
+                            className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Location</label>
+                          <input 
+                            type="text" 
+                            placeholder="City, Country"
+                            value={location} 
+                            onChange={(e) => setLocation(e.target.value)} 
+                            className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" 
+                          />
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
 
-                {role === 'intern' && (
-                  <div className="pt-4 mt-4 border-t border-teal/10 dark:border-white/10">
-                    <h4 className="text-sm font-bold text-teal dark:text-cream mb-4">Internship Details</h4>
-                    <div className="space-y-4">
+                {/* ACADEMIC TAB */}
+                {activeTab === 'academic' && role === 'intern' && (
+                  <div className="space-y-5 animate-fade-in">
+                    <div>
+                      <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">School / University</label>
+                      <input 
+                        type="text" 
+                        value={school} 
+                        onChange={(e) => setSchool(e.target.value)} 
+                        className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Course / Program</label>
+                      <input 
+                        type="text" 
+                        value={program} 
+                        onChange={(e) => setProgram(e.target.value)} 
+                        className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" 
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div>
-                        <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Location</label>
-                        <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Program</label>
-                        <input type="text" value={program} onChange={(e) => setProgram(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" />
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Current Year</label>
-                          <input type="text" value={currentYear} onChange={(e) => setCurrentYear(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Graduation Date</label>
-                          <input type="text" placeholder="e.g. May 2027" value={expectedGraduationDate} onChange={(e) => setExpectedGraduationDate(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-teal dark:text-cream mb-1">School</label>
-                        <input type="text" value={school} onChange={(e) => setSchool(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" />
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Contact Number</label>
-                          <input type="text" value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Required Hours</label>
-                          <input type="number" value={requiredHours} onChange={(e) => setRequiredHours(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" />
-                        </div>
+                        <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Current Year</label>
+                        <input 
+                          type="text" 
+                          placeholder="e.g. 3rd Year"
+                          value={currentYear} 
+                          onChange={(e) => setCurrentYear(e.target.value)} 
+                          className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" 
+                        />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-teal dark:text-cream mb-1">Personal Email</label>
-                        <input type="email" value={personalEmail} onChange={(e) => setPersonalEmail(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" />
+                        <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Graduation Date</label>
+                        <input 
+                          type="text" 
+                          placeholder="e.g. May 2027" 
+                          value={expectedGraduationDate} 
+                          onChange={(e) => setExpectedGraduationDate(e.target.value)} 
+                          className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" 
+                        />
                       </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Required Internship Hours</label>
+                      <input 
+                        type="number" 
+                        value={requiredHours} 
+                        onChange={(e) => setRequiredHours(e.target.value)} 
+                        className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" 
+                      />
                     </div>
                   </div>
                 )}
 
-                {error && <p className="text-sm text-status-hold bg-status-hold-bg px-3 py-2 rounded-lg">{error}</p>}
-                {success && <p className="text-sm text-status-done bg-status-done-bg px-3 py-2 rounded-lg">{success}</p>}
+                {/* SECURITY TAB */}
+                {activeTab === 'security' && (
+                  <div className="space-y-5 animate-fade-in">
+                    {role === 'intern' && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pb-4 border-b border-teal/10 dark:border-white/10">
+                        <div>
+                          <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Contact Number</label>
+                          <input 
+                            type="text" 
+                            value={contactNumber} 
+                            onChange={(e) => setContactNumber(e.target.value)} 
+                            className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" 
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Personal Email</label>
+                          <input 
+                            type="email" 
+                            value={personalEmail} 
+                            onChange={(e) => setPersonalEmail(e.target.value)} 
+                            className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" 
+                          />
+                        </div>
+                      </div>
+                    )}
+                    <div>
+                      <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Change Password</label>
+                      <input
+                        type="password"
+                        placeholder="Leave blank to keep current"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold"
+                      />
+                    </div>
+                    {password && (
+                      <div>
+                        <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Confirm Password</label>
+                        <input
+                          type="password"
+                          placeholder="Re-enter new password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {error && <p className="text-sm text-status-hold bg-status-hold-bg px-4 py-3 rounded-xl border border-status-hold/20">{error}</p>}
+                {success && <p className="text-sm text-status-done bg-status-done-bg px-4 py-3 rounded-xl border border-status-done/20">{success}</p>}
               </div>
 
-              <div className="flex gap-3 pt-4 border-t border-teal/10 dark:border-white/10 shrink-0">
+              <div className="flex justify-end gap-3 pt-6 border-t border-teal/10 dark:border-white/10 shrink-0 mt-auto">
                 <button
                   type="button"
                   onClick={() => {
@@ -351,14 +480,14 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
                     setPassword('');
                     setConfirmPassword('');
                   }}
-                  className="flex-1 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light text-cream-dark dark:text-teal-light font-semibold text-sm hover:bg-cream/50 dark:hover:bg-[#003946] transition-colors"
+                  className="px-6 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light text-cream-dark dark:text-teal-light font-semibold text-sm hover:bg-cream/50 dark:hover:bg-[#003946] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={loading || (!fullName && !password && !location && !program && !currentYear && !school && !contactNumber && !personalEmail && !expectedGraduationDate && !requiredHours)}
-                  className="flex-1 py-2.5 rounded-xl bg-gold text-teal font-semibold text-sm hover:bg-gold-light transition-colors disabled:opacity-50"
+                  disabled={loading}
+                  className="px-8 py-2.5 rounded-xl bg-gold text-teal font-semibold text-sm hover:bg-gold-light transition-colors disabled:opacity-50"
                 >
                   {loading ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -366,23 +495,25 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
             </form>
           )}
 
-          <div className="mt-6 pt-6 border-t border-cream-dark dark:border-teal-light">
-            <button
-              onClick={() => {
-                localStorage.removeItem('tp_avatar');
-                localStorage.removeItem('tp_avatar_name');
-                onLogout();
-              }}
-              className="w-full py-2.5 rounded-xl border border-status-hold/30 text-status-hold font-semibold text-sm hover:bg-status-hold/10 transition-colors flex items-center justify-center gap-2"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-              Sign Out
-            </button>
-          </div>
+          {!isEditing && (
+            <div className="mt-8 pt-6 border-t border-cream-dark dark:border-teal-light">
+              <button
+                onClick={() => {
+                  localStorage.removeItem('tp_avatar');
+                  localStorage.removeItem('tp_avatar_name');
+                  onLogout();
+                }}
+                className="w-full py-2.5 rounded-xl border border-status-hold/30 text-status-hold font-semibold text-sm hover:bg-status-hold/10 transition-colors flex items-center justify-center gap-2"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Sign Out
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

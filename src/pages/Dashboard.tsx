@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { AnalyticsDashboard } from '../components/Analytics/AnalyticsDashboard';
@@ -18,18 +18,71 @@ import { useInterns } from '../hooks/useInterns';
 import { useDailyTasks } from '../hooks/useDailyTasks';
 
 import { useAnalytics } from '../hooks/useAnalytics';
+import { ProfilePage } from '../components/Profile/ProfilePage';
 import type { TaskStatus } from '../types';
 
-type ActiveView = 'tracker' | 'attendance' | 'interns';
+type ActiveView = 'tracker' | 'attendance' | 'interns' | 'profile';
 
-export const Dashboard: React.FC = () => {
+interface DashboardProps {
+  defaultView?: ActiveView;
+}
+
+export const Dashboard: React.FC<DashboardProps> = ({ defaultView = 'tracker' }) => {
   const { role, currentInternId } = useAuth();
   const navigate = useNavigate();
 
   // View & sidebar state
-  const [activeView, setActiveView] = useState<ActiveView>('tracker');
+  const [activeView, setActiveView] = useState<ActiveView>(defaultView);
+  const [viewingProfileId, setViewingProfileId] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
+
+  const handleViewChange = (view: ActiveView) => {
+    setActiveView(view);
+    if (view !== 'profile') {
+      setViewingProfileId(null);
+    }
+  };
+
+  const handleViewProfile = (id: string) => {
+    setViewingProfileId(id);
+    setActiveView('profile');
+  };
+
+  // Map paths to views
+  const viewToPath: Record<ActiveView, string> = {
+    tracker: '/tasktracker',
+    attendance: '/attendance',
+    interns: '/interns',
+    profile: '/profile',
+  };
+
+  const pathToView: Record<string, ActiveView> = {
+    '/': 'tracker',
+    '/tasktracker': 'tracker',
+    '/attendance': 'attendance',
+    '/interns': 'interns',
+    '/profile': 'profile',
+  };
+
+  // Sync URL path to state
+  useEffect(() => {
+    const currentView = pathToView[location.pathname] || 'tracker';
+    if (activeView !== currentView) {
+      setActiveView(currentView);
+    }
+  }, [location.pathname]);
+
+  // Sync state to URL path
+  useEffect(() => {
+    const desiredPath = viewToPath[activeView] || '/tasktracker';
+    if (location.pathname !== desiredPath && location.pathname !== '/' + desiredPath) {
+      // If we are at '/' and activeView is tracker, we could optionally rewrite to /tasktracker, or leave it.
+      // We will push the desired path to keep the URL consistent.
+      navigate(desiredPath);
+    }
+  }, [activeView, navigate, location.pathname]);
 
   // Modal state
   const [showAddIntern, setShowAddIntern] = useState(false);
@@ -97,7 +150,7 @@ export const Dashboard: React.FC = () => {
       {/* Sidebar Navigation */}
       <Sidebar
         activeView={activeView}
-        onViewChange={setActiveView}
+        onViewChange={handleViewChange}
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         isAdmin={role === 'admin'}
@@ -139,11 +192,10 @@ export const Dashboard: React.FC = () => {
               </svg>
               <span className="font-medium text-teal dark:text-white">{formattedDate}</span>
             </div>
-
-            <div className="flex items-center gap-3 border-l border-teal/10 dark:border-white/10 pl-6">
-              <HeaderProfileMenu
-                onOpenProfile={() => setShowProfile(true)}
-                onLogout={handleLogout}
+            {/* Header Right */}
+            <div className="flex items-center gap-3 pr-2">
+              <HeaderProfileMenu 
+                onLogout={handleLogout} 
               />
             </div>
           </div>
@@ -203,6 +255,7 @@ export const Dashboard: React.FC = () => {
                   onDeleteIntern={role === 'admin' ? handleRemoveIntern : undefined}
                   onDeleteTask={role === 'admin' ? removeDailyTask : undefined}
                   isAdmin={role === 'admin'}
+                  onViewProfile={handleViewProfile}
                 />
 
                 <div className="flex items-center gap-5 mt-12 mb-2">
@@ -228,8 +281,12 @@ export const Dashboard: React.FC = () => {
                   </>
                 )}
                 
-                {activeView === 'interns' && role === 'admin' && (
-                  <InternsDirectory />
+                {activeView === 'interns' && (
+                  <InternsDirectory onViewProfile={handleViewProfile} />
+                )}
+
+                {activeView === 'profile' && (
+                  <ProfilePage internId={viewingProfileId || undefined} />
                 )}
               </>
             )}
@@ -243,7 +300,11 @@ export const Dashboard: React.FC = () => {
 
       <ProfileModal
         isOpen={showProfile}
-        onClose={() => setShowProfile(false)}
+        onClose={() => {
+          setShowProfile(false);
+          setViewingProfileId(null);
+        }}
+        internId={viewingProfileId || undefined}
         onLogout={handleLogout}
       />
       {role === 'admin' && (

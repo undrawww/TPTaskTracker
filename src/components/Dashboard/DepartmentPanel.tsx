@@ -11,6 +11,7 @@ interface Props {
   onEditTask?: (taskId: string, newName: string) => void;
   onDeleteIntern?: (internId: string) => void;
   onDeleteTask?: (taskId: string) => void;
+  onViewProfile?: (internId: string) => void;
 }
 
 
@@ -55,6 +56,7 @@ export const DepartmentPanel: React.FC<Props> = ({
   onEditTask,
   onDeleteIntern,
   onDeleteTask,
+  onViewProfile,
 }) => {
   const deptInterns = interns.filter((i) => i.department === department);
   const totalTasks = tasks.filter((t) =>
@@ -74,7 +76,7 @@ export const DepartmentPanel: React.FC<Props> = ({
           </h3>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-teal/70 dark:text-white/60 font-semibold tabular-nums">
+          <span className="text-xl text-teal/70 dark:text-white/60 font-bold tabular-nums">
             {doneTasks}/{totalTasks.length}
           </span>
           <div className="relative w-11 h-11 flex items-center justify-center">
@@ -89,7 +91,7 @@ export const DepartmentPanel: React.FC<Props> = ({
                 className="transition-all duration-700 ease-out"
               />
             </svg>
-            <span className="text-[10px] font-extrabold text-teal dark:text-white z-10 relative tabular-nums">
+            <span className="text-xs font-extrabold text-teal dark:text-white z-10 relative tabular-nums">
               {totalTasks.length > 0 ? Math.round((doneTasks / totalTasks.length) * 100) : 0}%
             </span>
           </div>
@@ -117,6 +119,7 @@ export const DepartmentPanel: React.FC<Props> = ({
                 onEditTask={onEditTask}
                 onDeleteIntern={onDeleteIntern}
                 onDeleteTask={onDeleteTask}
+                onViewProfile={onViewProfile}
               />
             );
           })

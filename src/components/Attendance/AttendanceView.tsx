@@ -3,6 +3,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useAttendance } from '../../hooks/useAttendance';
 import { AttendanceInternCard } from './AttendanceInternCard';
 
+export type SortOption = 'department' | 'name' | 'time_in';
+
 export const AttendanceView: React.FC = () => {
   const { role, currentInternId } = useAuth();
   const {
@@ -17,6 +19,7 @@ export const AttendanceView: React.FC = () => {
   } = useAttendance();
 
   const [showTimeColumns, setShowTimeColumns] = useState(true);
+  const [sortBy, setSortBy] = useState<SortOption>('department');
 
   const isAdmin = role === 'admin';
 
@@ -27,6 +30,24 @@ export const AttendanceView: React.FC = () => {
   }
     
   displayRecords = displayRecords.filter(r => r.intern?.full_name !== 'Administrator (Invite)');
+
+  displayRecords.sort((a, b) => {
+    if (sortBy === 'department') {
+      const deptA = a.intern?.department || '';
+      const deptB = b.intern?.department || '';
+      if (deptA === deptB) {
+        return (a.intern?.full_name || '').localeCompare(b.intern?.full_name || '');
+      }
+      return deptA.localeCompare(deptB);
+    } else if (sortBy === 'name') {
+      return (a.intern?.full_name || '').localeCompare(b.intern?.full_name || '');
+    } else if (sortBy === 'time_in') {
+      const timeA = a.time_in ? new Date(a.time_in).getTime() : Infinity;
+      const timeB = b.time_in ? new Date(b.time_in).getTime() : Infinity;
+      return timeA - timeB;
+    }
+    return 0;
+  });
 
   /** Format date for the header display */
   const displayDate = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
@@ -124,6 +145,17 @@ export const AttendanceView: React.FC = () => {
               >
                 {showTimeColumns ? 'Hide Times' : 'Show Times'}
               </button>
+
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                className="ml-2 px-3 py-2 text-xs font-bold rounded-xl transition-all duration-200 border bg-white dark:bg-[#001a22] text-teal dark:text-cream border-teal/10 dark:border-white/10 hover:border-teal/20 dark:hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-gold/30 cursor-pointer"
+                title="Sort records"
+              >
+                <option value="department">Sort by Dept</option>
+                <option value="name">Sort by Name</option>
+                <option value="time_in">Sort by Time In</option>
+              </select>
             </div>
           </div>
 

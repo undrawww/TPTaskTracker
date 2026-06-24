@@ -135,7 +135,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, coll
 
       {/* Navigation */}
       <nav className="flex-1 flex flex-col gap-1 px-2 mt-4">
-        {NAV_ITEMS.filter(item => item.key !== 'interns' || isAdmin).map((item) => {
+        {NAV_ITEMS.map((item) => {
           const isActive = activeView === item.key;
           return (
             <button

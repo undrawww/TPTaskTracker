@@ -36,6 +36,25 @@ export interface Intern {
   team_email?: string;
   expected_graduation_date?: string;
   required_hours?: number;
+  // Profile fields
+  status?: string;
+  start_date?: string;
+  bio?: string;
+  skills?: string[];
+  interests?: string[];
+  strengths?: string[];
+  career_goals?: string[];
+  created_at?: string;
+}
+
+export interface Certification {
+  id: string;
+  intern_id: string;
+  name: string;
+  issuer: string;
+  date_earned: string;
+  link?: string;
+  created_at?: string;
 }
 
 export interface DailyTask {

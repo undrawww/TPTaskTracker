@@ -31,6 +31,46 @@ function App() {
               }
             />
 
+            {/* Profile route */}
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Dashboard defaultView="profile" />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* TaskTracker route */}
+            <Route
+              path="/tasktracker"
+              element={
+                <ProtectedRoute>
+                  <Dashboard defaultView="tracker" />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Attendance route */}
+            <Route
+              path="/attendance"
+              element={
+                <ProtectedRoute>
+                  <Dashboard defaultView="attendance" />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Interns route */}
+            <Route
+              path="/interns"
+              element={
+                <ProtectedRoute>
+                  <Dashboard defaultView="interns" />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Catch-all redirect */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
