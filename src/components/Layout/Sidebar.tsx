@@ -52,7 +52,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, coll
       {/* Mobile Overlay */}
       {isMobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 min-[769px]:hidden"
           onClick={onMobileClose}
         />
       )}
@@ -66,12 +66,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, coll
           h-screen overflow-y-auto scrollbar-hide
           
           /* Mobile behavior: fixed drawer */
-          fixed inset-y-0 left-0 z-50 transform w-64
-          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+          max-[768px]:fixed max-[768px]:inset-y-0 max-[768px]:left-0 max-[768px]:z-50 max-[768px]:transform max-[768px]:w-64
+          ${isMobileMenuOpen ? 'max-[768px]:translate-x-0' : 'max-[768px]:-translate-x-full'}
           
           /* Desktop behavior: sticky column */
-          lg:relative lg:translate-x-0 lg:sticky lg:top-0
-          ${collapsed ? 'lg:w-16' : 'lg:w-56'}
+          min-[769px]:relative min-[769px]:translate-x-0 min-[769px]:sticky min-[769px]:top-0
+          ${collapsed ? 'min-[769px]:w-16' : 'min-[769px]:w-56'}
         `}
       >
       {/* Branding Logo & Toggle */}
@@ -148,7 +148,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, coll
       </nav>
 
       {/* Bottom branding */}
-      <div className={`px-3 py-4 border-t border-teal/10 dark:border-white/5 ${collapsed ? 'hidden md:hidden' : ''}`}>
+      <div className={`px-3 py-4 border-t border-teal/10 dark:border-white/5 ${collapsed ? 'hidden min-[769px]:hidden' : ''}`}>
         <p className="text-[10px] text-teal/30 dark:text-white/20 font-medium tracking-wider uppercase">
           TeamPadua v2
         </p>

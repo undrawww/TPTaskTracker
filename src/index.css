@@ -42,10 +42,11 @@
   }
 
   body {
-    @apply bg-cream dark:bg-[#001f26] text-teal dark:text-white transition-colors duration-300;
     margin: 0;
     padding: 0;
     font-family: var(--font-sans);
+    background-color: var(--color-cream);
+    color: var(--color-teal);
     line-height: 1.6;
     letter-spacing: -0.01em;
   }
