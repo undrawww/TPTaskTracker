@@ -113,7 +113,7 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
             timestamp={time_in}
             disabled={!isOwner || time_in !== null}
             onClick={() => onStamp(intern_name, 'time_in')}
-            onUndo={() => onUndoStamp(intern_name, 'time_in')}
+            onUndo={(isOwner || isAdmin) ? () => onUndoStamp(intern_name, 'time_in') : undefined}
             icon={ICONS.time_in}
           />
         </td>
@@ -127,7 +127,7 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
             timestamp={break_out}
             disabled={!isOwner || !canBreakOut}
             onClick={() => onStamp(intern_name, 'break_out')}
-            onUndo={() => onUndoStamp(intern_name, 'break_out')}
+            onUndo={(isOwner || isAdmin) ? () => onUndoStamp(intern_name, 'break_out') : undefined}
             icon={ICONS.break_out}
           />
         </td>
@@ -141,7 +141,7 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
             timestamp={break_in}
             disabled={!isOwner || !canBreakIn}
             onClick={() => onStamp(intern_name, 'break_in')}
-            onUndo={() => onUndoStamp(intern_name, 'break_in')}
+            onUndo={(isOwner || isAdmin) ? () => onUndoStamp(intern_name, 'break_in') : undefined}
             icon={ICONS.break_in}
           />
         </td>
@@ -155,7 +155,7 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
             timestamp={time_out}
             disabled={!isOwner || !canTimeOut}
             onClick={() => onStamp(intern_name, 'time_out')}
-            onUndo={() => onUndoStamp(intern_name, 'time_out')}
+            onUndo={(isOwner || isAdmin) ? () => onUndoStamp(intern_name, 'time_out') : undefined}
             icon={ICONS.time_out}
           />
         </td>
