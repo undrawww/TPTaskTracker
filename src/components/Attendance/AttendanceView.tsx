@@ -18,8 +18,22 @@ export const AttendanceView: React.FC = () => {
     updateText,
   } = useAttendance();
 
-  const [showTimeColumns, setShowTimeColumns] = useState(true);
-  const [sortBy, setSortBy] = useState<SortOption>('department');
+  const [showTimeColumns, setShowTimeColumns] = useState<boolean>(() => {
+    const saved = localStorage.getItem('padua_attendance_show_times');
+    return saved !== null ? saved === 'true' : true;
+  });
+  const [sortBy, setSortBy] = useState<SortOption>(() => {
+    const saved = localStorage.getItem('padua_attendance_sort_by');
+    return (saved as SortOption) || 'department';
+  });
+
+  React.useEffect(() => {
+    localStorage.setItem('padua_attendance_show_times', String(showTimeColumns));
+  }, [showTimeColumns]);
+
+  React.useEffect(() => {
+    localStorage.setItem('padua_attendance_sort_by', sortBy);
+  }, [sortBy]);
 
   const isAdmin = role === 'admin';
 
