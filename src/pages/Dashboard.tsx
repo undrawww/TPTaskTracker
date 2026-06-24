@@ -153,7 +153,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ defaultView = 'tracker' })
         onViewChange={handleViewChange}
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        isAdmin={role === 'admin'}
         isMobileMenuOpen={isMobileMenuOpen}
         onMobileClose={() => setIsMobileMenuOpen(false)}
         todayTotal={analytics.todayTotal}
@@ -304,7 +303,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ defaultView = 'tracker' })
           setShowProfile(false);
           setViewingProfileId(null);
         }}
-        internId={viewingProfileId || undefined}
         onLogout={handleLogout}
       />
       {role === 'admin' && (

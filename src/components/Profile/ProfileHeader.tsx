@@ -1,16 +1,15 @@
 import React from 'react';
-import type { Intern, DailyTask, AttendanceRecord } from '../../types';
+import type { Intern, DailyTask } from '../../types';
 import { getAvatarByIndex } from '../Dashboard/AvatarIcons';
 
 interface ProfileHeaderProps {
   intern: Intern;
   tasks: DailyTask[];
-  attendance: AttendanceRecord[];
   role: string | null;
   onEditClick: () => void;
 }
 
-export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, attendance, role, onEditClick }) => {
+export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, role, onEditClick }) => {
   // Tasks marked as 'is_verified' are considered verified completed by the admin
   const completedTasks = tasks.filter(t => t.is_verified).length;
   const formattedStartDate = intern.created_at 

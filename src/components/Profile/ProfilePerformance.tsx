@@ -74,7 +74,7 @@ export const ProfilePerformance: React.FC<ProfilePerformanceProps> = ({ tasks, a
               labelStyle={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}
             />
             <Bar dataKey="total" radius={[4, 4, 0, 0]} barSize={16}>
-              {chartData.map((entry, index) => (
+              {chartData.map((_, index) => (
                 <Cell key={`cell-${index}`} fill={index % 2 === 0 ? CHART_COLORS.teal : CHART_COLORS.gold} />
               ))}
             </Bar>

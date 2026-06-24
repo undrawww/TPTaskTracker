@@ -41,7 +41,7 @@ export function useProfile(internId?: string) {
           }
           // Mock data or localStorage fallback for when Supabase isn't configured
           const mockIntern: Intern = {
-            id: currentInternId,
+            id: targetId || 'demo-id',
             full_name: 'John Renz Bandianon',
             department: 'Advisor Support Associate',
             email: 'johnrenz@example.com',
@@ -59,9 +59,9 @@ export function useProfile(internId?: string) {
           const storedCerts = JSON.parse(localStorage.getItem('padua_certifications') || '[]');
           
           setCertifications([
-            { id: '1', intern_id: currentInternId, name: 'Google Workspace Fundamentals', issuer: 'Google', date_earned: '2026-05-15' },
-            { id: '2', intern_id: currentInternId, name: 'Customer Service Excellence', issuer: 'Alison', date_earned: '2026-04-30' },
-            ...storedCerts.filter((c: any) => c.intern_id === currentInternId)
+            { id: '1', intern_id: targetId || 'demo-id', name: 'Google Workspace Fundamentals', issuer: 'Google', date_earned: '2026-05-15' },
+            { id: '2', intern_id: targetId || 'demo-id', name: 'Customer Service Excellence', issuer: 'Alison', date_earned: '2026-04-30' },
+            ...storedCerts.filter((c: any) => c.intern_id === targetId)
           ]);
 
           // Sync tasks with what Tracker uses in demo mode
@@ -69,7 +69,7 @@ export function useProfile(internId?: string) {
           if (storedTasks) {
             try {
               const allTasks: DailyTask[] = JSON.parse(storedTasks);
-              setTasks(allTasks.filter(t => t.intern_id === currentInternId));
+              setTasks(allTasks.filter(t => t.intern_id === targetId));
             } catch (err) {
               setTasks([]);
             }
@@ -78,10 +78,10 @@ export function useProfile(internId?: string) {
             const d = new Date();
             const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
             setTasks([
-              { id: 'dt-1', intern_id: currentInternId, task_name: 'Review client onboarding checklist', status: 'Done', task_date: today },
-              { id: 'dt-2', intern_id: currentInternId, task_name: 'Prepare advisor meeting notes', status: 'Done', task_date: today },
-              { id: 'dt-3', intern_id: currentInternId, task_name: 'Update support documentation', status: 'Done', task_date: today },
-              { id: 'dt-4', intern_id: currentInternId, task_name: 'Compile weekly financial report', status: 'Done', task_date: today },
+              { id: 'dt-1', intern_id: targetId || 'demo-id', task_name: 'Review client onboarding checklist', status: 'Done', task_date: today },
+              { id: 'dt-2', intern_id: targetId || 'demo-id', task_name: 'Prepare advisor meeting notes', status: 'Done', task_date: today },
+              { id: 'dt-3', intern_id: targetId || 'demo-id', task_name: 'Update support documentation', status: 'Done', task_date: today },
+              { id: 'dt-4', intern_id: targetId || 'demo-id', task_name: 'Compile weekly financial report', status: 'Done', task_date: today },
             ]);
           }
 

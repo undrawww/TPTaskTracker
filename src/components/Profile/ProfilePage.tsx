@@ -8,12 +8,10 @@ import { ProfilePerformance } from './ProfilePerformance';
 import { ProfileAdminFeedback } from './ProfileAdminFeedback';
 import { ProfileModal } from './ProfileModal';
 import { supabase } from '../../lib/supabaseClient';
-import { useNavigate } from 'react-router-dom';
 
 export const ProfilePage: React.FC<{ internId?: string }> = ({ internId }) => {
   const { intern, role, certifications, tasks, attendance, loading, refreshProfile } = useProfile(internId);
   const [isEditingProfile, setIsEditingProfile] = React.useState(false);
-  const navigate = useNavigate();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -53,7 +51,6 @@ export const ProfilePage: React.FC<{ internId?: string }> = ({ internId }) => {
       <ProfileHeader 
         intern={intern} 
         tasks={tasks} 
-        attendance={attendance} 
         role={role}
         onEditClick={() => setIsEditingProfile(true)}
       />

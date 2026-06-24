@@ -1,11 +1,10 @@
 import React from 'react';
 
 interface SidebarProps {
-  activeView: 'tracker' | 'attendance' | 'interns';
-  onViewChange: (view: 'tracker' | 'attendance' | 'interns') => void;
+  activeView: 'tracker' | 'attendance' | 'interns' | 'profile';
+  onViewChange: (view: 'tracker' | 'attendance' | 'interns' | 'profile') => void;
   collapsed: boolean;
   onToggle: () => void;
-  isAdmin: boolean;
   isMobileMenuOpen?: boolean;
   onMobileClose?: () => void;
   todayTotal?: number;
@@ -48,7 +47,7 @@ const NAV_ITEMS: { key: 'tracker' | 'attendance' | 'interns'; label: string; ico
   },
 ];
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, collapsed, onToggle, isAdmin, isMobileMenuOpen = false, onMobileClose, todayTotal = 0, completedTotal = 0 }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, collapsed, onToggle, isMobileMenuOpen = false, onMobileClose, todayTotal = 0, completedTotal = 0 }) => {
   return (
     <>
       {/* Mobile Overlay */}
