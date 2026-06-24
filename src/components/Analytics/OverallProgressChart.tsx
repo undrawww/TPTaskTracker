@@ -7,7 +7,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Cell,
 } from 'recharts';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -18,9 +17,7 @@ interface Props {
 export const OverallProgressChart: React.FC<Props> = ({ data }) => {
   const { theme } = useTheme();
   
-  const barColors = theme === 'light'
-    ? ['#003946', '#0a5060', '#1a6a7a', '#2a8494']
-    : ['#fbbc04', '#fad02c', '#fce27b', '#fdf3b8'];
+  const barColor = theme === 'light' ? '#003946' : '#fbbc04';
 
   const textColor = theme === 'light' ? '#003946' : '#f5e7c6';
   const gridColor = theme === 'light' ? 'rgba(0,57,70,0.08)' : 'rgba(245,231,198,0.08)';
@@ -60,11 +57,7 @@ export const OverallProgressChart: React.FC<Props> = ({ data }) => {
               labelStyle={{ color: '#ebbc0f', fontWeight: 600 }}
               itemStyle={{ color: textColor }}
             />
-            <Bar dataKey="rate" radius={[6, 6, 0, 0]} barSize={32}>
-              {data.map((_, index) => (
-                <Cell key={`cell-${index}`} fill={barColors[index % barColors.length]} />
-              ))}
-            </Bar>
+            <Bar dataKey="rate" radius={[6, 6, 0, 0]} barSize={32} fill={barColor} />
           </BarChart>
         </ResponsiveContainer>
       </div>
