@@ -26,9 +26,9 @@ export const DailyTracker: React.FC<Props> = ({
   return (
     <section id="daily-tracker">
       <div className="flex items-center gap-3 mb-4">
-        <h2 className="text-lg font-bold text-teal">Daily Task Tracker</h2>
-        <div className="flex-1 h-px bg-teal/10" />
-        <span className="text-xs text-teal/40 font-medium">
+        <h2 className="text-lg font-bold text-teal dark:text-gold">Daily Task Tracker</h2>
+        <div className="flex-1 h-px bg-teal/20 dark:bg-gold/20" />
+        <span className="text-xs text-teal/60 dark:text-gold font-medium">
           {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
         </span>
       </div>

@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
-import type { WeeklyTask, TaskStatus } from '../types';
+import type { WeeklyTask, DailyTask, TaskStatus } from '../types';
+import { getWeekDateRange, getLocalToday } from '../utils/dateUtils';
+
+export type UnifiedTask = WeeklyTask & {
+  type: 'weekly' | 'daily';
+  task_date?: string;
+};
 
 /** Demo weekly tasks */
 const DEMO_WEEKLY_TASKS: WeeklyTask[] = [
@@ -19,7 +25,7 @@ const DEMO_WEEKLY_TASKS: WeeklyTask[] = [
 ];
 
 export function useWeeklyTasks(weekNumber: number) {
-  const [tasks, setTasks] = useState<WeeklyTask[]>([]);
+  const [tasks, setTasks] = useState<UnifiedTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,14 +46,39 @@ export function useWeeklyTasks(weekNumber: number) {
     }
 
     try {
-      const { data, error: fetchError } = await supabase
-        .from('weekly_tasks')
-        .select('*')
-        .eq('week_number', weekNumber)
-        .order('task_name', { ascending: true });
+      const { startDate, endDate } = getWeekDateRange(weekNumber);
+      
+      const [weeklyRes, dailyRes] = await Promise.all([
+        supabase
+          .from('weekly_tasks')
+          .select('*')
+          .eq('week_number', weekNumber)
+          .order('task_name', { ascending: true }),
+        supabase
+          .from('daily_tasks')
+          .select('*')
+          .gte('task_date', startDate)
+          .lte('task_date', endDate)
+          .lt('task_date', getLocalToday()) // Option A: Hide today's and future tasks
+          .order('task_name', { ascending: true })
+      ]);
 
-      if (fetchError) throw fetchError;
-      setTasks(data ?? []);
+      if (weeklyRes.error) throw weeklyRes.error;
+      if (dailyRes.error) throw dailyRes.error;
+
+      const mappedWeekly = (weeklyRes.data ?? []).map((t) => ({ ...t, type: 'weekly' } as UnifiedTask));
+      const mappedDaily = (dailyRes.data ?? []).map((t) => ({
+        ...t,
+        type: 'daily',
+        week_number: weekNumber,
+      } as unknown as UnifiedTask));
+
+      // Combine and sort by status (optional, but sorting by name is fine)
+      const combined = [...mappedWeekly, ...mappedDaily].sort((a, b) => 
+        a.task_name.localeCompare(b.task_name)
+      );
+
+      setTasks(combined);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch weekly tasks';
       setError(message);
@@ -142,20 +173,22 @@ export function useWeeklyTasks(weekNumber: number) {
 
   const updateStatus = useCallback(
     async (taskId: string, status: TaskStatus) => {
+      // Find the task to determine its type
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return { success: false, error: 'Task not found' };
+
       if (!isSupabaseConfigured) {
         setTasks((prev) => {
           const next = prev.map((t) => (t.id === taskId ? { ...t, status } : t));
-          const allStored = JSON.parse(localStorage.getItem('padua_weekly_tasks') || '[]');
-          const updatedStored = allStored.map((t: WeeklyTask) => t.id === taskId ? { ...t, status } : t);
-          localStorage.setItem('padua_weekly_tasks', JSON.stringify(updatedStored));
           return next;
         });
         return { success: true };
       }
 
       try {
+        const table = task.type === 'daily' ? 'daily_tasks' : 'weekly_tasks';
         const { error: updateError } = await supabase
-          .from('weekly_tasks')
+          .from(table)
           .update({ status })
           .eq('id', taskId);
 

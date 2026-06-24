@@ -6,6 +6,8 @@ interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
   isAdmin: boolean;
+  isMobileMenuOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 const NAV_ITEMS: { key: 'tracker' | 'attendance' | 'interns'; label: string; icon: React.ReactNode }[] = [
@@ -44,18 +46,34 @@ const NAV_ITEMS: { key: 'tracker' | 'attendance' | 'interns'; label: string; ico
   },
 ];
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, collapsed, onToggle, isAdmin }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, collapsed, onToggle, isAdmin, isMobileMenuOpen = false, onMobileClose }) => {
   return (
-    <aside
-      className={`
-        flex flex-col shrink-0
-        bg-[#d9caa8] dark:bg-[#00151a]
-        border-r border-teal/10 dark:border-white/5
-        transition-all duration-300 ease-in-out
-        ${collapsed ? 'w-16' : 'w-56'}
-        h-screen sticky top-0 overflow-y-auto scrollbar-hide
-      `}
-    >
+    <>
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
+          onClick={onMobileClose}
+        />
+      )}
+      
+      <aside
+        className={`
+          flex flex-col shrink-0
+          bg-[#d9caa8] dark:bg-[#00151a]
+          border-r border-teal/10 dark:border-white/5
+          transition-all duration-300 ease-in-out
+          h-screen overflow-y-auto scrollbar-hide
+          
+          /* Mobile behavior: fixed drawer */
+          fixed inset-y-0 left-0 z-50 transform w-64
+          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+          
+          /* Desktop behavior: sticky column */
+          md:relative md:translate-x-0 md:sticky md:top-0
+          ${collapsed ? 'md:w-16' : 'md:w-56'}
+        `}
+      >
       {/* Branding Logo & Toggle */}
       <button 
         onClick={onToggle}
@@ -83,7 +101,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, coll
             <button
               key={item.key}
               id={`nav-${item.key}`}
-              onClick={() => onViewChange(item.key)}
+              onClick={() => {
+                onViewChange(item.key);
+                onMobileClose?.();
+              }}
               className={`
                 group relative flex items-center justify-start
                 rounded-xl py-3
@@ -127,11 +148,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, coll
       </nav>
 
       {/* Bottom branding */}
-      <div className={`px-3 py-4 border-t border-teal/10 dark:border-white/5 ${collapsed ? 'hidden' : ''}`}>
+      <div className={`px-3 py-4 border-t border-teal/10 dark:border-white/5 ${collapsed ? 'hidden md:hidden' : ''}`}>
         <p className="text-[10px] text-teal/30 dark:text-white/20 font-medium tracking-wider uppercase">
           TeamPadua v2
         </p>
       </div>
     </aside>
+    </>
   );
 };
