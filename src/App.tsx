@@ -36,7 +36,7 @@ function App() {
               path="/profile"
               element={
                 <ProtectedRoute>
-                  <Dashboard defaultView="profile" />
+                  <Dashboard />
                 </ProtectedRoute>
               }
             />
@@ -46,7 +46,7 @@ function App() {
               path="/tasktracker"
               element={
                 <ProtectedRoute>
-                  <Dashboard defaultView="tracker" />
+                  <Dashboard />
                 </ProtectedRoute>
               }
             />
@@ -56,7 +56,7 @@ function App() {
               path="/attendance"
               element={
                 <ProtectedRoute>
-                  <Dashboard defaultView="attendance" />
+                  <Dashboard />
                 </ProtectedRoute>
               }
             />
@@ -66,7 +66,7 @@ function App() {
               path="/interns"
               element={
                 <ProtectedRoute>
-                  <Dashboard defaultView="interns" />
+                  <Dashboard />
                 </ProtectedRoute>
               }
             />

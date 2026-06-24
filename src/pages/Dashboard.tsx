@@ -23,11 +23,7 @@ import type { TaskStatus } from '../types';
 
 type ActiveView = 'tracker' | 'attendance' | 'interns' | 'profile';
 
-interface DashboardProps {
-  defaultView?: ActiveView;
-}
-
-export const Dashboard: React.FC<DashboardProps> = ({ defaultView = 'tracker' }) => {
+export const Dashboard: React.FC = () => {
   const { role, currentInternId } = useAuth();
   const navigate = useNavigate();
 
