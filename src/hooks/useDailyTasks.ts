@@ -2,20 +2,26 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import type { DailyTask, TaskStatus } from '../types';
 
+/** Helper to get local date in YYYY-MM-DD format */
+const getLocalToday = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
 /** Demo daily tasks */
 const DEMO_DAILY_TASKS: DailyTask[] = [
-  { id: 'dt-1', intern_id: 'demo-1', task_name: 'Review client onboarding checklist', status: 'Done', task_date: new Date().toISOString().split('T')[0] },
-  { id: 'dt-2', intern_id: 'demo-1', task_name: 'Prepare advisor meeting notes', status: 'In Progress', task_date: new Date().toISOString().split('T')[0] },
-  { id: 'dt-3', intern_id: 'demo-2', task_name: 'Update support documentation', status: 'Pending', task_date: new Date().toISOString().split('T')[0] },
-  { id: 'dt-4', intern_id: 'demo-3', task_name: 'Compile weekly financial report', status: 'In Progress', task_date: new Date().toISOString().split('T')[0] },
-  { id: 'dt-5', intern_id: 'demo-3', task_name: 'Process invoice batch #42', status: 'Done', task_date: new Date().toISOString().split('T')[0] },
-  { id: 'dt-6', intern_id: 'demo-4', task_name: 'Audit vendor contracts', status: 'On Hold', task_date: new Date().toISOString().split('T')[0] },
-  { id: 'dt-7', intern_id: 'demo-5', task_name: 'Draft client welcome email', status: 'Done', task_date: new Date().toISOString().split('T')[0] },
-  { id: 'dt-8', intern_id: 'demo-5', task_name: 'Schedule Q3 follow-up calls', status: 'Pending', task_date: new Date().toISOString().split('T')[0] },
-  { id: 'dt-9', intern_id: 'demo-6', task_name: 'Respond to client feedback survey', status: 'Acknowledge', task_date: new Date().toISOString().split('T')[0] },
-  { id: 'dt-10', intern_id: 'demo-7', task_name: 'Design social media banner', status: 'In Progress', task_date: new Date().toISOString().split('T')[0] },
-  { id: 'dt-11', intern_id: 'demo-7', task_name: 'Update brand guidelines PDF', status: 'Done', task_date: new Date().toISOString().split('T')[0] },
-  { id: 'dt-12', intern_id: 'demo-8', task_name: 'Create presentation templates', status: 'Pending', task_date: new Date().toISOString().split('T')[0] },
+  { id: 'dt-1', intern_id: 'demo-1', task_name: 'Review client onboarding checklist', status: 'Done', task_date: getLocalToday() },
+  { id: 'dt-2', intern_id: 'demo-1', task_name: 'Prepare advisor meeting notes', status: 'In Progress', task_date: getLocalToday() },
+  { id: 'dt-3', intern_id: 'demo-2', task_name: 'Update support documentation', status: 'Pending', task_date: getLocalToday() },
+  { id: 'dt-4', intern_id: 'demo-3', task_name: 'Compile weekly financial report', status: 'In Progress', task_date: getLocalToday() },
+  { id: 'dt-5', intern_id: 'demo-3', task_name: 'Process invoice batch #42', status: 'Done', task_date: getLocalToday() },
+  { id: 'dt-6', intern_id: 'demo-4', task_name: 'Audit vendor contracts', status: 'On Hold', task_date: getLocalToday() },
+  { id: 'dt-7', intern_id: 'demo-5', task_name: 'Draft client welcome email', status: 'Done', task_date: getLocalToday() },
+  { id: 'dt-8', intern_id: 'demo-5', task_name: 'Schedule Q3 follow-up calls', status: 'Pending', task_date: getLocalToday() },
+  { id: 'dt-9', intern_id: 'demo-6', task_name: 'Respond to client feedback survey', status: 'Acknowledge', task_date: getLocalToday() },
+  { id: 'dt-10', intern_id: 'demo-7', task_name: 'Design social media banner', status: 'In Progress', task_date: getLocalToday() },
+  { id: 'dt-11', intern_id: 'demo-7', task_name: 'Update brand guidelines PDF', status: 'Done', task_date: getLocalToday() },
+  { id: 'dt-12', intern_id: 'demo-8', task_name: 'Create presentation templates', status: 'Pending', task_date: getLocalToday() },
 ];
 
 export function useDailyTasks(date?: string) {
@@ -23,7 +29,7 @@ export function useDailyTasks(date?: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalToday();
   const targetDate = date ?? today;
 
   const fetchTasks = useCallback(async () => {
