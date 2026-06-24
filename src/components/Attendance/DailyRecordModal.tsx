@@ -7,7 +7,6 @@ interface DailyRecordModalProps {
   onClose: () => void;
   onSave: (value: string) => void;
   isOwner: boolean;
-  isAdmin: boolean;
 }
 
 export const DailyRecordModal: React.FC<DailyRecordModalProps> = ({
@@ -16,7 +15,6 @@ export const DailyRecordModal: React.FC<DailyRecordModalProps> = ({
   onClose,
   onSave,
   isOwner,
-  isAdmin,
 }) => {
   const [newEntry, setNewEntry] = useState('');
 

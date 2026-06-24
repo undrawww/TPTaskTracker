@@ -211,7 +211,6 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
           onClose={() => setIsModalOpen(false)}
           onSave={(value) => onTextChange(intern_name, 'accomplishments', value)}
           isOwner={isOwner}
-          isAdmin={isAdmin}
         />
       </td>
 
@@ -249,7 +248,6 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
           isOpen={isFeedbackModalOpen}
           onClose={() => setIsFeedbackModalOpen(false)}
           onSave={(value) => onTextChange(intern_name, 'admin_feedback', value)}
-          isOwner={isOwner}
           isAdmin={isAdmin}
         />
       </td>

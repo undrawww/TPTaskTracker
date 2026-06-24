@@ -6,7 +6,6 @@ interface AdminFeedbackModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (value: string) => void;
-  isOwner: boolean;
   isAdmin: boolean;
 }
 
@@ -15,7 +14,6 @@ export const AdminFeedbackModal: React.FC<AdminFeedbackModalProps> = ({
   isOpen,
   onClose,
   onSave,
-  isOwner,
   isAdmin,
 }) => {
   const [newEntry, setNewEntry] = useState('');
