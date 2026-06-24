@@ -8,7 +8,7 @@ import { CreateTaskModal } from '../components/Admin/CreateTaskModal';
 import { DailyTracker } from '../components/Dashboard/DailyTracker';
 import { WeeklyArchive } from '../components/Weekly/WeeklyArchive';
 import { ProfileModal } from '../components/Profile/ProfileModal';
-import { DashboardSkeleton } from '../components/Skeleton/DashboardSkeleton';
+import { DashboardSkeleton, InternsSkeleton } from '../components/Skeleton/DashboardSkeleton';
 import { HeaderProfileMenu } from '../components/Header/HeaderProfileMenu';
 import { Sidebar } from '../components/Layout/Sidebar';
 import { AttendanceView } from '../components/Attendance/AttendanceView';
@@ -31,24 +31,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ defaultView = 'tracker' })
   const { role, currentInternId } = useAuth();
   const navigate = useNavigate();
 
-  // View & sidebar state
-  const [activeView, setActiveView] = useState<ActiveView>(defaultView);
-  const [viewingProfileId, setViewingProfileId] = useState<string | null>(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
-
-  const handleViewChange = (view: ActiveView) => {
-    setActiveView(view);
-    if (view !== 'profile') {
-      setViewingProfileId(null);
-    }
-  };
-
-  const handleViewProfile = (id: string) => {
-    setViewingProfileId(id);
-    setActiveView('profile');
-  };
 
   // Map paths to views
   const viewToPath: Record<ActiveView, string> = {
@@ -66,7 +49,29 @@ export const Dashboard: React.FC<DashboardProps> = ({ defaultView = 'tracker' })
     '/profile': 'profile',
   };
 
-  // Sync URL path to state
+  // View & sidebar state
+  const [activeView, setActiveView] = useState<ActiveView>(() => {
+    return pathToView[location.pathname] || 'tracker';
+  });
+  const [viewingProfileId, setViewingProfileId] = useState<string | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleViewChange = (view: ActiveView) => {
+    setActiveView(view);
+    navigate(viewToPath[view] || '/tasktracker');
+    if (view !== 'profile') {
+      setViewingProfileId(null);
+    }
+  };
+
+  const handleViewProfile = (id: string) => {
+    setViewingProfileId(id);
+    setActiveView('profile');
+    navigate('/profile');
+  };
+
+  // Sync state if URL changes directly (e.g. back button or header menu)
   useEffect(() => {
     const currentView = pathToView[location.pathname] || 'tracker';
     if (activeView !== currentView) {
@@ -74,15 +79,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ defaultView = 'tracker' })
     }
   }, [location.pathname]);
 
-  // Sync state to URL path
-  useEffect(() => {
-    const desiredPath = viewToPath[activeView] || '/tasktracker';
-    if (location.pathname !== desiredPath && location.pathname !== '/' + desiredPath) {
-      // If we are at '/' and activeView is tracker, we could optionally rewrite to /tasktracker, or leave it.
-      // We will push the desired path to keep the URL consistent.
-      navigate(desiredPath);
-    }
-  }, [activeView, navigate, location.pathname]);
+  // Modal state
+
+
 
   // Modal state
   const [showAddIntern, setShowAddIntern] = useState(false);
@@ -209,7 +208,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ defaultView = 'tracker' })
         ) : (
           <>
             {isLoading ? (
-              <DashboardSkeleton />
+              activeView === 'interns' ? <InternsSkeleton /> : <DashboardSkeleton />
             ) : (
               <>
                 {activeView === 'tracker' && (

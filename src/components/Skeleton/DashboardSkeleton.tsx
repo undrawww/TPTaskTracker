@@ -106,3 +106,32 @@ export const DashboardSkeleton: React.FC = () => (
     <DailyTrackerSkeleton />
   </div>
 );
+
+/** Skeleton for Interns Directory */
+export const InternsSkeleton: React.FC = () => (
+  <div className="bg-white dark:bg-[#001f26] border border-teal/10 dark:border-white/5 rounded-3xl overflow-hidden shadow-sm">
+    <div className="p-5 border-b border-teal/10 dark:border-white/5 bg-teal/5 dark:bg-white/5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <Bone className="h-6 w-48" />
+        <Bone className="h-10 w-full sm:w-64 rounded-xl" />
+      </div>
+    </div>
+    <div className="p-0">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <div key={i} className="flex items-center gap-4 p-4 border-b border-teal/5 dark:border-white/5 last:border-0">
+          <Bone className="w-10 h-10 rounded-xl flex-shrink-0" />
+          <div className="flex flex-col gap-1.5 flex-1">
+            <Bone className="h-4 w-32" />
+            <Bone className="h-3 w-48" />
+          </div>
+          <div className="hidden sm:flex flex-col gap-1.5 flex-1">
+            <Bone className="h-3 w-40" />
+          </div>
+          <div className="hidden md:flex flex-col gap-1.5 flex-1">
+            <Bone className="h-3 w-24" />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
