@@ -103,6 +103,8 @@ export const Dashboard: React.FC = () => {
         isAdmin={role === 'admin'}
         isMobileMenuOpen={isMobileMenuOpen}
         onMobileClose={() => setIsMobileMenuOpen(false)}
+        todayTotal={analytics.todayTotal}
+        completedTotal={analytics.completedTotal}
       />
 
       {/* Main Content Area */}
@@ -111,15 +113,19 @@ export const Dashboard: React.FC = () => {
       <header className="bg-[#d9caa8] dark:bg-gradient-to-r dark:from-[#00151a] dark:via-[#001a22] dark:to-[#001f2e] border-b border-teal/10 dark:border-white/5 transition-colors duration-300 relative z-10">
         <div className="max-w-[1440px] mx-auto px-6 py-5 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            {/* Mobile Header Title & Toggle */}
             <button 
               onClick={() => setIsMobileMenuOpen(true)}
               className="min-[769px]:hidden flex items-center gap-3 active:scale-95 transition-transform"
             >
               <img src="https://res.cloudinary.com/dqmmfgbf1/image/upload/v1782145581/ICOZ_aatvaa.png" alt="Logo" className="w-8 h-8 object-contain" />
-              <h1 className="font-poppins text-lg font-bold tracking-tight text-teal dark:text-white">
-                Team Padua <span className="text-gold">Tracker</span>
-              </h1>
+              <div className="flex flex-col items-start justify-center text-left">
+                <h1 className="font-poppins text-lg font-bold tracking-tight leading-tight text-teal dark:text-white">
+                  Team Padua <span className="text-gold">Tracker</span>
+                </h1>
+                <p className="text-[9px] text-teal/50 dark:text-white/50 font-bold tracking-[0.15em] uppercase whitespace-nowrap mt-0.5">
+                  Internship Dashboard
+                </p>
+              </div>
             </button>
           </div>
           
