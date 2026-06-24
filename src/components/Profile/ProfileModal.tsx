@@ -15,6 +15,18 @@ function getSavedAvatar(): number {
   return val !== null ? parseInt(val, 10) : 0;
 }
 
+const formatPHMobileNumber = (value: string) => {
+  const cleaned = value.replace(/\D/g, '');
+  const truncated = cleaned.slice(0, 11);
+  if (truncated.length <= 4) {
+    return truncated;
+  } else if (truncated.length <= 7) {
+    return `${truncated.slice(0, 4)} ${truncated.slice(4)}`;
+  } else {
+    return `${truncated.slice(0, 4)} ${truncated.slice(4, 7)} ${truncated.slice(7)}`;
+  }
+};
+
 export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => {
   const { user, role } = useAuth();
   
@@ -65,7 +77,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
             if (data.program) setProgram(data.program);
             if (data.current_year) setCurrentYear(data.current_year);
             if (data.school) setSchool(data.school);
-            if (data.contact_number) setContactNumber(data.contact_number);
+            if (data.contact_number) setContactNumber(formatPHMobileNumber(data.contact_number));
             if (data.personal_email) setPersonalEmail(data.personal_email);
               setExpectedGraduationDate(data.expected_graduation_date);
             if (data.required_hours) setRequiredHours(String(data.required_hours));
@@ -425,8 +437,9 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
                           <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Contact Number</label>
                           <input 
                             type="text" 
+                            placeholder="0912 345 6789"
                             value={contactNumber} 
-                            onChange={(e) => setContactNumber(e.target.value)} 
+                            onChange={(e) => setContactNumber(formatPHMobileNumber(e.target.value))} 
                             className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" 
                           />
                         </div>
