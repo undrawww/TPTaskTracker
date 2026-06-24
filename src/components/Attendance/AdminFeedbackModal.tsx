@@ -155,7 +155,7 @@ export const AdminFeedbackModal: React.FC<AdminFeedbackModalProps> = ({
                 value={newEntry}
                 onChange={(e) => setNewEntry(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Write feedback... (Shift+Enter for new line)"
+                placeholder="Write feedback..."
                 className="
                   flex-1 px-4 py-3 text-sm rounded-xl min-h-[44px] max-h-[120px] resize-none
                   bg-white dark:bg-[#00151a] border border-teal/10 dark:border-white/10

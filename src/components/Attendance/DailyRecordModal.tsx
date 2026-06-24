@@ -155,7 +155,7 @@ export const DailyRecordModal: React.FC<DailyRecordModalProps> = ({
                 value={newEntry}
                 onChange={(e) => setNewEntry(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="What did you work on? (Shift+Enter for new line)"
+                placeholder="What did you work on?"
                 className="
                   flex-1 px-4 py-3 text-sm rounded-xl min-h-[44px] max-h-[120px] resize-none
                   bg-white dark:bg-[#00151a] border border-teal/10 dark:border-white/10
