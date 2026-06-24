@@ -221,7 +221,7 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
       </td>
 
       {/* Admin Feedback */}
-      <td className="px-5 py-4 align-middle min-w-[250px]">
+      <td className="pl-5 pr-8 py-4 align-middle min-w-[250px]">
         <button
           onClick={() => setIsFeedbackModalOpen(true)}
           className={`

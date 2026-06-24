@@ -55,7 +55,7 @@ export const InternsDirectory: React.FC<Props> = ({ onViewProfile }) => {
                 <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">Program</th>
                 <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">Graduation</th>
                 <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">Req. Hours</th>
-                <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">Location</th>
+                <th className="pl-5 pr-8 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">Location</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-teal/5 dark:divide-white/5">
@@ -112,7 +112,7 @@ export const InternsDirectory: React.FC<Props> = ({ onViewProfile }) => {
                   <td className="px-5 py-4 align-middle">
                     <span className="text-[13px] font-semibold text-teal dark:text-cream">{intern.required_hours ? `${intern.required_hours} hrs` : '—'}</span>
                   </td>
-                  <td className="px-5 py-4 align-middle">
+                  <td className="pl-5 pr-8 py-4 align-middle">
                     <span className="text-[13px] text-teal dark:text-cream">{intern.location || '—'}</span>
                   </td>
                 </tr>
