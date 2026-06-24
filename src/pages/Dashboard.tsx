@@ -109,21 +109,21 @@ export const Dashboard: React.FC = () => {
       <div className="flex-1 flex flex-col min-w-0">
       {/* Header */}
       <header className="bg-[#d9caa8] dark:bg-gradient-to-r dark:from-[#00151a] dark:via-[#001a22] dark:to-[#001f2e] border-b border-teal/10 dark:border-white/5 transition-colors duration-300 relative z-10">
-        <div className="max-w-[1440px] mx-auto px-6 py-5 flex items-center justify-between">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between">
           <div className="flex items-center gap-4">
             {/* Mobile Header Title & Toggle */}
             <button 
               onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden flex items-center gap-3 active:scale-95 transition-transform"
+              className="md:hidden flex items-center gap-2 active:scale-95 transition-transform"
             >
-              <img src="https://res.cloudinary.com/dqmmfgbf1/image/upload/v1782145581/ICOZ_aatvaa.png" alt="Logo" className="w-8 h-8 object-contain" />
-              <h1 className="font-poppins text-lg font-bold tracking-tight text-teal dark:text-white">
+              <img src="https://res.cloudinary.com/dqmmfgbf1/image/upload/v1782145581/ICOZ_aatvaa.png" alt="Logo" className="w-7 h-7 object-contain shrink-0" />
+              <h1 className="font-poppins text-sm font-bold tracking-tight text-teal dark:text-white whitespace-nowrap">
                 Team Padua <span className="text-gold">Tracker</span>
               </h1>
             </button>
           </div>
           
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3 sm:gap-6 shrink-0">
             <div className="hidden sm:flex items-center gap-2.5 text-sm text-teal/70 dark:text-white/60 bg-teal/5 dark:bg-white/5 px-4 py-2 rounded-xl">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="4" width="18" height="18" rx="2" />
@@ -134,7 +134,7 @@ export const Dashboard: React.FC = () => {
               <span className="font-medium text-teal dark:text-white">{formattedDate}</span>
             </div>
 
-            <div className="flex items-center gap-3 border-l border-teal/10 dark:border-white/10 pl-6">
+            <div className="flex items-center gap-3 border-l border-teal/10 dark:border-white/10 pl-3 sm:pl-6">
               <HeaderProfileMenu
                 onOpenProfile={() => setShowProfile(true)}
                 onLogout={handleLogout}
