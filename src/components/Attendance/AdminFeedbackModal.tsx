@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import type { AttendanceWithIntern } from '../../types';
 
 interface AdminFeedbackModalProps {
@@ -19,6 +19,14 @@ export const AdminFeedbackModal: React.FC<AdminFeedbackModalProps> = ({
   const [newEntry, setNewEntry] = useState('');
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
   const [editValue, setEditValue] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+    }
+  }, [newEntry]);
 
   if (!isOpen) return null;
 
@@ -152,6 +160,7 @@ export const AdminFeedbackModal: React.FC<AdminFeedbackModalProps> = ({
           <div className="p-4 border-t border-teal/10 dark:border-white/10 bg-teal/5 dark:bg-white/5">
             <div className="flex items-start gap-3">
               <textarea
+                ref={textareaRef}
                 value={newEntry}
                 onChange={(e) => setNewEntry(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -164,7 +173,6 @@ export const AdminFeedbackModal: React.FC<AdminFeedbackModalProps> = ({
                   transition-all duration-200
                 "
                 rows={1}
-                style={{ height: newEntry ? 'auto' : undefined }}
               />
               <button
                 onClick={handleAddEntry}
