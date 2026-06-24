@@ -93,7 +93,7 @@ export const Dashboard: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen flex bg-cream dark:bg-[#001f26] transition-colors duration-300">
+    <div className="min-h-screen w-full overflow-x-hidden flex bg-cream dark:bg-[#001f26] transition-colors duration-300">
       {/* Sidebar Navigation */}
       <Sidebar
         activeView={activeView}
@@ -117,8 +117,9 @@ export const Dashboard: React.FC = () => {
               className="md:hidden flex items-center gap-2 active:scale-95 transition-transform"
             >
               <img src="https://res.cloudinary.com/dqmmfgbf1/image/upload/v1782145581/ICOZ_aatvaa.png" alt="Logo" className="w-7 h-7 object-contain shrink-0" />
-              <h1 className="font-poppins text-sm font-bold tracking-tight text-teal dark:text-white whitespace-nowrap">
-                Team Padua <span className="text-gold">Tracker</span>
+              <h1 className="font-poppins text-base font-bold tracking-tight text-teal dark:text-white whitespace-nowrap">
+                <span className="sm:hidden">TP <span className="text-gold">Tracker</span></span>
+                <span className="hidden sm:inline">Team Padua <span className="text-gold">Tracker</span></span>
               </h1>
             </button>
           </div>
@@ -134,7 +135,7 @@ export const Dashboard: React.FC = () => {
               <span className="font-medium text-teal dark:text-white">{formattedDate}</span>
             </div>
 
-            <div className="flex items-center gap-3 border-l border-teal/10 dark:border-white/10 pl-3 sm:pl-6">
+            <div className="flex items-center gap-3 sm:border-l border-teal/10 dark:border-white/10 sm:pl-6">
               <HeaderProfileMenu
                 onOpenProfile={() => setShowProfile(true)}
                 onLogout={handleLogout}
