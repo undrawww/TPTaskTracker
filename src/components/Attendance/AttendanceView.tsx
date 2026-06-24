@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAttendance } from '../../hooks/useAttendance';
 import { AttendanceInternCard } from './AttendanceInternCard';
+import { DashboardSkeleton } from '../Skeleton/DashboardSkeleton';
 
 export type SortOption = 'department' | 'name' | 'time_in';
 
@@ -70,6 +71,10 @@ export const AttendanceView: React.FC = () => {
     month: 'long',
     day: 'numeric',
   });
+
+  if (loading) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <div className="space-y-6">
