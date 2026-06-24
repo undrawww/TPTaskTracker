@@ -4,6 +4,7 @@ import { TimeStampButton } from './TimeStampButton';
 import { useAuth } from '../../contexts/AuthContext';
 import { getAvatarIcon, getAvatarByIndex } from '../Dashboard/AvatarIcons';
 import { DailyRecordModal } from './DailyRecordModal';
+import { AdminFeedbackModal } from './AdminFeedbackModal';
 import { useState } from 'react';
 
 interface AttendanceInternCardProps {
@@ -70,6 +71,7 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
   showTimeColumns = true,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const { currentInternId, role } = useAuth();
   const { intern_name, time_in, break_out, break_in, time_out, total_hours } = record;
 
@@ -215,21 +217,40 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
 
       {/* Admin Feedback */}
       <td className="px-5 py-4 align-middle min-w-[250px]">
-        <textarea
-          rows={2}
-          value={record.admin_feedback}
-          onChange={(e) => onTextChange(intern_name, 'admin_feedback', e.target.value)}
-          placeholder={isAdmin ? 'Leave feedback...' : 'No feedback yet'}
-          disabled={!isAdmin}
+        <button
+          onClick={() => setIsFeedbackModalOpen(true)}
           className={`
-            w-full px-3 py-2 text-[13px] rounded-xl resize-y min-h-[42px]
+            w-full text-left px-4 py-3 text-[13px] rounded-xl min-h-[42px]
             bg-white dark:bg-[#00151a] border border-teal/10 dark:border-white/5
-            text-teal dark:text-cream placeholder:text-teal/50 dark:placeholder:text-cream/40
-            focus:outline-none focus:ring-2 focus:ring-teal/30 dark:focus:ring-gold/30 focus:border-teal/50 dark:focus:border-gold/50
-            hover:border-teal/20 dark:hover:border-white/10
-            transition-all duration-200
-            ${!isAdmin ? 'opacity-60 cursor-not-allowed' : ''}
+            text-teal dark:text-cream
+            hover:border-teal/30 dark:hover:border-gold/30 hover:bg-teal/5 dark:hover:bg-white/5
+            transition-all duration-200 group flex items-center justify-between
           `}
+        >
+          <span className="truncate opacity-80 group-hover:opacity-100">
+            {record.admin_feedback 
+              ? `${record.admin_feedback.split('\n').filter(r => r.trim() !== '').length} feedback(s)` 
+              : isAdmin ? 'Leave feedback...' : 'No feedback yet'}
+          </span>
+          {isAdmin ? (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-teal/40 dark:text-cream/30 group-hover:text-teal dark:group-hover:text-gold transition-colors ml-2 flex-shrink-0">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <line x1="12" y1="5" x2="12" y2="19" />
+            </svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-teal/40 dark:text-cream/30 group-hover:text-teal dark:group-hover:text-gold transition-colors ml-2 flex-shrink-0">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          )}
+        </button>
+
+        <AdminFeedbackModal
+          record={record}
+          isOpen={isFeedbackModalOpen}
+          onClose={() => setIsFeedbackModalOpen(false)}
+          onSave={(value) => onTextChange(intern_name, 'admin_feedback', value)}
+          isOwner={isOwner}
+          isAdmin={isAdmin}
         />
       </td>
     </tr>
