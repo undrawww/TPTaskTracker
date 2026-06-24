@@ -190,7 +190,13 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
         >
           <span className="truncate opacity-80 group-hover:opacity-100">
             {record.accomplishments 
-              ? `${record.accomplishments.split('\n').filter(r => r.trim() !== '').length} record(s) added` 
+              ? `${(() => {
+                  try {
+                    const parsed = JSON.parse(record.accomplishments);
+                    if (Array.isArray(parsed)) return parsed.length;
+                  } catch {}
+                  return record.accomplishments.split('\n').filter((r) => r.trim() !== '').length;
+                })()} record(s) added` 
               : isOwner ? 'Add a daily record...' : 'No records yet'}
           </span>
           {isOwner ? (
@@ -228,8 +234,14 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
         >
           <span className="truncate opacity-80 group-hover:opacity-100">
             {record.admin_feedback 
-              ? `${record.admin_feedback.split('\n').filter(r => r.trim() !== '').length} feedback(s)` 
-              : isAdmin ? 'Leave feedback...' : 'No feedback yet'}
+              ? `${(() => {
+                  try {
+                    const parsed = JSON.parse(record.admin_feedback);
+                    if (Array.isArray(parsed)) return parsed.length;
+                  } catch {}
+                  return record.admin_feedback.split('\n').filter((r) => r.trim() !== '').length;
+                })()} feedback(s)` 
+              : isAdmin ? 'Add feedback...' : 'No feedback yet'}
           </span>
           {isAdmin ? (
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-teal/40 dark:text-cream/30 group-hover:text-teal dark:group-hover:text-gold transition-colors ml-2 flex-shrink-0">
