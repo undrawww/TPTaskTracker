@@ -206,7 +206,7 @@ export function useWeeklyTasks(weekNumber: number) {
         return { success: false, error: message };
       }
     },
-    []
+    [tasks]
   );
 
   return { tasks, loading, error, refetch: fetchTasks, addTask, updateStatus };
