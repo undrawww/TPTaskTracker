@@ -119,15 +119,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, coll
         </div>
 
         <div className="bg-teal/5 dark:bg-white/5 rounded-xl p-3 border border-teal/10 dark:border-white/5 relative overflow-hidden group mt-2">
-          <div className="absolute right-2 top-2 text-gold/20 dark:text-gold/20 group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-300">
+          <div className="absolute right-2 top-2 text-white/20 dark:text-gold/20 group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-300">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
               <polyline points="22 4 12 14.01 9 11.01" />
             </svg>
           </div>
           <div className="relative z-10">
-            <p className="text-[10px] font-bold text-gold/80 dark:text-gold/80 uppercase tracking-wider mb-0.5">Verified Completed</p>
-            <p className="text-xl font-poppins font-bold text-gold">{completedTotal}</p>
+            <p className="text-[10px] font-bold text-white/80 dark:text-gold/80 uppercase tracking-wider mb-0.5">Verified Completed</p>
+            <p className="text-xl font-poppins font-bold text-white dark:text-gold">{completedTotal}</p>
           </div>
         </div>
       </div>
