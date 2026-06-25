@@ -36,7 +36,7 @@ export const TimeStampButton: React.FC<TimeStampButtonProps> = ({
         <span className="text-[10px] font-semibold uppercase tracking-wider text-teal/60 dark:text-cream/50">
           {label}
         </span>
-        <div className="flex items-center gap-1.5">
+        <div className="relative flex items-center justify-center">
           <span className="text-[13px] font-bold text-teal dark:text-teal-light whitespace-nowrap">
             {formatTime(timestamp)}
           </span>
@@ -44,7 +44,7 @@ export const TimeStampButton: React.FC<TimeStampButtonProps> = ({
             <button
               onClick={onUndo}
               title="Undo this stamp"
-              className="w-4 h-4 rounded-full bg-red-100 dark:bg-red-900/30 text-red-500 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-500 hover:text-white transition-all duration-200"
+              className="absolute -right-6 w-4 h-4 rounded-full bg-red-100 dark:bg-red-900/30 text-red-500 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-500 hover:text-white transition-all duration-200"
             >
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18" />
