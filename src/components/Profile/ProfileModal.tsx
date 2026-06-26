@@ -44,6 +44,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
   const [school, setSchool] = useState('');
   const [contactNumber, setContactNumber] = useState('');
   const [personalEmail, setPersonalEmail] = useState('');
+  const [birthday, setBirthday] = useState('');
   const [expectedGraduationDate, setExpectedGraduationDate] = useState('');
   const [requiredHours, setRequiredHours] = useState('');
   const [bio, setBio] = useState('');
@@ -60,7 +61,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
     if (isOpen && user?.email && isSupabaseConfigured) {
       supabase
         .from('profiles')
-        .select('full_name, avatar_index, location, program, current_year, school, contact_number, personal_email, expected_graduation_date, required_hours')
+        .select('full_name, avatar_index, location, program, current_year, school, contact_number, personal_email, birthday, expected_graduation_date, required_hours')
         .eq('email', user.email)
         .single()
         .then(({ data }) => {
@@ -79,7 +80,8 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
             if (data.school) setSchool(data.school);
             if (data.contact_number) setContactNumber(formatPHMobileNumber(data.contact_number));
             if (data.personal_email) setPersonalEmail(data.personal_email);
-              setExpectedGraduationDate(data.expected_graduation_date);
+            if (data.birthday) setBirthday(data.birthday);
+            if (data.expected_graduation_date) setExpectedGraduationDate(data.expected_graduation_date);
             if (data.required_hours) setRequiredHours(String(data.required_hours));
           }
         });
@@ -156,6 +158,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
           school,
           contact_number: contactNumber,
           personal_email: personalEmail,
+          birthday: birthday || null,
           expected_graduation_date: expectedGraduationDate,
           required_hours: requiredHours ? Number(requiredHours) : null,
         };
@@ -333,6 +336,15 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
                         placeholder="Your Full Name"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Birthday</label>
+                      <input
+                        type="date"
+                        value={birthday}
+                        onChange={(e) => setBirthday(e.target.value)}
                         className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold"
                       />
                     </div>

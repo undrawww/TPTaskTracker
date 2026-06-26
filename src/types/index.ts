@@ -34,6 +34,7 @@ export interface Intern {
   contact_number?: string;
   personal_email?: string;
   team_email?: string;
+  birthday?: string;
   expected_graduation_date?: string;
   required_hours?: number;
   // Profile fields

@@ -51,6 +51,7 @@ export const InternsDirectory: React.FC<Props> = ({ onViewProfile }) => {
                 <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">Team Email</th>
                 <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">Personal Email</th>
                 <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">Contact Number</th>
+                <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">Birthday</th>
                 <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">School</th>
                 <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">Program</th>
                 <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">Graduation</th>
@@ -96,6 +97,15 @@ export const InternsDirectory: React.FC<Props> = ({ onViewProfile }) => {
                         <span className="text-xs text-teal/30 dark:text-cream/20 italic">Not provided</span>
                       )}
                     </div>
+                  </td>
+                  <td className="px-5 py-4 align-middle">
+                    {intern.birthday ? (
+                      <span className="text-[13px] text-teal/80 dark:text-cream/80">
+                        {new Date(intern.birthday).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-teal/30 dark:text-cream/20 italic">Not provided</span>
+                    )}
                   </td>
                   <td className="px-5 py-4 align-middle">
                     <span className="text-[13px] text-teal dark:text-cream">{intern.school || <span className="text-teal/30 dark:text-cream/20 italic text-xs">Not provided</span>}</span>
