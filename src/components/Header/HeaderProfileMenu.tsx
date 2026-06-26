@@ -7,9 +7,10 @@ import { useNavigate } from 'react-router-dom';
 
 interface Props {
   onLogout: () => void;
+  onViewMyProfile?: () => void;
 }
 
-export const HeaderProfileMenu: React.FC<Props> = ({ onLogout }) => {
+export const HeaderProfileMenu: React.FC<Props> = ({ onLogout, onViewMyProfile }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -72,7 +73,11 @@ export const HeaderProfileMenu: React.FC<Props> = ({ onLogout }) => {
             <button
               onClick={() => {
                 setIsOpen(false);
-                navigate('/profile');
+                if (onViewMyProfile) {
+                  onViewMyProfile();
+                } else {
+                  navigate('/profile');
+                }
               }}
               className="w-full text-left px-4 py-2.5 text-sm font-medium text-teal dark:text-cream/90 hover:bg-cream/50 dark:hover:bg-[#003946] transition-colors flex items-center gap-3"
             >

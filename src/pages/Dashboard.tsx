@@ -58,10 +58,9 @@ export const Dashboard: React.FC = () => {
   const handleViewChange = (view: ActiveView) => {
     setActiveView(view);
     navigate(viewToPath[view] || '/tasktracker');
-    if (view !== 'profile') {
-      setViewingProfileId(null);
-      localStorage.removeItem('tp_viewing_profile_id');
-    }
+    // Always clear viewingProfileId on manual navigation (sidebar/header)
+    setViewingProfileId(null);
+    localStorage.removeItem('tp_viewing_profile_id');
   };
 
   const handleViewProfile = (id: string) => {
@@ -194,6 +193,7 @@ export const Dashboard: React.FC = () => {
             <div className="flex items-center gap-3 pr-2">
               <HeaderProfileMenu 
                 onLogout={handleLogout} 
+                onViewMyProfile={() => handleViewChange('profile')}
               />
             </div>
           </div>
