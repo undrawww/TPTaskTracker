@@ -24,7 +24,7 @@ export const CreateTaskModal: React.FC<Props> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!internId) {
-      setError('Please select an intern.');
+      setError('Please select an assignee.');
       return;
     }
     if (!taskName.trim()) {
@@ -35,18 +35,52 @@ export const CreateTaskModal: React.FC<Props> = ({
     setSubmitting(true);
     setError(null);
 
-    const result = await onSubmit(internId, taskName.trim());
+    try {
+      let targetInternIds: string[] = [];
 
-    setSubmitting(false);
+      if (internId === 'all') {
+        targetInternIds = interns.map(i => i.id);
+      } else if (internId.startsWith('dept:')) {
+        const deptName = internId.replace('dept:', '');
+        targetInternIds = interns.filter(i => i.department === deptName).map(i => i.id);
+      } else {
+        targetInternIds = [internId];
+      }
 
-    if (result.success) {
-      setTaskName('');
-      setInternId('');
-      onClose();
-    } else {
-      setError(result.error ?? 'Something went wrong.');
+      if (targetInternIds.length === 0) {
+        setError('No interns found for this selection.');
+        setSubmitting(false);
+        return;
+      }
+
+      let successCount = 0;
+      let lastError = '';
+
+      for (const id of targetInternIds) {
+        const result = await onSubmit(id, taskName.trim());
+        if (result.success) {
+          successCount++;
+        } else {
+          lastError = result.error || 'Something went wrong.';
+        }
+      }
+
+      setSubmitting(false);
+
+      if (successCount > 0) {
+        setTaskName('');
+        setInternId('');
+        onClose();
+      } else {
+        setError(lastError || 'Failed to create task(s).');
+      }
+    } catch (err) {
+      setSubmitting(false);
+      setError('An unexpected error occurred.');
     }
   };
+
+  const departments = Array.from(new Set(interns.map(i => i.department).filter(Boolean)));
 
   return (
     <div
@@ -84,12 +118,22 @@ export const CreateTaskModal: React.FC<Props> = ({
               onChange={(e) => setInternId(e.target.value)}
               className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent transition-all appearance-none cursor-pointer"
             >
-              <option value="">Select an intern…</option>
-              {interns.map((intern) => (
-                <option key={intern.id} value={intern.id}>
-                  {intern.full_name} — {intern.department}
-                </option>
-              ))}
+              <option value="">Select an assignee…</option>
+              <optgroup label="Bulk Assignment">
+                <option value="all">All Interns</option>
+                {departments.map((dept) => (
+                  <option key={`dept-${dept}`} value={`dept:${dept}`}>
+                    All in {dept}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Individual Interns">
+                {interns.map((intern) => (
+                  <option key={intern.id} value={intern.id}>
+                    {intern.full_name} — {intern.department}
+                  </option>
+                ))}
+              </optgroup>
             </select>
           </div>
 

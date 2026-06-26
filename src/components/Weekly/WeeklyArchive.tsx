@@ -9,10 +9,14 @@ interface Props {
 
 export const WeeklyArchive: React.FC<Props> = ({ interns }) => {
   const [selectedWeek, setSelectedWeek] = useState(1);
-  const { tasks, loading, updateStatus } = useWeeklyTasks(selectedWeek);
+  const { tasks, loading, updateStatus, toggleVerify } = useWeeklyTasks(selectedWeek);
 
   const handleStatusChange = async (taskId: string, status: TaskStatus) => {
     await updateStatus(taskId, status);
+  };
+
+  const handleVerifyChange = async (taskId: string, isVerified: boolean) => {
+    await toggleVerify(taskId, isVerified);
   };
 
   return (
@@ -62,6 +66,7 @@ export const WeeklyArchive: React.FC<Props> = ({ interns }) => {
               interns={interns}
               tasks={tasks}
               onStatusChange={handleStatusChange}
+              onVerifyChange={handleVerifyChange}
             />
           ))}
         </div>

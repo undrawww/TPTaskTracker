@@ -121,7 +121,8 @@ export function useDailyTasks(date?: string) {
         .eq('id', taskId);
 
       if (updateError) {
-        if (updateError.message.includes("column \"is_verified\" of relation \"daily_tasks\" does not exist")) {
+        const errorMsg = updateError.message.toLowerCase();
+        if (errorMsg.includes("is_verified") && (errorMsg.includes("does not exist") || errorMsg.includes("schema cache"))) {
           alert("Database error: The 'is_verified' column is missing from the 'daily_tasks' table in your Supabase database. Please add a boolean column named 'is_verified' to fix this.");
         } else {
           alert(`Failed to verify task: ${updateError.message}`);

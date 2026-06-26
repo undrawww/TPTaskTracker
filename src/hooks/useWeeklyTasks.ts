@@ -126,6 +126,42 @@ export function useWeeklyTasks(weekNumber: number) {
     };
   }, [fetchTasks, weekNumber]);
 
+  const toggleVerify = async (taskId: string, isVerified: boolean) => {
+    if (!isSupabaseConfigured) {
+      setTasks((prev) => {
+        const next = prev.map((t) => (t.id === taskId ? { ...t, is_verified: isVerified } : t));
+        const allStored = JSON.parse(localStorage.getItem('padua_weekly_tasks') || '[]');
+        const updatedStored = allStored.map((t: WeeklyTask) => t.id === taskId ? { ...t, is_verified: isVerified } : t);
+        localStorage.setItem('padua_weekly_tasks', JSON.stringify(updatedStored));
+        return next;
+      });
+      return;
+    }
+
+    try {
+      const { error: updateError } = await supabase
+        .from('weekly_tasks')
+        .update({ is_verified: isVerified })
+        .eq('id', taskId);
+
+      if (updateError) {
+        const errorMsg = updateError.message.toLowerCase();
+        if (errorMsg.includes("is_verified") && (errorMsg.includes("does not exist") || errorMsg.includes("schema cache"))) {
+          alert("Database error: The 'is_verified' column is missing from the 'weekly_tasks' table in your Supabase database. Please add a boolean column named 'is_verified' to fix this.");
+        } else {
+          alert(`Failed to verify task: ${updateError.message}`);
+        }
+        throw updateError;
+      }
+
+      setTasks((prev) =>
+        prev.map((t) => (t.id === taskId ? { ...t, is_verified: isVerified } : t))
+      );
+    } catch (err) {
+      console.error('Error verifying task:', err);
+    }
+  };
+
   const addTask = useCallback(
     async (internId: string, taskName: string) => {
       if (!isSupabaseConfigured) {
@@ -209,5 +245,5 @@ export function useWeeklyTasks(weekNumber: number) {
     [tasks]
   );
 
-  return { tasks, loading, error, refetch: fetchTasks, addTask, updateStatus };
+  return { tasks, loading, error, refetch: fetchTasks, addTask, updateStatus, toggleVerify };
 }
