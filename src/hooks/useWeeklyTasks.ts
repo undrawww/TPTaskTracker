@@ -127,31 +127,42 @@ export function useWeeklyTasks(weekNumber: number) {
   }, [fetchTasks, weekNumber]);
 
   const toggleVerify = async (taskId: string, isVerified: boolean) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
     if (!isSupabaseConfigured) {
       setTasks((prev) => {
         const next = prev.map((t) => (t.id === taskId ? { ...t, is_verified: isVerified } : t));
-        const allStored = JSON.parse(localStorage.getItem('padua_weekly_tasks') || '[]');
-        const updatedStored = allStored.map((t: WeeklyTask) => t.id === taskId ? { ...t, is_verified: isVerified } : t);
-        localStorage.setItem('padua_weekly_tasks', JSON.stringify(updatedStored));
+        const storageKey = task.type === 'daily' ? 'padua_daily_tasks' : 'padua_weekly_tasks';
+        const allStored = JSON.parse(localStorage.getItem(storageKey) || '[]');
+        const updatedStored = allStored.map((t: any) => t.id === taskId ? { ...t, is_verified: isVerified } : t);
+        localStorage.setItem(storageKey, JSON.stringify(updatedStored));
         return next;
       });
       return;
     }
 
     try {
-      const { error: updateError } = await supabase
-        .from('weekly_tasks')
+      const table = task.type === 'daily' ? 'daily_tasks' : 'weekly_tasks';
+      const { data, error: updateError } = await supabase
+        .from(table)
         .update({ is_verified: isVerified })
-        .eq('id', taskId);
+        .eq('id', taskId)
+        .select();
 
       if (updateError) {
         const errorMsg = updateError.message.toLowerCase();
         if (errorMsg.includes("is_verified") && (errorMsg.includes("does not exist") || errorMsg.includes("schema cache"))) {
-          alert("Database error: The 'is_verified' column is missing from the 'weekly_tasks' table in your Supabase database. Please add a boolean column named 'is_verified' to fix this.");
+          alert(`Database error: The 'is_verified' column is missing from the '${table}' table in your Supabase database. Please add a boolean column named 'is_verified' to fix this.`);
         } else {
           alert(`Failed to verify task: ${updateError.message}`);
         }
         throw updateError;
+      }
+      
+      if (!data || data.length === 0) {
+        alert(`Warning: The database update succeeded but 0 rows were affected in '${table}'. This usually means you don't have permission to update this specific task (RLS policy issue) or the task was deleted.`);
+        return; // Don't update local state if the db update failed
       }
 
       setTasks((prev) =>
@@ -226,12 +237,19 @@ export function useWeeklyTasks(weekNumber: number) {
 
       try {
         const table = task.type === 'daily' ? 'daily_tasks' : 'weekly_tasks';
-        const { error: updateError } = await supabase
+        const { data, error: updateError } = await supabase
           .from(table)
           .update({ status })
-          .eq('id', taskId);
+          .eq('id', taskId)
+          .select();
 
         if (updateError) throw updateError;
+        
+        if (!data || data.length === 0) {
+          alert(`Warning: Could not update status. 0 rows affected in '${table}'. Check your permissions (RLS).`);
+          return { success: false, error: 'Permission denied' };
+        }
+
         setTasks((prev) =>
           prev.map((t) => (t.id === taskId ? { ...t, status } : t))
         );

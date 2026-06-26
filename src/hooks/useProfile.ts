@@ -11,6 +11,7 @@ export function useProfile(internId?: string) {
   const [intern, setIntern] = useState<Intern | null>(null);
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [tasks, setTasks] = useState<DailyTask[]>([]);
+  const [weeklyTasks, setWeeklyTasks] = useState<any[]>([]);
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -83,6 +84,7 @@ export function useProfile(internId?: string) {
               { id: 'dt-3', intern_id: targetId || 'demo-id', task_name: 'Update support documentation', status: 'Done', task_date: today },
               { id: 'dt-4', intern_id: targetId || 'demo-id', task_name: 'Compile weekly financial report', status: 'Done', task_date: today },
             ]);
+            setWeeklyTasks([]);
           }
 
           setLoading(false);
@@ -132,7 +134,7 @@ export function useProfile(internId?: string) {
         });
 
         // Fetch Certifications, Tasks, and Attendance in parallel
-        const [certRes, tasksRes, attendanceRes] = await Promise.all([
+        const [certRes, tasksRes, attendanceRes, weeklyRes] = await Promise.all([
           supabase
             .from('certifications')
             .select('*')
@@ -146,12 +148,18 @@ export function useProfile(internId?: string) {
             .from('attendance')
             .select('*')
             .eq('intern_name', internData.full_name)
-            .order('attendance_date', { ascending: false })
+            .order('attendance_date', { ascending: false }),
+          supabase
+            .from('weekly_tasks')
+            .select('*')
+            .eq('intern_id', targetId)
         ]);
 
         if (certRes.data) setCertifications(certRes.data);
         if (tasksRes.data) setTasks(tasksRes.data);
-        if (attendanceRes.data) setAttendance(attendanceRes.data);      } catch (err) {
+        if (attendanceRes.data) setAttendance(attendanceRes.data);
+        if (weeklyRes.data) setWeeklyTasks(weeklyRes.data);
+      } catch (err) {
         console.error('Error fetching profile data:', err);
       } finally {
         setLoading(false);
@@ -163,6 +171,7 @@ export function useProfile(internId?: string) {
     role,
     certifications,
     tasks,
+    weeklyTasks,
     attendance,
     loading,
     refreshProfile,

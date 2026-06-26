@@ -5,13 +5,16 @@ import { getAvatarByIndex } from '../Dashboard/AvatarIcons';
 interface ProfileHeaderProps {
   intern: Intern;
   tasks: DailyTask[];
+  weeklyTasks?: any[];
   onEditClick: () => void;
   isOwnProfile?: boolean;
 }
 
-export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, onEditClick, isOwnProfile = true }) => {
+export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, weeklyTasks = [], onEditClick, isOwnProfile = true }) => {
   // Tasks marked as 'is_verified' are considered verified completed by the admin
-  const completedTasks = tasks.filter(t => t.is_verified).length;
+  const completedDaily = tasks.filter(t => t.is_verified).length;
+  const completedWeekly = weeklyTasks.filter(t => t.is_verified).length;
+  const completedTasks = completedDaily + completedWeekly;
   const formattedStartDate = intern.created_at 
     ? new Date(intern.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     : 'Not Set';

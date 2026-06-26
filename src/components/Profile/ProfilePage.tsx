@@ -11,7 +11,7 @@ import { ProfileModal } from './ProfileModal';
 import { supabase } from '../../lib/supabaseClient';
 
 export const ProfilePage: React.FC<{ internId?: string }> = ({ internId }) => {
-  const { intern, role, certifications, tasks, attendance, loading, refreshProfile } = useProfile(internId);
+  const { intern, role, certifications, tasks, weeklyTasks, attendance, loading, refreshProfile } = useProfile(internId);
   const [isEditingProfile, setIsEditingProfile] = React.useState(false);
   const { currentInternId, user } = useAuth();
   const isOwnProfile = !internId || internId === currentInternId || internId === user?.id;
@@ -54,6 +54,7 @@ export const ProfilePage: React.FC<{ internId?: string }> = ({ internId }) => {
       <ProfileHeader 
         intern={intern} 
         tasks={tasks} 
+        weeklyTasks={weeklyTasks}
         onEditClick={() => setIsEditingProfile(true)}
         isOwnProfile={isOwnProfile}
       />

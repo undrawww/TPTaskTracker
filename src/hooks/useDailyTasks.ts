@@ -115,10 +115,11 @@ export function useDailyTasks(date?: string) {
     }
 
     try {
-      const { error: updateError } = await supabase
+      const { data, error: updateError } = await supabase
         .from('daily_tasks')
         .update({ is_verified: isVerified })
-        .eq('id', taskId);
+        .eq('id', taskId)
+        .select();
 
       if (updateError) {
         const errorMsg = updateError.message.toLowerCase();
@@ -128,6 +129,11 @@ export function useDailyTasks(date?: string) {
           alert(`Failed to verify task: ${updateError.message}`);
         }
         throw updateError;
+      }
+      
+      if (!data || data.length === 0) {
+        alert("Warning: The database update succeeded but 0 rows were affected. This usually means you don't have permission to update this specific task (RLS policy issue) or the task was deleted.");
+        return; // Don't update local state if the db update failed
       }
 
       setTasks((prev) =>
@@ -199,12 +205,19 @@ export function useDailyTasks(date?: string) {
       }
 
       try {
-        const { error: updateError } = await supabase
+        const { data, error: updateError } = await supabase
           .from('daily_tasks')
           .update({ status })
-          .eq('id', taskId);
+          .eq('id', taskId)
+          .select();
 
         if (updateError) throw updateError;
+        
+        if (!data || data.length === 0) {
+          alert("Warning: Could not update status. 0 rows affected. Check your permissions (RLS).");
+          return { success: false, error: 'Permission denied' };
+        }
+
         setTasks((prev) =>
           prev.map((t) => (t.id === taskId ? { ...t, status } : t))
         );
