@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
 import { useAuth } from '../../contexts/AuthContext';
 import { AVATAR_COUNT, AVATAR_LABELS, renderAvatar } from '../Dashboard/AvatarIcons';
@@ -151,13 +151,16 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
     window.dispatchEvent(new Event('avatar-change'));
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     return () => {
       if (cropImageSrc) {
         URL.revokeObjectURL(cropImageSrc);
       }
+      if (cropGcashSrc) {
+        URL.revokeObjectURL(cropGcashSrc);
+      }
     };
-  }, [cropImageSrc]);
+  }, [cropImageSrc, cropGcashSrc]);
 
   const handleUploadPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
