@@ -53,7 +53,7 @@ export function getAvatarByIndex(index: number): React.ReactNode {
 }
 
 export function renderAvatar(index?: number, url?: string): React.ReactNode {
-  if (url) {
+  if (index === -1 && url) {
     return <img src={url} alt="Profile" className="w-full h-full object-cover rounded-full" />;
   }
   return getAvatarByIndex(index ?? 0);
