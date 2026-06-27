@@ -196,6 +196,11 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
           .eq('email', user.email);
       }
 
+      // Crucial: Update the auth user's metadata so that AuthContext updates globally in realtime
+      await supabase.auth.updateUser({
+        data: { avatar_url: publicUrl }
+      });
+
       setAvatarUrl(publicUrl);
       localStorage.setItem('tp_avatar_url', publicUrl);
       setCropImageSrc(null);

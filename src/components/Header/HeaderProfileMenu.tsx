@@ -23,7 +23,7 @@ export const HeaderProfileMenu: React.FC<Props> = ({ onLogout, onViewMyProfile }
   });
   
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(() => {
-    return localStorage.getItem('tp_avatar_url') || user?.user_metadata?.avatar_url || undefined;
+    return user?.user_metadata?.avatar_url || localStorage.getItem('tp_avatar_url') || undefined;
   });
 
   const [displayName, setDisplayName] = useState(() => {
@@ -42,14 +42,19 @@ export const HeaderProfileMenu: React.FC<Props> = ({ onLogout, onViewMyProfile }
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Update when user loads
+  // Update when user loads or metadata changes
   useEffect(() => {
     if (user) {
-      if (!localStorage.getItem('tp_avatar_url') && user.user_metadata?.avatar_url) {
+      if (user.user_metadata?.avatar_url) {
         setAvatarUrl(user.user_metadata.avatar_url);
+        localStorage.setItem('tp_avatar_url', user.user_metadata.avatar_url);
+      } else if (localStorage.getItem('tp_avatar_url')) {
+        setAvatarUrl(localStorage.getItem('tp_avatar_url') || undefined);
       }
-      if (!localStorage.getItem('tp_avatar_name') && user.user_metadata?.full_name) {
+      
+      if (user.user_metadata?.full_name) {
         setDisplayName(user.user_metadata.full_name);
+        localStorage.setItem('tp_avatar_name', user.user_metadata.full_name);
       }
     }
   }, [user]);
