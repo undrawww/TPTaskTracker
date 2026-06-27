@@ -72,3 +72,92 @@ export default async function getCroppedImg(
     }, 'image/jpeg', 0.95);
   });
 }
+
+/**
+ * Automatically crops the white or transparent background from an image and adds a small padding.
+ */
+export async function cropWhitespaceFromImage(file: File, padding = 20): Promise<Blob> {
+  const imageUrl = URL.createObjectURL(file);
+  const image = await createImage(imageUrl);
+  
+  const canvas = document.createElement('canvas');
+  canvas.width = image.width;
+  canvas.height = image.height;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  
+  if (!ctx) throw new Error('Failed to get canvas context');
+  
+  // Fill white background just in case there's transparency
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(image, 0, 0);
+  
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+  
+  let minX = canvas.width;
+  let minY = canvas.height;
+  let maxX = 0;
+  let maxY = 0;
+  
+  // Tolerance for "white" (0-255). Lower means stricter white.
+  const threshold = 245; 
+  
+  for (let y = 0; y < canvas.height; y++) {
+    for (let x = 0; x < canvas.width; x++) {
+      const i = (y * canvas.width + x) * 4;
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      
+      // If pixel is NOT white (darker than threshold)
+      if (r < threshold || g < threshold || b < threshold) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+  
+  // If the image was entirely white or empty
+  if (minX > maxX || minY > maxY) {
+    URL.revokeObjectURL(imageUrl);
+    return file; // Return original if no content found
+  }
+  
+  // Dimensions of the actual content
+  const contentWidth = maxX - minX + 1;
+  const contentHeight = maxY - minY + 1;
+  
+  // Create final canvas with padding
+  const finalCanvas = document.createElement('canvas');
+  finalCanvas.width = contentWidth + (padding * 2);
+  finalCanvas.height = contentHeight + (padding * 2);
+  const finalCtx = finalCanvas.getContext('2d');
+  
+  if (!finalCtx) {
+    URL.revokeObjectURL(imageUrl);
+    return file;
+  }
+  
+  // Fill final canvas with white
+  finalCtx.fillStyle = '#ffffff';
+  finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+  
+  // Draw the cropped area onto the final canvas with padding
+  finalCtx.drawImage(
+    canvas,
+    minX, minY, contentWidth, contentHeight,
+    padding, padding, contentWidth, contentHeight
+  );
+  
+  URL.revokeObjectURL(imageUrl);
+  
+  return new Promise((resolve, reject) => {
+    finalCanvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error('Canvas is empty'));
+    }, file.type || 'image/jpeg', 0.95);
+  });
+}

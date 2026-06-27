@@ -3,7 +3,7 @@ import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
 import { useAuth } from '../../contexts/AuthContext';
 import { AVATAR_COUNT, AVATAR_LABELS, renderAvatar } from '../Dashboard/AvatarIcons';
 import Cropper from 'react-easy-crop';
-import getCroppedImg from '../../utils/cropImage';
+import getCroppedImg, { cropWhitespaceFromImage } from '../../utils/cropImage';
 
 interface Props {
   isOpen: boolean;
@@ -171,12 +171,15 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
       setUploadingGcash(true);
       setError(null);
 
+      // Automatically crop white background from the QR code image
+      const croppedBlob = await cropWhitespaceFromImage(file);
+
       const fileName = `gcash-${user.id || user.email}-${Math.random()}.jpg`;
       const filePath = `${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file, { contentType: file.type });
+        .upload(filePath, croppedBlob, { contentType: file.type || 'image/jpeg' });
 
       if (uploadError) throw uploadError;
 

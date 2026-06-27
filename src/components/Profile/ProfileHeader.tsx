@@ -160,36 +160,36 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, wee
           onClick={() => setIsGcashOpen(false)}
         >
           <div 
-            className="bg-white dark:bg-[#002b36] rounded-3xl p-6 shadow-2xl max-w-sm w-full mx-auto flex flex-col items-center animate-scale-in border border-teal/10 dark:border-white/10"
+            className="bg-white dark:bg-[#002b36] rounded-3xl p-8 shadow-2xl max-w-md w-full mx-auto flex flex-col items-center animate-scale-in border border-teal/10 dark:border-white/10"
             onClick={e => e.stopPropagation()}
           >
             <div className="w-full flex justify-between items-center mb-6">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
-                  <span className="text-blue-600 dark:text-blue-400 font-bold text-xs">GC</span>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
+                  <span className="text-blue-600 dark:text-blue-400 font-bold text-sm">GC</span>
                 </div>
-                <h3 className="text-lg font-bold text-teal dark:text-cream">GCash QR</h3>
+                <h3 className="text-xl font-bold text-teal dark:text-cream">GCash QR</h3>
               </div>
               <button 
                 onClick={() => setIsGcashOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-teal/10 dark:hover:bg-white/10 text-teal/50 dark:text-cream/50 transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-teal/10 dark:hover:bg-white/10 text-teal/50 dark:text-cream/50 transition-colors"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
                   <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
               </button>
             </div>
             
-            <div className="w-full aspect-square rounded-2xl overflow-hidden border-2 border-teal/10 dark:border-white/5 bg-gray-50 dark:bg-black/20">
+            <div className="w-full aspect-square rounded-2xl overflow-hidden border-2 border-teal/10 dark:border-white/5 bg-gray-50 dark:bg-black/20 p-2">
               <img 
                 src={intern.gcash_qr_url} 
                 alt={`${intern.full_name}'s GCash QR`} 
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain rounded-xl"
               />
             </div>
             
-            <p className="mt-5 text-sm font-medium text-teal/70 dark:text-cream/70 text-center">
+            <p className="mt-6 text-base font-medium text-teal/70 dark:text-cream/70 text-center">
               Scan this QR code to send payments to {intern.full_name}.
             </p>
           </div>
