@@ -17,22 +17,20 @@ export const HeaderProfileMenu: React.FC<Props> = ({ onLogout, onViewMyProfile }
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const getAvatarIdx = () => {
+  const [avatarIdx, setAvatarIdx] = useState(() => {
     const val = localStorage.getItem('tp_avatar');
     return val !== null ? parseInt(val, 10) : 0;
-  };
-  const getAvatarUrl = () => {
+  });
+  
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(() => {
     return localStorage.getItem('tp_avatar_url') || user?.user_metadata?.avatar_url || undefined;
-  };
-  const [avatarIdx, setAvatarIdx] = useState(getAvatarIdx);
-  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(getAvatarUrl);
+  });
 
-  const getDisplayName = () => {
+  const [displayName, setDisplayName] = useState(() => {
     const rawName = localStorage.getItem('tp_avatar_name') || user?.user_metadata?.full_name;
     if (rawName) return rawName;
     return user?.email?.split('@')[0] || 'User';
-  };
-  const [displayName, setDisplayName] = useState(getDisplayName);
+  });
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -44,12 +42,30 @@ export const HeaderProfileMenu: React.FC<Props> = ({ onLogout, onViewMyProfile }
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Update when user loads
+  useEffect(() => {
+    if (user) {
+      if (!localStorage.getItem('tp_avatar_url') && user.user_metadata?.avatar_url) {
+        setAvatarUrl(user.user_metadata.avatar_url);
+      }
+      if (!localStorage.getItem('tp_avatar_name') && user.user_metadata?.full_name) {
+        setDisplayName(user.user_metadata.full_name);
+      }
+    }
+  }, [user]);
+
   // Listen for avatar changes from the ProfileModal
   useEffect(() => {
     const handler = () => {
-      setAvatarIdx(getAvatarIdx());
-      setAvatarUrl(getAvatarUrl());
-      setDisplayName(getDisplayName());
+      const val = localStorage.getItem('tp_avatar');
+      setAvatarIdx(val !== null ? parseInt(val, 10) : 0);
+      
+      setAvatarUrl(localStorage.getItem('tp_avatar_url') || undefined);
+      
+      const rawName = localStorage.getItem('tp_avatar_name');
+      if (rawName) {
+        setDisplayName(rawName);
+      }
     };
     window.addEventListener('avatar-change', handler);
     return () => window.removeEventListener('avatar-change', handler);
