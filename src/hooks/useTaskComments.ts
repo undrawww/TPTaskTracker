@@ -9,6 +9,7 @@ export interface TaskComment {
   content: string;
   created_at: string;
   avatar_index?: number;
+  avatar_url?: string;
 }
 
 const STORAGE_KEY = 'padua_task_comments';
@@ -55,15 +56,19 @@ export function useTaskComments(taskId: string) {
         const names = Array.from(new Set(commentsData.map(c => c.author_name)));
         const { data: profilesData } = await supabase
           .from('profiles')
-          .select('full_name, avatar_index')
+          .select('full_name, avatar_index, avatar_url')
           .in('full_name', names);
           
         if (profilesData) {
-          const avatarMap = new Map(profilesData.map(p => [p.full_name, p.avatar_index]));
-          commentsData = commentsData.map(c => ({
-            ...c,
-            avatar_index: avatarMap.get(c.author_name) ?? undefined
-          }));
+          const avatarMap = new Map(profilesData.map(p => [p.full_name, { index: p.avatar_index, url: p.avatar_url }]));
+          commentsData = commentsData.map(c => {
+            const avatarData = avatarMap.get(c.author_name);
+            return {
+              ...c,
+              avatar_index: avatarData?.index ?? undefined,
+              avatar_url: avatarData?.url ?? undefined
+            };
+          });
         }
       }
       
@@ -91,8 +96,9 @@ export function useTaskComments(taskId: string) {
             setComments((prev) => {
               if (prev.some((c) => c.id === newComment.id)) return prev;
               const existingAuthor = prev.find(c => c.author_name === newComment.author_name);
-              if (existingAuthor && existingAuthor.avatar_index !== undefined) {
-                newComment.avatar_index = existingAuthor.avatar_index;
+              if (existingAuthor) {
+                if (existingAuthor.avatar_index !== undefined) newComment.avatar_index = existingAuthor.avatar_index;
+                if (existingAuthor.avatar_url !== undefined) newComment.avatar_url = existingAuthor.avatar_url;
               }
               return [...prev, newComment];
             });

@@ -1,13 +1,14 @@
 import React from 'react';
 import { useInterns } from '../../hooks/useInterns';
-import { getAvatarIcon, getAvatarByIndex } from '../Dashboard/AvatarIcons';
+import { getAvatarIcon, getAvatarByIndex, renderAvatar } from '../Dashboard/AvatarIcons';
 
 interface Props {
   onViewProfile?: (id: string) => void;
 }
 
 export const InternsDirectory: React.FC<Props> = ({ onViewProfile }) => {
-  const { interns, loading, error } = useInterns();
+  const { interns: allInterns, loading, error } = useInterns();
+  const interns = allInterns.filter(i => i.department !== 'BizDev Team');
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -70,7 +71,7 @@ export const InternsDirectory: React.FC<Props> = ({ onViewProfile }) => {
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm">
                         {intern.avatar_index !== undefined 
-                          ? getAvatarByIndex(intern.avatar_index) 
+                          ? renderAvatar(intern.avatar_index, intern.avatar_url) 
                           : getAvatarIcon(intern.full_name)}
                       </div>
                       <div className="flex flex-col">

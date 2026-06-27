@@ -40,7 +40,9 @@ export function useAnalytics(interns: Intern[], dailyTasks: DailyTask[]): Analyt
     });
 
     // Per-intern active task counts
-    const internProgress = interns.map((intern) => {
+    const internProgress = interns
+      .filter((intern) => intern.department !== 'BizDev Team')
+      .map((intern) => {
       const internTasks = dailyTasks.filter((t) => t.intern_id === intern.id);
       const active = internTasks.filter((t) => !t.is_verified).length;
       const done = internTasks.filter((t) => t.is_verified).length;
@@ -58,7 +60,9 @@ export function useAnalytics(interns: Intern[], dailyTasks: DailyTask[]): Analyt
     }));
 
     // Status distribution per intern (for stacked chart)
-    const internStatusDistribution = interns.map((intern) => {
+    const internStatusDistribution = interns
+      .filter((intern) => intern.department !== 'BizDev Team')
+      .map((intern) => {
       const internTasks = dailyTasks.filter((t) => t.intern_id === intern.id);
       const counts: { name: string; [key: string]: string | number } = {
         name: intern.full_name.split(' ')[0], // first name for brevity

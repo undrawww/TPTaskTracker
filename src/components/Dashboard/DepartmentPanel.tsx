@@ -15,6 +15,7 @@ interface Props {
   onAddTask?: (internId: string, taskName: string, emptyGapsCount?: number) => void;
   activeCommentTaskId?: string | null;
   setActiveCommentTaskId?: (id: string | null) => void;
+  hideHeader?: boolean;
 }
 
 
@@ -31,7 +32,8 @@ export const DepartmentPanel: React.FC<Props> = ({
   onViewProfile,
   onAddTask,
   activeCommentTaskId,
-  setActiveCommentTaskId
+  setActiveCommentTaskId,
+  hideHeader
 }) => {
   const deptInterns = interns
     .filter((i) => i.department === department)
@@ -43,17 +45,19 @@ export const DepartmentPanel: React.FC<Props> = ({
 
   return (
     <div className="bg-transparent border-none flex-shrink-0 min-w-min">
-      <div className="flex items-center justify-between pb-2 mb-4 border-b border-teal/10 dark:border-white/10">
-        <h3 className="font-sans text-xl font-bold text-teal dark:text-cream tracking-wide">
-          {getInitials(department)}
-        </h3>
-        <span className="text-xs text-teal/50 dark:text-cream/50 uppercase tracking-widest font-medium">
-          {department}
-        </span>
-      </div>
+      {!hideHeader && (
+        <div className="flex items-center justify-between pb-2 mb-4 border-b border-teal/10 dark:border-white/10">
+          <h3 className="font-sans text-xl font-bold text-teal dark:text-cream tracking-wide">
+            {getInitials(department)}
+          </h3>
+          <span className="text-xs text-teal/50 dark:text-cream/50 uppercase tracking-widest font-medium">
+            {department}
+          </span>
+        </div>
+      )}
 
       {/* Intern task groups */}
-      <div className="py-4 flex flex-row gap-6">
+      <div className="py-4 flex flex-row gap-4">
         {deptInterns.length === 0 ? (
           <p className="text-sm text-[#003946] dark:text-[#f5e7c6] italic text-center py-4">
             No interns in this department
@@ -73,6 +77,7 @@ export const DepartmentPanel: React.FC<Props> = ({
                 internId={intern.id}
                 internName={intern.full_name}
                 avatarIndex={intern.avatar_index}
+                avatarUrl={intern.avatar_url}
                 tasks={internTasks}
                 onStatusChange={onStatusChange}
                 onVerifyChange={onVerifyChange}

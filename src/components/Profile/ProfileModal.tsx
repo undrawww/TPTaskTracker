@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
 import { useAuth } from '../../contexts/AuthContext';
-import { AVATAR_COUNT, AVATAR_LABELS, getAvatarByIndex } from '../Dashboard/AvatarIcons';
+import { AVATAR_COUNT, AVATAR_LABELS, getAvatarByIndex, renderAvatar } from '../Dashboard/AvatarIcons';
+import Cropper from 'react-easy-crop';
+import getCroppedImg from '../../utils/cropImage';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   onLogout: () => void;
+  onSave?: () => void;
 }
 
 /** Read saved avatar index from localStorage */
@@ -27,7 +30,7 @@ const formatPHMobileNumber = (value: string) => {
   }
 };
 
-export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => {
+export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSave }) => {
   const { user, role } = useAuth();
   
   const [fullName, setFullName] = useState('');
@@ -39,6 +42,8 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
 
   // Intern Specific Fields
   const [location, setLocation] = useState('');
+  const [pinLocation, setPinLocation] = useState('');
+  const [pinLocationName, setPinLocationName] = useState('');
   const [program, setProgram] = useState('');
   const [currentYear, setCurrentYear] = useState('');
   const [school, setSchool] = useState('');
@@ -53,7 +58,15 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
   const [isEditing, setIsEditing] = useState(false);
   const [currentName, setCurrentName] = useState<string>('');
   const [avatarIndex, setAvatarIndex] = useState<number>(getSavedAvatar);
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  
+  // Crop state
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'profile' | 'academic' | 'security'>('profile');
 
   // Fetch current profile name on open
@@ -61,7 +74,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
     if (isOpen && user?.email && isSupabaseConfigured) {
       supabase
         .from('profiles')
-        .select('full_name, avatar_index, location, program, current_year, school, contact_number, personal_email, birthday, expected_graduation_date, required_hours')
+        .select('full_name, avatar_index, location, pin_location, pin_location_name, program, current_year, school, contact_number, personal_email, birthday, expected_graduation_date, required_hours')
         .eq('email', user.email)
         .single()
         .then(({ data }) => {
@@ -74,7 +87,12 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
               setAvatarIndex(data.avatar_index);
               localStorage.setItem('tp_avatar', String(data.avatar_index));
             }
+            if (data.avatar_url) {
+              setAvatarUrl(data.avatar_url);
+            }
             if (data.location) setLocation(data.location);
+            if (data.pin_location) setPinLocation(data.pin_location);
+            if (data.pin_location_name) setPinLocationName(data.pin_location_name);
             if (data.program) setProgram(data.program);
             if (data.current_year) setCurrentYear(data.current_year);
             if (data.school) setSchool(data.school);
@@ -104,6 +122,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
       setFullName('Demo User');
     }
     setAvatarIndex(getSavedAvatar());
+    setAvatarUrl(localStorage.getItem('tp_avatar_url') || undefined);
   }, [isOpen, user]);
 
   const handleSelectAvatar = async (idx: number) => {
@@ -124,6 +143,76 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
 
     // Dispatch a storage event so the header and dashboard update live
     window.dispatchEvent(new Event('avatar-change'));
+  };
+
+  const onCropComplete = (croppedArea: any, croppedAreaPixels: any) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  };
+
+  const handleUploadPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.addEventListener('load', () => setCropImageSrc(reader.result?.toString() || null));
+    reader.readAsDataURL(file);
+  };
+
+  const confirmCrop = async () => {
+    if (!cropImageSrc || !croppedAreaPixels || !user?.email || !isSupabaseConfigured) return;
+
+    try {
+      setUploadingAvatar(true);
+      setError(null);
+
+      const croppedBlob = await getCroppedImg(cropImageSrc, croppedAreaPixels);
+      if (!croppedBlob) throw new Error('Failed to crop image');
+
+      const fileName = `${user.id || user.email}-${Math.random()}.jpg`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, croppedBlob, { contentType: 'image/jpeg' });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      const publicUrl = data.publicUrl;
+
+      // Update backend
+      await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('email', user.email);
+        
+      if (role === 'intern') {
+        await supabase
+          .from('interns')
+          .update({ avatar_url: publicUrl })
+          .eq('email', user.email);
+      }
+
+      setAvatarUrl(publicUrl);
+      localStorage.setItem('tp_avatar_url', publicUrl);
+      setCropImageSrc(null);
+      setShowAvatarPicker(false);
+      setSuccess('Profile photo uploaded successfully!');
+      
+      setTimeout(() => {
+        setSuccess(null);
+      }, 5000);
+      
+      // Dispatch a storage event so the header and dashboard update live
+      window.dispatchEvent(new Event('avatar-change'));
+    } catch (err: any) {
+      setError(err.message || 'Failed to upload photo');
+    } finally {
+      setUploadingAvatar(false);
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -153,6 +242,8 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
         const updateData = {
           full_name: fullName,
           location,
+          pin_location: pinLocation,
+          pin_location_name: pinLocationName,
           program,
           current_year: currentYear,
           school,
@@ -189,10 +280,13 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
       setSuccess('Profile updated successfully!');
       setPassword('');
       setConfirmPassword('');
+      if (onSave) onSave();
+      
+      setIsEditing(false);
+      
       setTimeout(() => {
-        setIsEditing(false);
         setSuccess(null);
-      }, 1500);
+      }, 5000);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -253,12 +347,70 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
         )}
 
         <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar">
-          {/* Avatar Picker Overlay */}
-          {showAvatarPicker ? (
+          {/* Crop Overlay */}
+          {cropImageSrc ? (
+            <div className="space-y-4 animate-scale-in">
+              <div className="text-center">
+                <h3 className="font-poppins text-base font-bold text-teal dark:text-cream">Crop Your Photo</h3>
+                <p className="text-xs text-teal/50 dark:text-cream/50 mt-1 mb-4">Pinch or scroll to zoom, drag to pan</p>
+              </div>
+              <div className="relative w-full h-64 bg-black/10 rounded-2xl overflow-hidden">
+                <Cropper
+                  image={cropImageSrc}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  cropShape="round"
+                  showGrid={false}
+                  onCropChange={setCrop}
+                  onCropComplete={onCropComplete}
+                  onZoomChange={setZoom}
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setCropImageSrc(null)}
+                  disabled={uploadingAvatar}
+                  className="flex-1 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light text-cream-dark dark:text-teal-light font-semibold text-sm hover:bg-cream/50 dark:hover:bg-[#003946] transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmCrop}
+                  disabled={uploadingAvatar}
+                  className="flex-1 py-2.5 rounded-xl bg-gold text-teal font-semibold text-sm hover:bg-gold-light transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {uploadingAvatar && <div className="w-4 h-4 rounded-full border-2 border-teal/20 border-t-teal animate-spin" />}
+                  {uploadingAvatar ? 'Saving...' : 'Save Photo'}
+                </button>
+              </div>
+            </div>
+          ) : showAvatarPicker ? (
             <div className="space-y-4 animate-scale-in">
               <div className="text-center">
                 <h3 className="font-poppins text-base font-bold text-teal dark:text-cream">Select Your Avatar</h3>
-                <p className="text-xs text-teal/50 dark:text-cream/50 mt-1">Tap to choose an icon</p>
+                <p className="text-xs text-teal/50 dark:text-cream/50 mt-1 mb-4">Tap to choose an icon or upload a custom photo</p>
+                <div className="flex justify-center mb-6">
+                  <label className="cursor-pointer relative overflow-hidden group">
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleUploadPhoto}
+                      disabled={uploadingAvatar}
+                      className="hidden" 
+                    />
+                    <div className={`px-4 py-2 rounded-xl border border-teal/10 dark:border-white/10 bg-teal/5 dark:bg-white/5 flex items-center gap-2 hover:bg-teal/10 dark:hover:bg-white/10 transition-colors ${uploadingAvatar ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                      {uploadingAvatar ? (
+                        <div className="w-4 h-4 rounded-full border-2 border-teal/20 border-t-teal dark:border-white/10 dark:border-t-gold animate-spin" />
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal dark:text-cream"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                      )}
+                      <span className="text-sm font-semibold text-teal dark:text-cream">
+                        {uploadingAvatar ? 'Uploading...' : 'Upload Photo'}
+                      </span>
+                    </div>
+                  </label>
+                </div>
               </div>
               <div className="grid grid-cols-5 gap-3">
                 {Array.from({ length: AVATAR_COUNT }).map((_, idx) => (
@@ -275,7 +427,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
                     title={AVATAR_LABELS[idx]}
                   >
                     <div className="w-full h-full flex items-center justify-center">
-                      {getAvatarByIndex(idx)}
+                      {renderAvatar(idx)}
                     </div>
                   </button>
                 ))}
@@ -295,8 +447,8 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
                   className="group relative w-20 h-20 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-black/10 mb-4 transition-all hover:shadow-xl hover:shadow-black/20 hover:scale-105"
                   title="Change avatar"
                 >
-                  <div className="w-full h-full flex items-center justify-center">
-                    {getAvatarByIndex(avatarIndex)}
+                  <div className="w-full h-full flex items-center justify-center rounded-full overflow-hidden">
+                    {renderAvatar(avatarIndex, avatarUrl)}
                   </div>
                   <div className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                     <svg className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -371,12 +523,32 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Location</label>
+                          <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Location (Text)</label>
                           <input 
                             type="text" 
                             placeholder="City, Country"
                             value={location} 
                             onChange={(e) => setLocation(e.target.value)} 
+                            className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" 
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Pin Location Name</label>
+                          <input 
+                            type="text" 
+                            placeholder="e.g., Pinalagad Covered Court"
+                            value={pinLocationName} 
+                            onChange={(e) => setPinLocationName(e.target.value)} 
+                            className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" 
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Pin Location Link (Google Maps URL)</label>
+                          <input 
+                            type="text" 
+                            placeholder="https://maps.app.goo.gl/..."
+                            value={pinLocation} 
+                            onChange={(e) => setPinLocation(e.target.value)} 
                             className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" 
                           />
                         </div>
@@ -492,7 +664,6 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
                 )}
 
                 {error && <p className="text-sm text-status-hold bg-status-hold-bg px-4 py-3 rounded-xl border border-status-hold/20">{error}</p>}
-                {success && <p className="text-sm text-status-done bg-status-done-bg px-4 py-3 rounded-xl border border-status-done/20">{success}</p>}
               </div>
 
               <div className="flex justify-end gap-3 pt-6 border-t border-teal/10 dark:border-white/10 shrink-0 mt-auto">
@@ -514,7 +685,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
                   disabled={loading}
                   className="px-8 py-2.5 rounded-xl bg-gold text-teal font-semibold text-sm hover:bg-gold-light transition-colors disabled:opacity-50"
                 >
-                  {loading ? 'Saving...' : 'Save Changes'}
+                  Save Changes
                 </button>
               </div>
             </form>
@@ -541,6 +712,20 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout }) => 
           )}
         </div>
       </div>
+      
+      {/* Bottom Right Toast Notification */}
+      {success && (
+        <div className="fixed bottom-6 right-6 z-[60] animate-slide-up">
+          <div className="bg-status-done-bg border border-status-done/20 px-6 py-4 rounded-xl shadow-lg shadow-black/10 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-status-done/10 flex items-center justify-center shrink-0">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-status-done">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+            <p className="text-sm font-semibold text-status-done">{success}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

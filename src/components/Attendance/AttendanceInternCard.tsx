@@ -2,7 +2,7 @@ import React from 'react';
 import type { AttendanceWithIntern, AttendanceAction } from '../../types';
 import { TimeStampButton } from './TimeStampButton';
 import { useAuth } from '../../contexts/AuthContext';
-import { getAvatarIcon, getAvatarByIndex } from '../Dashboard/AvatarIcons';
+import { getAvatarIcon, getAvatarByIndex, renderAvatar } from '../Dashboard/AvatarIcons';
 import { DailyRecordModal } from './DailyRecordModal';
 import { AdminFeedbackModal } from './AdminFeedbackModal';
 import { useState } from 'react';
@@ -98,7 +98,7 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm shrink-0">
             {record.intern?.avatar_index !== undefined 
-              ? getAvatarByIndex(record.intern.avatar_index) 
+              ? renderAvatar(record.intern.avatar_index, record.intern.avatar_url) 
               : getAvatarIcon(intern_name)}
           </div>
           <div className="flex flex-col">

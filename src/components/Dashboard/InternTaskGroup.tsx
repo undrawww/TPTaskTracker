@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TaskRow } from './TaskRow';
-import { getAvatarIcon, getAvatarByIndex } from './AvatarIcons';
+import { getAvatarIcon, getAvatarByIndex, renderAvatar } from './AvatarIcons';
 import type { DailyTask, WeeklyTask, TaskStatus } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDroppable } from '@dnd-kit/core';
@@ -11,6 +11,7 @@ interface Props {
   internId: string;
   internName: string;
   avatarIndex?: number;
+  avatarUrl?: string;
   tasks: (DailyTask | WeeklyTask)[];
   onStatusChange: (taskId: string, status: TaskStatus) => void;
   onVerifyChange?: (taskId: string, isVerified: boolean) => void;
@@ -23,9 +24,9 @@ interface Props {
   setActiveCommentTaskId?: (id: string | null) => void;
 }
 
-export const InternTaskGroup: React.FC<Props> = ({ internId, internName, avatarIndex, tasks, onStatusChange, onVerifyChange, onEditTask, onDeleteIntern, onDeleteTask, onViewProfile, onAddTask, activeCommentTaskId, setActiveCommentTaskId }) => {
+export const InternTaskGroup: React.FC<Props> = ({ internId, internName, avatarIndex, avatarUrl, tasks, onStatusChange, onVerifyChange, onEditTask, onDeleteIntern, onDeleteTask, onViewProfile, onAddTask, activeCommentTaskId, setActiveCommentTaskId }) => {
   const { role, currentInternId } = useAuth();
-  const canAddTask = role === 'admin' || currentInternId === internId;
+  const canAddTask = true; // allow everyone to add tasks anywhere
   const { setNodeRef: setDroppableRef } = useDroppable({ id: `task-container-${internId}` });
   const { attributes, listeners, setNodeRef: setSortableRef, transform, transition, isDragging } = useSortable({ id: internId, data: { type: 'Intern' } });
 
@@ -67,7 +68,7 @@ export const InternTaskGroup: React.FC<Props> = ({ internId, internName, avatarI
     <div 
       ref={setSortableRef} 
       style={style} 
-      className={`w-96 flex-shrink-0 space-y-2.5 ${isDragging ? 'opacity-50 relative z-50 bg-white dark:bg-[#002530] rounded-xl shadow-xl' : ''}`}
+      className={`w-72 flex-shrink-0 space-y-2.5 ${isDragging ? 'opacity-50 relative z-50 bg-white dark:bg-[#002530] rounded-xl shadow-xl' : ''}`}
     >
       <div className="flex items-center gap-2.5 px-1 group/intern">
         {/* Drag Handle */}
@@ -91,9 +92,9 @@ export const InternTaskGroup: React.FC<Props> = ({ internId, internName, avatarI
         >
           <div className="w-8 h-8 rounded-full flex items-center justify-center shadow-sm">
             {chosenAvatarIdx !== null 
-              ? getAvatarByIndex(chosenAvatarIdx) 
+              ? renderAvatar(chosenAvatarIdx, avatarUrl) 
               : avatarIndex !== undefined 
-                ? getAvatarByIndex(avatarIndex) 
+                ? renderAvatar(avatarIndex, avatarUrl) 
                 : getAvatarIcon(internName)}
           </div>
           <h4 className="text-sm font-semibold text-teal dark:text-cream tracking-tight uppercase">

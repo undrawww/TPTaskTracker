@@ -40,6 +40,7 @@ export const DailyTracker: React.FC<Props> = ({
   setActiveCommentTaskId
 }) => {
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
+  const [isBizDevExpanded, setIsBizDevExpanded] = useState(true);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -206,24 +207,73 @@ export const DailyTracker: React.FC<Props> = ({
           </p>
         </div>
       ) : (
-        <div className="flex overflow-x-auto pb-6 gap-12 items-start w-full min-h-[500px]">
-          {DEPARTMENTS.map((dept) => (
-            <DepartmentPanel
-              key={dept}
-              department={dept}
-              interns={interns}
-              tasks={tasks}
-              onStatusChange={onStatusChange}
-              onVerifyChange={onVerifyChange}
-              onEditTask={onEditTask}
-              onDeleteIntern={onDeleteIntern}
-              onDeleteTask={(id) => setTaskToDelete(id)}
-              onViewProfile={onViewProfile}
-              onAddTask={onAddTask}
-              activeCommentTaskId={activeCommentTaskId}
-              setActiveCommentTaskId={setActiveCommentTaskId}
-            />
-          ))}
+        <div className="flex flex-col gap-6">
+          {/* Regular Departments */}
+          <div className="flex overflow-x-auto pb-6 gap-6 items-start w-full min-h-[500px]">
+            {DEPARTMENTS.filter(dept => dept !== 'BizDev Team').map((dept) => (
+              <DepartmentPanel
+                key={dept}
+                department={dept}
+                interns={interns}
+                tasks={tasks}
+                onStatusChange={onStatusChange}
+                onVerifyChange={onVerifyChange}
+                onEditTask={onEditTask}
+                onDeleteIntern={onDeleteIntern}
+                onDeleteTask={(id) => setTaskToDelete(id)}
+                onViewProfile={onViewProfile}
+                onAddTask={onAddTask}
+                activeCommentTaskId={activeCommentTaskId}
+                setActiveCommentTaskId={setActiveCommentTaskId}
+              />
+            ))}
+          </div>
+
+          <div className="w-full h-px bg-teal/10 dark:bg-white/5 my-2"></div>
+
+          {/* BizDev Team Section */}
+          <div className="w-full">
+            <button
+              onClick={() => setIsBizDevExpanded(!isBizDevExpanded)}
+              className="flex items-center gap-2 mb-4 group/bizdev"
+            >
+              <div className="p-1 rounded hover:bg-teal/5 dark:hover:bg-white/5 transition-colors">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`text-teal/40 dark:text-cream/40 group-hover/bizdev:text-teal dark:group-hover/bizdev:text-cream transition-transform duration-200 ${isBizDevExpanded ? '' : '-rotate-90'}`}
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-teal dark:text-cream tracking-tight">BizDev Leadership Team</h2>
+            </button>
+            {isBizDevExpanded && (
+              <div className="flex overflow-x-auto pb-6 gap-6 items-start w-full">
+                <DepartmentPanel
+                  department="BizDev Team"
+                  interns={interns}
+                  tasks={tasks}
+                  onStatusChange={onStatusChange}
+                  onVerifyChange={onVerifyChange}
+                  onEditTask={onEditTask}
+                  onDeleteIntern={onDeleteIntern}
+                  onDeleteTask={(id) => setTaskToDelete(id)}
+                  onViewProfile={onViewProfile}
+                  onAddTask={onAddTask}
+                  activeCommentTaskId={activeCommentTaskId}
+                  setActiveCommentTaskId={setActiveCommentTaskId}
+                  hideHeader={true}
+                />
+              </div>
+            )}
+          </div>
         </div>
       )}
       </DndContext>

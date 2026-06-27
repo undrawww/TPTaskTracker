@@ -61,7 +61,7 @@ export const AddInternModal: React.FC<Props> = ({ isOpen, onClose, interns, onSu
       >
         {/* Header */}
         <div className="bg-teal dark:bg-[#00151a] text-white px-6 py-4 rounded-t-2xl flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Add Intern</h2>
+          <h2 className="text-lg font-semibold">Add Member</h2>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center transition-colors"
@@ -84,7 +84,7 @@ export const AddInternModal: React.FC<Props> = ({ isOpen, onClose, interns, onSu
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="intern@example.com"
+              placeholder="user@example.com"
               className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent transition-all"
             />
           </div>
@@ -123,10 +123,10 @@ export const AddInternModal: React.FC<Props> = ({ isOpen, onClose, interns, onSu
             </button>
             <button
               type="submit"
-              disabled={submitting}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-gold text-teal font-semibold text-sm hover:bg-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+              disabled={submitting || !email.trim()}
+              className="flex-1 px-4 py-2.5 rounded-xl bg-gold text-[#003946] font-semibold hover:bg-gold-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {submitting ? 'Adding…' : 'Add Intern'}
+              {submitting ? 'Adding...' : 'Add Member'}
             </button>
           </div>
         </form>

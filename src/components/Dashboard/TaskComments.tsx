@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTaskComments } from '../../hooks/useTaskComments';
 import { useAuth } from '../../contexts/AuthContext';
-import { getAvatarByIndex } from './AvatarIcons';
+import { getAvatarByIndex, renderAvatar } from './AvatarIcons';
 import { ConfirmModal } from '../common/ConfirmModal';
 
 interface Props {
@@ -101,7 +101,7 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
                 `}
               >
                 {c.avatar_index !== undefined ? (
-                  getAvatarByIndex(c.avatar_index)
+                  renderAvatar(c.avatar_index, c.avatar_url)
                 ) : (
                   c.author_name.charAt(0).toUpperCase()
                 )}

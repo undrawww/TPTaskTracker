@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Intern, DailyTask } from '../../types';
-import { getAvatarByIndex } from '../Dashboard/AvatarIcons';
+import { getAvatarByIndex, renderAvatar } from '../Dashboard/AvatarIcons';
 
 interface ProfileHeaderProps {
   intern: Intern;
@@ -19,13 +19,30 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, wee
     ? new Date(intern.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     : 'Not Set';
 
+  const getLocationNameFromLink = (url: string) => {
+    try {
+      const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
+      // Try to parse long google maps link: /place/Location+Name/...
+      if (urlObj.hostname.includes('google') && urlObj.pathname.includes('/place/')) {
+        const parts = urlObj.pathname.split('/place/');
+        if (parts.length > 1) {
+          const placePart = parts[1].split('/')[0];
+          return decodeURIComponent(placePart.replace(/\+/g, ' '));
+        }
+      }
+      return urlObj.hostname + urlObj.pathname;
+    } catch (e) {
+      return url;
+    }
+  };
+
   return (
     <div className="bg-white dark:bg-[#001a22] rounded-3xl border border-teal/10 dark:border-white/5 shadow-sm p-8 flex flex-col md:flex-row gap-8 items-start relative animate-fade-in">
       
       {/* Left side: Avatar & Info */}
       <div className="flex items-start gap-6 flex-1">
         <div className="w-28 h-28 shrink-0 rounded-full bg-teal/5 dark:bg-white/5 border-[3px] border-white dark:border-[#001f26] shadow-xl flex items-center justify-center overflow-hidden">
-          {getAvatarByIndex(intern.avatar_index || 0)}
+          {renderAvatar(intern.avatar_index, intern.avatar_url)}
         </div>
         
         <div className="flex flex-col pt-1">
@@ -56,6 +73,18 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, wee
               <div className="flex items-center gap-2">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                 <span>{intern.location}</span>
+              </div>
+            )}
+            {intern.pin_location && (
+              <div className="flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gold">
+                  <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+                  <line x1="8" y1="2" x2="8" y2="18"></line>
+                  <line x1="16" y1="6" x2="16" y2="22"></line>
+                </svg>
+                <a href={intern.pin_location.startsWith('http') ? intern.pin_location : `https://${intern.pin_location}`} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-colors hover:underline truncate max-w-[200px]" title={intern.pin_location}>
+                  {intern.pin_location_name || (intern.pin_location.includes('maps.app.goo.gl') ? 'Open in Google Maps' : getLocationNameFromLink(intern.pin_location))}
+                </a>
               </div>
             )}
           </div>

@@ -7,6 +7,7 @@ export const DEPARTMENTS = [
   'Business Support Associate',
   'Client Relations Associate',
   'Design Content Associate',
+  'BizDev Team',
 ] as const;
 
 export type Department = (typeof DEPARTMENTS)[number];
@@ -27,7 +28,10 @@ export interface Intern {
   department: Department;
   email: string;
   avatar_index?: number;
+  avatar_url?: string;
   location?: string;
+  pin_location?: string;
+  pin_location_name?: string;
   program?: string;
   current_year?: string;
   school?: string;

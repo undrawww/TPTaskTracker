@@ -6,7 +6,7 @@ import { TASK_STATUSES, type TaskStatus } from '../../types';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getAvatarByIndex } from './AvatarIcons';
+import { getAvatarByIndex, renderAvatar } from './AvatarIcons';
 
 interface Props {
   id: string;
@@ -27,7 +27,7 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(taskName);
   const [commentCount, setCommentCount] = useState(0);
-  const [latestComment, setLatestComment] = useState<{ author_name: string; content: string; created_at: string; avatar_index?: number } | null>(null);
+  const [latestComment, setLatestComment] = useState<{ author_name: string; content: string; created_at: string; avatar_index?: number; avatar_url?: string } | null>(null);
   const [hovered, setHovered] = useState(false);
   const [isStatusExpanded, setIsStatusExpanded] = useState(false);
 
@@ -85,15 +85,17 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
       if (count && count > 0 && data && data.length > 0) {
         const comment = data[0];
         let avatar_index: number | undefined;
+        let avatar_url: string | undefined;
 
         try {
           const { data: profileData } = await supabase
             .from('profiles')
-            .select('avatar_index')
+            .select('avatar_index, avatar_url')
             .eq('full_name', comment.author_name)
             .single();
           if (profileData) {
             avatar_index = profileData.avatar_index;
+            avatar_url = profileData.avatar_url;
           }
         } catch { /* ignore */ }
 
@@ -101,15 +103,27 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
           author_name: comment.author_name,
           content: comment.content,
           created_at: comment.created_at,
-          avatar_index
+          avatar_index,
+          avatar_url
         });
       }
     } catch { /* ignore */ }
   }, [id]);
 
+  const wasModalOpen = useRef(false);
+
   useEffect(() => {
     loadCommentCount();
   }, [loadCommentCount]);
+
+  useEffect(() => {
+    if (activeCommentTaskId === id) {
+      wasModalOpen.current = true;
+    } else if (activeCommentTaskId === null && wasModalOpen.current) {
+      wasModalOpen.current = false;
+      loadCommentCount();
+    }
+  }, [activeCommentTaskId, id, loadCommentCount]);
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const isChecked = e.target.checked;
@@ -239,7 +253,7 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
                   <div className="absolute top-full right-0 mt-2 w-64 bg-slate-50 dark:bg-slate-800 shadow-xl border border-teal/10 dark:border-white/10 rounded-xl p-3 z-50 opacity-0 invisible group-hover/commentbtn:opacity-100 group-hover/commentbtn:visible transition-all duration-200 pointer-events-none text-left">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-teal/5 dark:bg-white/5 flex items-center justify-center">
-                        {getAvatarByIndex(latestComment.avatar_index ?? 0)}
+                        {renderAvatar(latestComment.avatar_index, latestComment.avatar_url)}
                       </div>
                       <div className="flex flex-col">
                         <span className="text-sm font-semibold text-teal dark:text-cream leading-tight">{latestComment.author_name}</span>

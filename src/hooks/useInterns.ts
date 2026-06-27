@@ -146,6 +146,14 @@ export function useInterns() {
         return { success: false, error: 'This email is not registered yet. Please ask them to create an account first.' };
       }
 
+      // Enforce BizDev Team rules
+      if (payload.department === 'BizDev Team' && profileData.role !== 'admin') {
+        return { success: false, error: 'Only Administrators can be added to the BizDev Team.' };
+      }
+      if (payload.department !== 'BizDev Team' && profileData.role === 'admin') {
+        return { success: false, error: 'Administrators can only be added to the BizDev Team.' };
+      }
+
       // 2. Prevent adding if already in interns table (no promoting active interns)
       const { data: existingIntern } = await supabase
         .from('interns')

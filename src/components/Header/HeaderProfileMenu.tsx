@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { getAvatarByIndex } from '../Dashboard/AvatarIcons';
+import { getAvatarByIndex, renderAvatar } from '../Dashboard/AvatarIcons';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -21,7 +21,11 @@ export const HeaderProfileMenu: React.FC<Props> = ({ onLogout, onViewMyProfile }
     const val = localStorage.getItem('tp_avatar');
     return val !== null ? parseInt(val, 10) : 0;
   };
+  const getAvatarUrl = () => {
+    return localStorage.getItem('tp_avatar_url') || user?.user_metadata?.avatar_url || undefined;
+  };
   const [avatarIdx, setAvatarIdx] = useState(getAvatarIdx);
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(getAvatarUrl);
 
   const getDisplayName = () => {
     const rawName = localStorage.getItem('tp_avatar_name') || user?.user_metadata?.full_name;
@@ -44,6 +48,7 @@ export const HeaderProfileMenu: React.FC<Props> = ({ onLogout, onViewMyProfile }
   useEffect(() => {
     const handler = () => {
       setAvatarIdx(getAvatarIdx());
+      setAvatarUrl(getAvatarUrl());
       setDisplayName(getDisplayName());
     };
     window.addEventListener('avatar-change', handler);
@@ -56,8 +61,8 @@ export const HeaderProfileMenu: React.FC<Props> = ({ onLogout, onViewMyProfile }
         onClick={() => setIsOpen(!isOpen)}
         className="w-10 h-10 rounded-full flex items-center justify-center hover:ring-2 hover:ring-white/30 transition-all shadow-md shadow-black/10 hover:shadow-lg hover:shadow-black/20 focus:outline-none active:scale-95"
       >
-        <div className="w-full h-full flex items-center justify-center">
-          {getAvatarByIndex(avatarIdx)}
+        <div className="w-10 h-10 rounded-full border-2 border-white/20 overflow-hidden flex items-center justify-center shrink-0">
+          {renderAvatar(avatarIdx, avatarUrl)}
         </div>
       </button>
 
