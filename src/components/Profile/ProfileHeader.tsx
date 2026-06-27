@@ -160,7 +160,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, wee
           onClick={() => setIsGcashOpen(false)}
         >
           <div 
-            className="bg-white dark:bg-[#002b36] rounded-3xl p-8 shadow-2xl max-w-md w-full mx-auto flex flex-col items-center animate-scale-in border border-teal/10 dark:border-white/10"
+            className="bg-white dark:bg-[#002b36] rounded-3xl p-8 shadow-2xl max-w-lg w-full mx-auto flex flex-col items-center animate-scale-in border border-teal/10 dark:border-white/10"
             onClick={e => e.stopPropagation()}
           >
             <div className="w-full flex justify-between items-center mb-6">

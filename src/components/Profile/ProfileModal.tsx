@@ -66,6 +66,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
   
   // Crop state
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [cropGcashSrc, setCropGcashSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
@@ -165,21 +166,35 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
 
   const handleUploadGcash = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user?.email || !isSupabaseConfigured) return;
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.addEventListener('load', () => {
+      setCropGcashSrc(reader.result?.toString() || null);
+      // Reset crop params
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+    });
+    reader.readAsDataURL(file);
+    e.target.value = ''; // Reset input so same file can be selected again
+  };
+
+  const confirmGcashCrop = async () => {
+    if (!cropGcashSrc || !croppedAreaPixels || !user?.email || !isSupabaseConfigured) return;
 
     try {
       setUploadingGcash(true);
       setError(null);
 
-      // Automatically crop white background from the QR code image
-      const croppedBlob = await cropWhitespaceFromImage(file);
+      const croppedBlob = await getCroppedImg(cropGcashSrc, croppedAreaPixels);
+      if (!croppedBlob) throw new Error('Failed to crop image');
 
       const fileName = `gcash-${user.id || user.email}-${Math.random()}.jpg`;
       const filePath = `${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, croppedBlob, { contentType: file.type || 'image/jpeg' });
+        .upload(filePath, croppedBlob, { contentType: 'image/jpeg' });
 
       if (uploadError) throw uploadError;
 
@@ -210,9 +225,10 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
       }, 5000);
       
     } catch (err: any) {
-      setError(err.message || 'Failed to upload GCash QR');
+      setError(err.message || 'Failed to crop/upload GCash QR');
     } finally {
       setUploadingGcash(false);
+      setCropGcashSrc(null);
     }
   };
 
@@ -450,7 +466,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
         )}
 
         <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar">
-          {/* Crop Overlay */}
+          {/* Avatar Crop Overlay */}
           {cropImageSrc ? (
             <div className="space-y-4 animate-scale-in">
               <div className="text-center">
@@ -466,19 +482,20 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
                   cropShape="round"
                   showGrid={false}
                   onCropChange={setCrop}
-                  onCropComplete={onCropComplete}
+                  onCropComplete={(_, croppedPixels) => setCroppedAreaPixels(croppedPixels)}
                   onZoomChange={setZoom}
                 />
               </div>
               <div className="flex gap-3">
                 <button
+                  type="button"
                   onClick={() => setCropImageSrc(null)}
-                  disabled={uploadingAvatar}
-                  className="flex-1 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light text-cream-dark dark:text-teal-light font-semibold text-sm hover:bg-cream/50 dark:hover:bg-[#003946] transition-colors disabled:opacity-50"
+                  className="flex-1 py-2 rounded-xl border border-cream-dark dark:border-teal-light text-cream-dark dark:text-teal-light font-semibold text-sm hover:bg-cream/50 dark:hover:bg-[#003946] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
+                  type="button"
                   onClick={confirmCrop}
                   disabled={uploadingAvatar}
                   className="flex-1 py-2.5 rounded-xl bg-gold text-teal font-semibold text-sm hover:bg-gold-light transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
@@ -773,8 +790,8 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
                       <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-3">GCash QR Code</label>
                       {gcashQrUrl ? (
                         <div className="flex flex-col items-center gap-4">
-                          <div className="w-48 h-48 rounded-xl border-2 border-teal/20 dark:border-white/10 overflow-hidden shadow-md">
-                            <img src={gcashQrUrl} alt="GCash QR" className="w-full h-full object-cover" />
+                          <div className="w-64 h-64 rounded-xl border-2 border-teal/20 dark:border-white/10 overflow-hidden shadow-md">
+                            <img src={gcashQrUrl} alt="GCash QR" className="w-full h-full object-contain" />
                           </div>
                           <div className="flex gap-3 w-full max-w-xs">
                             <label className="flex-1 cursor-pointer py-2 px-4 bg-teal/10 dark:bg-white/5 text-teal dark:text-cream rounded-xl text-sm font-semibold text-center hover:bg-teal/20 dark:hover:bg-white/10 transition-colors">
@@ -808,7 +825,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
                             Upload your GCash QR code to easily receive payments or allowances.
                           </p>
                           <label className="cursor-pointer py-2.5 px-6 bg-teal text-white dark:bg-teal-light rounded-xl text-sm font-semibold hover:bg-teal-light transition-colors shadow-md shadow-teal/20">
-                            {uploadingGcash ? 'Uploading...' : 'Select Image'}
+                            Select Image
                             <input
                               type="file"
                               accept="image/*"
