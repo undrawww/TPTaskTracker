@@ -58,6 +58,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
   const [isEditing, setIsEditing] = useState(false);
   const [currentName, setCurrentName] = useState<string>('');
   const [avatarIndex, setAvatarIndex] = useState<number>(getSavedAvatar);
+  const [pendingAvatarIndex, setPendingAvatarIndex] = useState<number>(getSavedAvatar);
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
@@ -582,10 +583,10 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
               <div className="grid grid-cols-5 gap-3">
                 {avatarUrl && (
                   <button
-                    onClick={() => handleSelectAvatar(-1)}
+                    onClick={() => setPendingAvatarIndex(-1)}
                     className={`
                       w-full aspect-square rounded-full flex items-center justify-center transition-all duration-200
-                      ${avatarIndex === -1
+                      ${pendingAvatarIndex === -1
                         ? 'ring-2 ring-gold ring-offset-2 ring-offset-white dark:ring-offset-[#002b36] scale-105 shadow-lg shadow-gold/30'
                         : 'hover:scale-105 opacity-80 hover:opacity-100'
                       }
@@ -600,10 +601,10 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
                 {Array.from({ length: AVATAR_COUNT }).map((_, idx) => (
                   <button
                     key={idx}
-                    onClick={() => handleSelectAvatar(idx)}
+                    onClick={() => setPendingAvatarIndex(idx)}
                     className={`
                       w-full aspect-square rounded-full flex items-center justify-center transition-all duration-200
-                      ${avatarIndex === idx
+                      ${pendingAvatarIndex === idx
                         ? 'ring-2 ring-gold ring-offset-2 ring-offset-white dark:ring-offset-[#002b36] scale-105 shadow-lg shadow-gold/30'
                         : 'hover:scale-105 opacity-80 hover:opacity-100'
                       }
@@ -616,18 +617,29 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
                   </button>
                 ))}
               </div>
-              <button
-                onClick={() => setShowAvatarPicker(false)}
-                className="w-full py-2 text-sm font-semibold text-teal/50 dark:text-cream/50 hover:text-teal dark:hover:text-cream transition-colors"
-              >
-                Cancel
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowAvatarPicker(false)}
+                  className="flex-1 py-2 rounded-xl border border-cream-dark dark:border-teal-light text-cream-dark dark:text-teal-light font-semibold text-sm hover:bg-cream/50 dark:hover:bg-[#003946] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleSelectAvatar(pendingAvatarIndex)}
+                  className="flex-1 py-2 rounded-xl bg-gold text-teal font-semibold text-sm hover:bg-gold-light transition-colors"
+                >
+                  Save Avatar
+                </button>
+              </div>
             </div>
           ) : !isEditing ? (
             <div className="space-y-6">
               <div className="text-center">
                 <button
-                  onClick={() => setShowAvatarPicker(true)}
+                  onClick={() => {
+                    setPendingAvatarIndex(avatarIndex);
+                    setShowAvatarPicker(true);
+                  }}
                   className="group relative w-20 h-20 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-black/10 mb-4 transition-all hover:shadow-xl hover:shadow-black/20 hover:scale-105"
                   title="Change avatar"
                 >
