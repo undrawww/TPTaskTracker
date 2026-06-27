@@ -8,7 +8,7 @@ interface Props {
 
 export const InternsDirectory: React.FC<Props> = ({ onViewProfile }) => {
   const { interns: allInterns, loading, error } = useInterns();
-  const interns = allInterns.filter(i => i.department !== 'BizDev Leadership Team' && i.department !== 'BizDev Team');
+  const interns = allInterns.filter(i => i.department !== 'BizDev Leadership Team' && (i.department as string) !== 'BizDev Team');
 
   return (
     <div className="space-y-6 animate-fade-in">
