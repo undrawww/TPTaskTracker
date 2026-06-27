@@ -98,23 +98,31 @@ export function useInterns() {
         { event: '*', schema: 'public', table: 'interns' },
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            const newIntern = payload.new as Intern;
-            setInterns((prev) => {
-              if (prev.some((i) => i.id === newIntern.id)) return prev;
-              return [...prev, newIntern];
+            setInterns(prev => {
+              const exists = prev.some(i => i.id === payload.new.id);
+              if (exists) return prev;
+              const next = [...prev, payload.new as Intern].sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+              return next;
             });
           } else if (payload.eventType === 'UPDATE') {
-            const updatedIntern = payload.new as Intern;
-            setInterns((prev) => prev.map((i) => (i.id === updatedIntern.id ? { ...updatedIntern, avatar_index: i.avatar_index } : i)));
+            setInterns(prev => {
+              const next = prev.map(i => i.id === payload.new.id ? { ...i, ...payload.new } as Intern : i)
+                .sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+              return next;
+            });
           } else if (payload.eventType === 'DELETE') {
-            setInterns((prev) => prev.filter((i) => i.id !== payload.old.id));
+            setInterns(prev => prev.filter(i => i.id !== payload.old.id));
           }
         }
       )
       .subscribe();
 
+    const handleAvatarChange = () => fetchInterns();
+    window.addEventListener('avatar-change', handleAvatarChange);
+
     return () => {
       supabase.removeChannel(channel);
+      window.removeEventListener('avatar-change', handleAvatarChange);
     };
   }, [fetchInterns]);
 
