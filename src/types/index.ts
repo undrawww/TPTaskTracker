@@ -46,6 +46,7 @@ export interface Intern {
   strengths?: string[];
   career_goals?: string[];
   created_at?: string;
+  order_index?: number;
 }
 
 export interface Certification {
@@ -65,6 +66,7 @@ export interface DailyTask {
   status: TaskStatus;
   task_date: string; // ISO date string YYYY-MM-DD
   is_verified?: boolean;
+  order_index?: number;
 }
 
 export interface WeeklyTask {
@@ -74,6 +76,7 @@ export interface WeeklyTask {
   status: TaskStatus;
   week_number: number;
   is_verified?: boolean;
+  order_index?: number;
 }
 
 /** Enriched task with intern info for display purposes */

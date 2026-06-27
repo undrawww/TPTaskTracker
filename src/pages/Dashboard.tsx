@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
@@ -16,6 +17,7 @@ import { InternsDirectory } from '../components/Admin/InternsDirectory';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useInterns } from '../hooks/useInterns';
 import { useDailyTasks } from '../hooks/useDailyTasks';
+import { TaskComments } from '../components/Dashboard/TaskComments';
 
 import { useAnalytics } from '../hooks/useAnalytics';
 import { ProfilePage } from '../components/Profile/ProfilePage';
@@ -89,8 +91,10 @@ export const Dashboard: React.FC = () => {
   const [showWeekly, setShowWeekly] = useState(false);
 
   // Data hooks
-  const { interns, loading: internsLoading, addIntern, removeIntern } = useInterns();
-  const { tasks: dailyTasks, loading: tasksLoading, addTask: addDailyTask, updateStatus: updateDailyStatus, toggleVerify: toggleDailyVerify, editTask: editDailyTask, removeTask: removeDailyTask } = useDailyTasks();
+  const { interns, loading: internsLoading, addIntern, removeIntern, reorderInterns } = useInterns();
+  const { tasks: dailyTasks, loading: tasksLoading, addTask: addDailyTask, updateStatus: updateDailyStatus, toggleVerify: toggleDailyVerify, editTask: editDailyTask, removeTask: removeDailyTask, reorderTasks } = useDailyTasks();
+
+  const [activeCommentTaskId, setActiveCommentTaskId] = useState<string | null>(null);
 
   const isLoading = internsLoading || tasksLoading;
 
@@ -161,7 +165,7 @@ export const Dashboard: React.FC = () => {
       <div className="flex-1 flex flex-col min-w-0">
       {/* Header */}
       <header className="bg-[#d9caa8] dark:bg-gradient-to-r dark:from-[#00151a] dark:via-[#001a22] dark:to-[#001f2e] border-b border-teal/10 dark:border-white/5 transition-colors duration-300 relative z-10">
-        <div className="max-w-[1440px] mx-auto px-6 py-5 flex items-center justify-between">
+        <div className="w-full px-6 py-5 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setIsMobileMenuOpen(true)}
@@ -231,16 +235,6 @@ export const Dashboard: React.FC = () => {
                       Add Intern
                     </button>
 
-                    <button
-                      onClick={() => setShowCreateTask(true)}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gold text-teal text-sm font-semibold hover:bg-gold-light transition-all duration-200 shadow-sm shadow-gold/20 hover:shadow-lg hover:shadow-gold/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19" />
-                        <line x1="5" y1="12" x2="19" y2="12" />
-                      </svg>
-                      Create New Task
-                    </button>
                   </div>
                 )}
 
@@ -254,6 +248,11 @@ export const Dashboard: React.FC = () => {
                   onDeleteTask={role === 'admin' ? removeDailyTask : undefined}
                   isAdmin={role === 'admin'}
                   onViewProfile={handleViewProfile}
+                  onAddTask={addDailyTask}
+                  reorderTasks={reorderTasks}
+                  reorderInterns={reorderInterns}
+                  activeCommentTaskId={activeCommentTaskId}
+                  setActiveCommentTaskId={setActiveCommentTaskId}
                 />
 
                 <div className="flex items-center gap-5 mt-12 mb-2">
@@ -320,6 +319,42 @@ export const Dashboard: React.FC = () => {
           />
         </>
       )}
+      
+      {/* Comments Modal Overlay */}
+      <AnimatePresence>
+        {activeCommentTaskId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/40 dark:bg-black/60"
+              onClick={() => setActiveCommentTaskId(null)}
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="relative w-full max-w-3xl h-[80vh] max-h-[800px] bg-white dark:bg-[#001f26] rounded-2xl shadow-2xl border border-teal/10 dark:border-white/10 flex flex-col overflow-hidden"
+            >
+               <div className="px-5 py-4 border-b border-teal/10 dark:border-white/5 flex items-center justify-between bg-teal/5 dark:bg-white/5">
+                  <h3 className="font-bold text-teal dark:text-cream text-lg">Task Comments</h3>
+                  <button onClick={() => setActiveCommentTaskId(null)} className="p-1.5 rounded-full hover:bg-teal/10 dark:hover:bg-white/10 text-teal/50 dark:text-cream/50 hover:text-teal dark:hover:text-cream transition-colors">
+                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                       <line x1="18" y1="6" x2="6" y2="18" />
+                       <line x1="6" y1="6" x2="18" y2="18" />
+                     </svg>
+                  </button>
+               </div>
+               <div className="flex-1 overflow-hidden relative">
+                 <TaskComments taskId={activeCommentTaskId} />
+               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      
       </div>
     </div>
   );

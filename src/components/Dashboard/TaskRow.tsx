@@ -1,9 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { StatusBadge } from './StatusBadge';
-import { TaskComments } from './TaskComments';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { STATUS_STYLES } from './StatusBadge';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
-import type { TaskStatus } from '../../types';
+import { TASK_STATUSES, type TaskStatus } from '../../types';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { motion, AnimatePresence } from 'framer-motion';
+import { getAvatarByIndex } from './AvatarIcons';
 
 interface Props {
   id: string;
@@ -14,63 +17,99 @@ interface Props {
   onVerifyChange?: (taskId: string, isVerified: boolean) => void;
   onEditTask?: (taskId: string, newName: string) => void;
   onDeleteTask?: (taskId: string) => void;
-  internId?: string; // Optional for backward compatibility with WeeklyTasks
+  internId?: string;
+  activeCommentTaskId?: string | null;
+  setActiveCommentTaskId?: (id: string | null) => void;
 }
 
-export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onStatusChange, onVerifyChange, onEditTask, onDeleteTask, internId }) => {
+export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onStatusChange, onVerifyChange, onEditTask, onDeleteTask, internId, activeCommentTaskId, setActiveCommentTaskId }) => {
   const { role, currentInternId } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(taskName);
-  const [showComments, setShowComments] = useState(false);
-  const [firstComment, setFirstComment] = useState<string | null>(null);
   const [commentCount, setCommentCount] = useState(0);
+  const [latestComment, setLatestComment] = useState<{ author_name: string; content: string; created_at: string; avatar_index?: number } | null>(null);
   const [hovered, setHovered] = useState(false);
+  const [isStatusExpanded, setIsStatusExpanded] = useState(false);
 
-  // Fetch first comment preview (lightweight — only on mount)
-  const loadPreview = useCallback(async () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id, data: { type: 'Task' } });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : 1,
+    opacity: isDragging ? 0.8 : 1,
+  };
+
+  // Close status dropdown if clicked outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsStatusExpanded(false);
+      }
+    };
+    if (isStatusExpanded) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isStatusExpanded]);
+
+  const loadCommentCount = useCallback(async () => {
     if (!isSupabaseConfigured) {
       try {
         const all = JSON.parse(localStorage.getItem('padua_task_comments') || '[]');
         const taskComments = all.filter((c: any) => c.task_id === id);
         setCommentCount(taskComments.length);
-        if (taskComments.length > 0) {
-          const latest = taskComments[taskComments.length - 1];
-          setFirstComment(`${latest.author_name}: ${latest.content}`);
-        }
       } catch { /* ignore */ }
       return;
     }
 
     try {
-      const { data, error } = await supabase
+      const { data, count } = await supabase
         .from('task_comments')
-        .select('author_name, content')
+        .select('*', { count: 'exact' })
         .eq('task_id', id)
         .order('created_at', { ascending: false })
         .limit(1);
 
-      if (!error && data && data.length > 0) {
-        setFirstComment(`${data[0].author_name}: ${data[0].content}`);
-      }
-
-      // Get count
-      const { count } = await supabase
-        .from('task_comments')
-        .select('*', { count: 'exact', head: true })
-        .eq('task_id', id);
-
       setCommentCount(count || 0);
+
+      if (count && count > 0 && data && data.length > 0) {
+        const comment = data[0];
+        let avatar_index: number | undefined;
+
+        try {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('avatar_index')
+            .eq('full_name', comment.author_name)
+            .single();
+          if (profileData) {
+            avatar_index = profileData.avatar_index;
+          }
+        } catch { /* ignore */ }
+
+        setLatestComment({
+          author_name: comment.author_name,
+          content: comment.content,
+          created_at: comment.created_at,
+          avatar_index
+        });
+      }
     } catch { /* ignore */ }
   }, [id]);
 
   useEffect(() => {
-    loadPreview();
-  }, [loadPreview]);
-
-  // Refresh preview when comments panel closes
-  useEffect(() => {
-    if (!showComments) loadPreview();
-  }, [showComments, loadPreview]);
+    loadCommentCount();
+  }, [loadCommentCount]);
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const isChecked = e.target.checked;
@@ -99,109 +138,197 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
     }
   };
 
+  const isChecked = isVerified || status === 'Done';
+  const isBlank = taskName.trim() === '';
+  
   if (isEditing) {
     return (
-      <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl bg-cream/40">
+      <div className="flex items-center gap-3 px-1 py-1 mb-1" ref={setNodeRef} style={style}>
         <input
           autoFocus
           value={editName}
           onChange={(e) => setEditName(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="flex-1 px-3 py-1.5 text-sm rounded-lg border border-cream-dark focus:outline-none focus:ring-2 focus:ring-gold text-teal"
+          onBlur={handleSaveEdit}
+          className="flex-1 px-2 py-1 text-sm bg-transparent border-b border-teal/40 dark:border-cream/40 focus:outline-none focus:border-teal dark:focus:border-cream text-teal dark:text-cream"
         />
-        <button onClick={handleSaveEdit} className="text-xs font-semibold text-teal hover:text-gold transition-colors">Save</button>
-        <button onClick={() => setIsEditing(false)} className="text-xs font-semibold text-teal/50 hover:text-teal transition-colors">Cancel</button>
       </div>
     );
   }
 
   return (
-    <div>
+    <div 
+      ref={(node) => {
+        setNodeRef(node);
+        containerRef.current = node;
+      }}
+      style={style}
+      className={`group flex flex-col mb-1 ${isDragging ? 'shadow-lg bg-white/50 dark:bg-black/20 rounded-md ring-1 ring-teal/20 dark:ring-white/20' : ''}`}
+    >
       <div
-        className={`
-          relative flex items-center justify-between gap-3 px-3 py-1.5 rounded-xl
-          bg-cream/30 hover:bg-cream/60 dark:bg-white/[0.03] dark:hover:bg-white/[0.07]
-          border border-transparent hover:border-cream-dark/30 dark:hover:border-teal-lighter/10
-          transition-all duration-200 group
-        `}
+        className="relative flex items-start min-h-[32px] border-b border-teal/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors group/row"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        <span className={`text-sm font-medium leading-snug flex-1 min-w-0 break-words ${status === 'Done' ? 'text-teal/35 dark:text-cream/35 line-through' : 'text-teal dark:text-cream'}`}>
-          {taskName}
-        </span>
-        <div className="flex items-center gap-3">
-          {/* Comment toggle */}
-          <button
-            onClick={() => setShowComments(!showComments)}
-            className={`relative p-1.5 rounded-lg transition-all ${
-              showComments
-                ? 'text-[#8a6d00] dark:text-gold bg-[#ebbc0f]/15 dark:bg-gold/10'
-                : 'text-[#003946]/35 dark:text-cream/30 hover:text-[#003946]/70 dark:hover:text-cream/60 hover:bg-[#003946]/5 dark:hover:bg-white/5'
-            }`}
-            title="Comments"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-            </svg>
-            {commentCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#ebbc0f] text-[#003946] text-[9px] font-bold flex items-center justify-center leading-none shadow-sm">
-                {commentCount > 9 ? '9+' : commentCount}
-              </span>
-            )}
-          </button>
-
-          {role === 'admin' && (
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => {
-                  setEditName(taskName);
-                  setIsEditing(true);
-                }}
-                className="p-1.5 text-[#003946]/30 dark:text-cream/30 hover:text-[#8a6d00] dark:hover:text-gold hover:bg-[#ebbc0f]/10 dark:hover:bg-gold/10 rounded-lg transition-colors"
-                title="Edit Task"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                </svg>
-              </button>
-              <button
-                onClick={() => onDeleteTask?.(id)}
-                className="p-1.5 text-[#003946]/30 dark:text-cream/30 hover:text-status-hold hover:bg-status-hold/10 rounded-lg transition-colors"
-                title="Delete Task"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
-                </svg>
-              </button>
+        {/* Checkbox (Left side, only on hover or if checked) */}
+        {/* Checkbox (Left side, space always reserved) */}
+        <div className="w-[32px] flex-shrink-0 flex items-start justify-center pt-2">
+          {!isBlank && (
+            <div className={`transition-opacity duration-200 ${hovered || isChecked || isStatusExpanded ? 'opacity-100' : 'opacity-0'}`}>
+              <input
+                type="checkbox"
+                checked={isChecked}
+                onChange={handleCheckboxChange}
+                disabled={role === 'intern' && internId !== currentInternId}
+                className="w-[14px] h-[14px] rounded-sm border-teal/30 dark:border-cream/30 text-teal dark:text-cream focus:ring-0 focus:ring-offset-0 cursor-pointer transition-colors disabled:opacity-25"
+              />
             </div>
           )}
-          <StatusBadge
-            status={status}
-            onChange={(newStatus) => onStatusChange(id, newStatus)}
-            disabled={role === 'intern' && internId !== currentInternId}
-          />
-          <input
-            type="checkbox"
-            checked={isVerified || false}
-            onChange={handleCheckboxChange}
-            disabled={role === 'intern'}
-            className="w-[18px] h-[18px] rounded border-cream-dark text-gold focus:ring-gold focus:ring-offset-0 cursor-pointer transition-colors disabled:opacity-25 disabled:cursor-not-allowed"
-          />
         </div>
 
-        {/* First comment hover tooltip */}
-        {hovered && !showComments && firstComment && (
-          <div className="absolute left-4 top-full mt-1 z-30 max-w-xs px-3 py-2 rounded-lg bg-[#003946] dark:bg-[#001a22] text-white text-[11px] leading-relaxed shadow-lg border border-[#004d5e] pointer-events-none animate-slide-up">
-            <p className="truncate">{firstComment}</p>
+        {/* Task Name (Draggable handle area) */}
+        <div
+          className="flex-1 min-w-0 py-1.5 cursor-grab active:cursor-grabbing pl-1 pr-6 flex items-start mt-[1px]"
+          {...attributes}
+          {...listeners}
+          onClick={() => {
+            // Prevent drag from triggering click by checking if we moved? dnd-kit handles this usually.
+            if (role === 'admin') {
+              // Admin: single click to edit
+              setEditName(taskName);
+              setIsEditing(true);
+            } else if (!isBlank) {
+              // Intern: single click to expand status (if not blank)
+              setIsStatusExpanded(!isStatusExpanded);
+            }
+          }}
+        >
+          <span 
+            className={`text-sm tracking-tight transition-all duration-300 select-none ${isChecked ? 'text-teal/40 dark:text-cream/40 line-through' : 'text-teal dark:text-cream'} ${hovered ? 'block break-all whitespace-pre-wrap' : 'block truncate'}`}
+          >
+            {taskName}
+          </span>
+        </div>
+
+        {/* Actions (Right side, space reserved) */}
+        <div className="w-[60px] flex-shrink-0 flex items-start justify-end pt-1.5 pr-2">
+          <div className={`flex items-center gap-1 transition-opacity duration-200 ${(hovered || activeCommentTaskId === id || commentCount > 0) ? 'opacity-100' : 'opacity-0'}`}>
+            {!isBlank && (
+              <>
+              {/* Comment Button with Tooltip */}
+              <div className="relative group/commentbtn flex items-center justify-center">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveCommentTaskId && setActiveCommentTaskId(activeCommentTaskId === id ? null : id);
+                  }}
+                  className={`relative p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors ${activeCommentTaskId === id || commentCount > 0 ? 'text-teal dark:text-cream' : 'text-teal/40 dark:text-cream/40'}`}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                  </svg>
+                  {commentCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-teal text-white dark:bg-cream dark:text-teal text-[9px] font-bold flex items-center justify-center leading-none">
+                      {commentCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Latest Comment Tooltip */}
+                {latestComment && (
+                  <div className="absolute top-full right-0 mt-2 w-64 bg-slate-50 dark:bg-slate-800 shadow-xl border border-teal/10 dark:border-white/10 rounded-xl p-3 z-50 opacity-0 invisible group-hover/commentbtn:opacity-100 group-hover/commentbtn:visible transition-all duration-200 pointer-events-none text-left">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-teal/5 dark:bg-white/5 flex items-center justify-center">
+                        {getAvatarByIndex(latestComment.avatar_index ?? 0)}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-teal dark:text-cream leading-tight">{latestComment.author_name}</span>
+                        <span className="text-xs text-teal/60 dark:text-cream/60 leading-tight">
+                          {new Date(latestComment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-teal/90 dark:text-cream/90 break-words whitespace-pre-wrap">
+                      {latestComment.content}
+                    </p>
+                  </div>
+                )}
+              </div>
+              {/* Status Button (Available to all) */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsStatusExpanded(!isStatusExpanded);
+                }}
+                className={`p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors ${status !== 'Acknowledge' ? STATUS_STYLES[status].text : (isStatusExpanded ? 'text-teal dark:text-cream' : 'text-teal/40 dark:text-cream/40')}`}
+                title="Change Status"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+              </button>
+            </>
+            )}
+
+            {/* Delete Button (Admin only) */}
+              {role === 'admin' && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteTask?.(id);
+                  }}
+                  className="p-1 rounded text-teal/40 hover:text-red-500 dark:text-cream/40 dark:hover:text-red-400 transition-colors opacity-0 group-hover/row:opacity-100"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              )}
+            </div>
           </div>
-        )}
       </div>
 
-      {/* Expandable comments panel */}
-      {showComments && <TaskComments taskId={id} />}
+      {/* Expanded Status Selector */}
+      <AnimatePresence>
+        {isStatusExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="py-2 px-2 ml-6 flex flex-wrap gap-2">
+               {TASK_STATUSES.map((s) => {
+                 const sStyle = STATUS_STYLES[s];
+                 const isActive = s === status;
+                 return (
+                   <button
+                     key={s}
+                     disabled={role === 'intern' && internId !== currentInternId}
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       onStatusChange(id, s);
+                       setIsStatusExpanded(false);
+                     }}
+                     className={`
+                       inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold
+                       ${sStyle.bg} ${sStyle.text}
+                       ${(role === 'intern' && internId !== currentInternId) ? 'opacity-70 cursor-not-allowed' : `hover:ring-2 ${sStyle.ring} hover:ring-opacity-40 cursor-pointer`}
+                       ${isActive ? `ring-2 ${sStyle.ring}` : ''}
+                       transition-all duration-200
+                     `}
+                   >
+                     <span className={`w-1.5 h-1.5 rounded-full ${sStyle.dot}`} />
+                     {s}
+                   </button>
+                 );
+               })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

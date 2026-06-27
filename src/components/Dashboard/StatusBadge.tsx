@@ -7,7 +7,7 @@ interface Props {
   disabled?: boolean;
 }
 
-const STATUS_STYLES: Record<TaskStatus, { bg: string; text: string; ring: string; dot: string; dropdownText: string; dropdownDot: string }> = {
+export const STATUS_STYLES: Record<TaskStatus, { bg: string; text: string; ring: string; dot: string; dropdownText: string; dropdownDot: string }> = {
   Done:          { bg: 'bg-[#dcfce7] dark:bg-[#003946]', text: 'text-[#22c55e]', ring: 'ring-[#22c55e]', dot: 'bg-[#22c55e]', dropdownText: 'text-[#22c55e]', dropdownDot: 'bg-[#22c55e]' },
   Pending:       { bg: 'bg-[#fef9c3] dark:bg-[#003946]', text: 'text-[#fbbc04]', ring: 'ring-[#fbbc04]', dot: 'bg-[#fbbc04]', dropdownText: 'text-[#fbbc04]', dropdownDot: 'bg-[#fbbc04]' },
   'In Progress': { bg: 'bg-[#dbeafe] dark:bg-[#003946]', text: 'text-[#ffa06d]', ring: 'ring-[#ffa06d]', dot: 'bg-[#ffa06d]', dropdownText: 'text-[#ffa06d]', dropdownDot: 'bg-[#ffa06d]' },

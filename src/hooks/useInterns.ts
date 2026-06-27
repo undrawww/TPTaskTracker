@@ -36,10 +36,25 @@ export function useInterns() {
     }
 
     try {
-      const { data, error: fetchError } = await supabase
+      let query = supabase
         .from('interns')
         .select('*')
-        .order('full_name', { ascending: true }); // fixed 'name' to 'full_name'
+        .order('order_index', { ascending: true, nullsFirst: false })
+        .order('full_name', { ascending: true });
+
+      let { data, error: fetchError } = await query;
+
+      if (fetchError && fetchError.message.includes('order_index')) {
+        console.warn("order_index column is missing. Falling back to fetching without order_index. Please run the SQL to add the column.");
+        // Fallback if column doesn't exist
+        const fallbackQuery = await supabase
+          .from('interns')
+          .select('*')
+          .order('full_name', { ascending: true });
+        data = fallbackQuery.data;
+        fetchError = fallbackQuery.error;
+        alert("Action Required: Please run the SQL command in your Supabase SQL Editor to add the 'order_index' column to the 'interns' table, otherwise drag-and-drop ordering will not work. \n\nALTER TABLE interns ADD COLUMN order_index NUMERIC DEFAULT 0;");
+      }
 
       if (fetchError) throw fetchError;
       
@@ -90,7 +105,7 @@ export function useInterns() {
             });
           } else if (payload.eventType === 'UPDATE') {
             const updatedIntern = payload.new as Intern;
-            setInterns((prev) => prev.map((i) => (i.id === updatedIntern.id ? updatedIntern : i)));
+            setInterns((prev) => prev.map((i) => (i.id === updatedIntern.id ? { ...updatedIntern, avatar_index: i.avatar_index } : i)));
           } else if (payload.eventType === 'DELETE') {
             setInterns((prev) => prev.filter((i) => i.id !== payload.old.id));
           }
@@ -185,6 +200,27 @@ export function useInterns() {
       setError(err.message);
     }
   };
+  const reorderInterns = async (updates: { id: string, department: Department, order_index: number }[], newInternsState: Intern[]) => {
+    setInterns(newInternsState);
+    if (!isSupabaseConfigured) {
+      localStorage.setItem('padua_interns', JSON.stringify(newInternsState));
+      return;
+    }
 
-  return { interns, loading, error, refetch: fetchInterns, addIntern, removeIntern };
+    try {
+      await Promise.all(
+        updates.map(u => 
+          supabase
+            .from('interns')
+            .update({ department: u.department, order_index: u.order_index })
+            .eq('id', u.id)
+        )
+      );
+    } catch (err) {
+      console.error('Error reordering interns:', err);
+      fetchInterns(); // Revert on failure
+    }
+  };
+
+  return { interns, loading, error, refetch: fetchInterns, addIntern, removeIntern, reorderInterns };
 }

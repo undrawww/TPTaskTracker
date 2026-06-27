@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { DepartmentPanel } from './DepartmentPanel';
-import { DEPARTMENTS, type Intern, type DailyTask, type TaskStatus } from '../../types';
+import { DEPARTMENTS, type Intern, type DailyTask, type TaskStatus, type Department } from '../../types';
+import { DndContext, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import type { DragEndEvent } from '@dnd-kit/core';
+import { sortableKeyboardCoordinates, arrayMove } from '@dnd-kit/sortable';
+import { ConfirmModal } from '../common/ConfirmModal';
 
 interface Props {
   interns: Intern[];
@@ -12,6 +16,11 @@ interface Props {
   onDeleteTask?: (taskId: string) => void;
   isAdmin?: boolean;
   onViewProfile?: (internId: string) => void;
+  onAddTask?: (internId: string, taskName: string, emptyGapsCount?: number) => void;
+  reorderTasks?: (updates: { id: string, intern_id: string, order_index: number }[], newTasksState: DailyTask[]) => void;
+  reorderInterns?: (updates: { id: string, department: Department, order_index: number }[], newInternsState: Intern[]) => void;
+  activeCommentTaskId?: string | null;
+  setActiveCommentTaskId?: (id: string | null) => void;
 }
 
 export const DailyTracker: React.FC<Props> = ({
@@ -23,10 +32,156 @@ export const DailyTracker: React.FC<Props> = ({
   onDeleteIntern,
   onDeleteTask,
   isAdmin = false,
-  onViewProfile
+  onViewProfile,
+  onAddTask,
+  reorderTasks,
+  reorderInterns,
+  activeCommentTaskId,
+  setActiveCommentTaskId
 }) => {
+  const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragStart = () => {
+    // setActiveId(event.active.id);
+  };
+
+  const handleDragOver = () => {
+    // Only handle if dragging to a different container
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+    if (active.id === over.id) return;
+
+    const activeType = active.data.current?.type;
+    
+    // 1. INTERN REORDERING
+    if (activeType === 'Intern') {
+      if (!reorderInterns) return;
+      const activeInternId = active.id as string;
+      const overInternId = over.id as string;
+      
+      const activeIntern = interns.find(i => i.id === activeInternId);
+      const overIntern = interns.find(i => i.id === overInternId);
+      
+      if (!activeIntern) return;
+      
+      let targetDept = activeIntern.department;
+      if (overIntern) targetDept = overIntern.department;
+      
+      const internsInDept = interns.filter(i => i.department === targetDept).sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+      const oldIndex = internsInDept.findIndex(i => i.id === activeInternId);
+      const newIndex = internsInDept.findIndex(i => i.id === overInternId);
+      
+      let newInternsForDept;
+      if (activeIntern.department === targetDept && oldIndex !== -1 && newIndex !== -1) {
+        // Same department reorder
+        newInternsForDept = arrayMove(internsInDept, oldIndex, newIndex);
+      } else {
+        // Cross department reorder
+        const filtered = internsInDept.filter(i => i.id !== activeInternId);
+        const isBelow = over && active.rect.current.translated && active.rect.current.translated.top > over.rect.top + over.rect.height;
+        const insertIdx = newIndex >= 0 ? newIndex + (isBelow ? 1 : 0) : filtered.length;
+        filtered.splice(insertIdx, 0, activeIntern);
+        newInternsForDept = filtered;
+      }
+      
+      const updates = newInternsForDept.map((i, idx) => ({
+        id: i.id,
+        department: targetDept,
+        order_index: idx
+      }));
+      
+      const newFullInterns = interns.map(i => {
+        const up = updates.find(u => u.id === i.id);
+        if (up) return { ...i, department: up.department, order_index: up.order_index };
+        return i;
+      });
+      
+      reorderInterns(updates, newFullInterns);
+      return;
+    }
+
+    // 2. TASK REORDERING
+    if (activeType === 'Task' && reorderTasks) {
+      const activeTaskId = active.id as string;
+      const overId = over.id as string;
+
+      const activeTask = tasks.find(t => t.id === activeTaskId);
+      if (!activeTask) return;
+
+      let targetInternId = activeTask.intern_id;
+      const overTask = tasks.find(t => t.id === overId);
+      
+      let tasksInTarget: DailyTask[] = [];
+      let newTasksForTarget: DailyTask[] = [];
+
+      if (overTask) {
+        targetInternId = overTask.intern_id;
+        tasksInTarget = tasks.filter(t => t.intern_id === targetInternId).sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+        const oldIndex = tasksInTarget.findIndex(t => t.id === activeTaskId);
+        const newIndex = tasksInTarget.findIndex(t => t.id === overId);
+
+        if (activeTask.intern_id === targetInternId && oldIndex !== -1 && newIndex !== -1) {
+          // Same container reorder
+          newTasksForTarget = arrayMove(tasksInTarget, oldIndex, newIndex);
+        } else {
+          // Cross container reorder
+          const filtered = tasksInTarget.filter(t => t.id !== activeTaskId);
+          const isBelow = over && active.rect.current.translated && active.rect.current.translated.top > over.rect.top + over.rect.height;
+          const insertIdx = newIndex >= 0 ? newIndex + (isBelow ? 1 : 0) : filtered.length;
+          filtered.splice(insertIdx, 0, activeTask);
+          newTasksForTarget = filtered;
+        }
+      } else {
+        // Dropped on empty container (internId)
+        const isContainerId = overId.startsWith('task-container-');
+        if (isContainerId) {
+          targetInternId = overId.replace('task-container-', '');
+          tasksInTarget = tasks.filter(t => t.intern_id === targetInternId).sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+          newTasksForTarget = [...tasksInTarget.filter(t => t.id !== activeTaskId), activeTask];
+        } else {
+          return;
+        }
+      }
+
+      const updates = newTasksForTarget.map((t, idx) => ({
+        id: t.id,
+        intern_id: targetInternId,
+        order_index: idx
+      }));
+
+      const newFullTasks = tasks.map(t => {
+         const up = updates.find(u => u.id === t.id);
+         if (up) return { ...t, intern_id: up.intern_id, order_index: up.order_index };
+         return t;
+      });
+
+      reorderTasks(updates, newFullTasks);
+    }
+  };
+
   return (
     <section id="daily-tracker">
+      <DndContext 
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
       <div className="flex items-center gap-3 mb-4">
         <h2 className="text-lg font-bold text-teal dark:text-gold">Daily Task Tracker</h2>
         <div className="flex-1 h-px bg-teal/20 dark:bg-gold/20" />
@@ -51,7 +206,7 @@ export const DailyTracker: React.FC<Props> = ({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-5 items-start lg:w-[70%] mx-auto">
+        <div className="flex overflow-x-auto pb-6 gap-12 items-start w-full min-h-[500px]">
           {DEPARTMENTS.map((dept) => (
             <DepartmentPanel
               key={dept}
@@ -62,12 +217,29 @@ export const DailyTracker: React.FC<Props> = ({
               onVerifyChange={onVerifyChange}
               onEditTask={onEditTask}
               onDeleteIntern={onDeleteIntern}
-              onDeleteTask={onDeleteTask}
+              onDeleteTask={(id) => setTaskToDelete(id)}
               onViewProfile={onViewProfile}
+              onAddTask={onAddTask}
+              activeCommentTaskId={activeCommentTaskId}
+              setActiveCommentTaskId={setActiveCommentTaskId}
             />
           ))}
         </div>
       )}
+      </DndContext>
+
+      <ConfirmModal
+        isOpen={!!taskToDelete}
+        title="Delete Task"
+        message="Are you sure you want to delete this task? This action cannot be undone."
+        confirmText="Delete"
+        onConfirm={() => {
+          if (taskToDelete) {
+            onDeleteTask?.(taskToDelete);
+          }
+        }}
+        onClose={() => setTaskToDelete(null)}
+      />
     </section>
   );
 };

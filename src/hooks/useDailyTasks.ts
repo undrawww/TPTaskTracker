@@ -49,11 +49,27 @@ export function useDailyTasks(date?: string) {
     }
 
     try {
-      const { data, error: fetchError } = await supabase
+      let query = supabase
         .from('daily_tasks')
         .select('*')
         .eq('task_date', targetDate)
+        .order('order_index', { ascending: true })
         .order('task_name', { ascending: true });
+
+      let { data, error: fetchError } = await query;
+
+      if (fetchError && fetchError.message.includes('order_index')) {
+        console.warn("order_index column is missing in daily_tasks. Falling back to fetching without order_index. Please run the SQL to add the column.");
+        // Fallback if column doesn't exist
+        const fallbackQuery = await supabase
+          .from('daily_tasks')
+          .select('*')
+          .eq('task_date', targetDate)
+          .order('created_at', { ascending: true });
+        data = fallbackQuery.data;
+        fetchError = fallbackQuery.error;
+        alert("Action Required: Please run the SQL command in your Supabase SQL Editor to add the 'order_index' column to the 'daily_tasks' table, otherwise task drag-and-drop ordering will not work. \n\nALTER TABLE daily_tasks ADD COLUMN order_index NUMERIC DEFAULT 0;");
+      }
 
       if (fetchError) throw fetchError;
       setTasks(data ?? []);
@@ -145,19 +161,46 @@ export function useDailyTasks(date?: string) {
   };
 
   const addTask = useCallback(
-    async (internId: string, taskName: string) => {
-      if (!isSupabaseConfigured) {
-        const newTask: DailyTask = {
-          id: `dt-${Date.now()}`,
+    async (internId: string, taskName: string, emptyGapsCount: number = 0) => {
+      const internTasks = tasks.filter(t => t.intern_id === internId);
+      const maxOrder = internTasks.length > 0 ? Math.max(...internTasks.map(t => Number(t.order_index) || 0)) : 0;
+      let currentOrderIndex = maxOrder + 1;
+
+      const newTasksToInsert: Partial<DailyTask>[] = [];
+      const tempIds: string[] = [];
+
+      for (let i = 0; i < emptyGapsCount; i++) {
+        tempIds.push(`dt-${Date.now()}-${i}`);
+        newTasksToInsert.push({
           intern_id: internId,
-          task_name: taskName,
+          task_name: ' ', // Use a single space for blank tasks
           status: 'Pending',
           task_date: targetDate,
-        };
+          order_index: currentOrderIndex++,
+        });
+      }
+
+      const actualTaskId = `dt-${Date.now()}-actual`;
+      newTasksToInsert.push({
+        intern_id: internId,
+        task_name: taskName,
+        status: 'Pending',
+        task_date: targetDate,
+        order_index: currentOrderIndex++,
+      });
+
+      if (!isSupabaseConfigured) {
         setTasks((prev) => {
-          const next = [...prev, newTask];
+          const next = [...prev];
           const allStored = JSON.parse(localStorage.getItem('padua_daily_tasks') || '[]');
-          localStorage.setItem('padua_daily_tasks', JSON.stringify([...allStored, newTask]));
+          
+          newTasksToInsert.forEach((t, i) => {
+            const newTask = { ...t, id: i === newTasksToInsert.length - 1 ? actualTaskId : tempIds[i] } as DailyTask;
+            next.push(newTask);
+            allStored.push(newTask);
+          });
+          
+          localStorage.setItem('padua_daily_tasks', JSON.stringify(allStored));
           return next;
         });
         return { success: true };
@@ -165,21 +208,23 @@ export function useDailyTasks(date?: string) {
 
       try {
         const { data: userData } = await supabase.auth.getUser();
+        
+        const tasksWithAdmin = newTasksToInsert.map(t => ({
+          ...t,
+          admin_id: userData.user?.id
+        }));
+
         const { data, error: insertError } = await supabase
           .from('daily_tasks')
-          .insert([{
-            intern_id: internId,
-            task_name: taskName,
-            status: 'Pending' as TaskStatus,
-            task_date: targetDate,
-            admin_id: userData.user?.id
-          }])
-          .select()
-          .single();
+          .insert(tasksWithAdmin)
+          .select();
 
         if (insertError) throw insertError;
         if (data) {
-          setTasks((prev) => [...prev, data]);
+          setTasks((prev) => {
+            const next = [...prev, ...data];
+            return next.sort((a, b) => (Number(a.order_index) || 0) - (Number(b.order_index) || 0));
+          });
         }
         return { success: true };
       } catch (err) {
@@ -188,7 +233,7 @@ export function useDailyTasks(date?: string) {
         return { success: false, error: message };
       }
     },
-    [targetDate]
+    [targetDate, tasks]
   );
 
   const updateStatus = useCallback(
@@ -279,5 +324,31 @@ export function useDailyTasks(date?: string) {
     }
   };
 
-  return { tasks, loading, error, refetch: fetchTasks, addTask, updateStatus, toggleVerify, editTask, removeTask };
+  const reorderTasks = async (updates: { id: string, intern_id: string, order_index: number }[], newTasksState: DailyTask[]) => {
+    // Optimistic update
+    setTasks(newTasksState);
+    if (!isSupabaseConfigured) {
+      localStorage.setItem('padua_daily_tasks', JSON.stringify(newTasksState));
+      return;
+    }
+
+    try {
+      // Bulk update is not natively supported in supabase JS without RPC, 
+      // so we do Promise.all for now.
+      await Promise.all(
+        updates.map(u => 
+          supabase
+            .from('daily_tasks')
+            .update({ intern_id: u.intern_id, order_index: u.order_index })
+            .eq('id', u.id)
+        )
+      );
+    } catch (err) {
+      console.error('Error reordering tasks:', err);
+      // Revert optimism by refetching
+      fetchTasks();
+    }
+  };
+
+  return { tasks, loading, error, refetch: fetchTasks, addTask, updateStatus, toggleVerify, editTask, removeTask, reorderTasks };
 }
