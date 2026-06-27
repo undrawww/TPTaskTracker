@@ -580,15 +580,16 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
                   </label>
                 </div>
               </div>
-              <div className="grid grid-cols-5 gap-3">
-                {avatarUrl && (
+              {avatarUrl && (
+                <div className="flex flex-col items-center mb-6 pb-6 border-b border-teal/10 dark:border-white/10">
+                  <span className="text-xs font-semibold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-3">Your Custom Photo</span>
                   <button
                     onClick={() => setPendingAvatarIndex(-1)}
                     className={`
-                      w-full aspect-square rounded-full flex items-center justify-center transition-all duration-200
+                      w-24 h-24 rounded-full flex items-center justify-center transition-all duration-200
                       ${pendingAvatarIndex === -1
-                        ? 'ring-2 ring-gold ring-offset-2 ring-offset-white dark:ring-offset-[#002b36] scale-105 shadow-lg shadow-gold/30'
-                        : 'hover:scale-105 opacity-80 hover:opacity-100'
+                        ? 'ring-4 ring-gold ring-offset-4 ring-offset-white dark:ring-offset-[#002b36] scale-105 shadow-xl shadow-gold/30'
+                        : 'hover:scale-105 opacity-80 hover:opacity-100 ring-2 ring-teal/20 dark:ring-white/20'
                       }
                     `}
                     title="Custom Photo"
@@ -597,7 +598,10 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
                       <img src={avatarUrl} alt="Custom Photo" className="w-full h-full object-cover" />
                     </div>
                   </button>
-                )}
+                </div>
+              )}
+              
+              <div className="grid grid-cols-5 gap-3">
                 {Array.from({ length: AVATAR_COUNT }).map((_, idx) => (
                   <button
                     key={idx}
