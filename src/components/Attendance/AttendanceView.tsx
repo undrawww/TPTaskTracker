@@ -46,7 +46,8 @@ export const AttendanceView: React.FC = () => {
     
   displayRecords = displayRecords.filter(r => 
     r.intern?.full_name !== 'Administrator (Invite)' && 
-    r.intern?.department !== 'BizDev Leadership Team'
+    r.intern?.department !== 'BizDev Leadership Team' &&
+    r.intern?.department !== 'BizDev Team'
   );
 
   displayRecords.sort((a, b) => {

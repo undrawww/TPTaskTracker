@@ -210,7 +210,7 @@ export const DailyTracker: React.FC<Props> = ({
         <div className="flex flex-col gap-6">
           {/* Regular Departments */}
           <div className="flex overflow-x-auto pb-6 gap-6 items-start w-full min-h-[500px]">
-            {DEPARTMENTS.filter(dept => dept !== 'BizDev Leadership Team').map((dept) => (
+            {DEPARTMENTS.filter(dept => dept !== 'BizDev Leadership Team' && dept !== 'BizDev Team').map((dept) => (
               <DepartmentPanel
                 key={dept}
                 department={dept}
