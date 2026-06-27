@@ -273,8 +273,13 @@ export const Dashboard: React.FC = () => {
                   </button>
                   <div className="flex-1 h-px bg-gradient-to-r from-transparent via-teal/15 to-transparent" />
                 </div>
-
-                    {showWeekly && <WeeklyArchive interns={displayInterns} />}
+                    {showWeekly && (
+                      <WeeklyArchive 
+                        interns={displayInterns} 
+                        activeCommentTaskId={activeCommentTaskId}
+                        setActiveCommentTaskId={setActiveCommentTaskId}
+                      />
+                    )}
                   </>
                 )}
                 

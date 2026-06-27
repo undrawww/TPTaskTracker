@@ -5,9 +5,11 @@ import { DEPARTMENTS, type Intern, type TaskStatus } from '../../types';
 
 interface Props {
   interns: Intern[];
+  activeCommentTaskId?: string | null;
+  setActiveCommentTaskId?: (id: string | null) => void;
 }
 
-export const WeeklyArchive: React.FC<Props> = ({ interns }) => {
+export const WeeklyArchive: React.FC<Props> = ({ interns, activeCommentTaskId, setActiveCommentTaskId }) => {
   const [selectedWeek, setSelectedWeek] = useState(1);
   const { tasks, loading, updateStatus, toggleVerify } = useWeeklyTasks(selectedWeek);
 
@@ -67,6 +69,8 @@ export const WeeklyArchive: React.FC<Props> = ({ interns }) => {
               tasks={tasks}
               onStatusChange={handleStatusChange}
               onVerifyChange={handleVerifyChange}
+              activeCommentTaskId={activeCommentTaskId}
+              setActiveCommentTaskId={setActiveCommentTaskId}
             />
           ))}
         </div>

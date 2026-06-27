@@ -46,11 +46,11 @@ export const DepartmentPanel: React.FC<Props> = ({
   return (
     <div className="bg-transparent border-none flex-shrink-0 min-w-min">
       {!hideHeader && (
-        <div className="flex items-center justify-between pb-2 mb-4 border-b border-teal/10 dark:border-white/10">
+        <div className="flex flex-col items-center justify-center pb-2 mb-4 border-b border-teal/10 dark:border-white/10 text-center">
           <h3 className="font-sans text-xl font-bold text-teal dark:text-cream tracking-wide">
             {getInitials(department)}
           </h3>
-          <span className="text-xs text-teal/50 dark:text-cream/50 uppercase tracking-widest font-medium">
+          <span className="text-[10px] text-teal/50 dark:text-cream/50 uppercase tracking-widest font-medium mt-1">
             {department}
           </span>
         </div>

@@ -580,6 +580,23 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
                 </div>
               </div>
               <div className="grid grid-cols-5 gap-3">
+                {avatarUrl && (
+                  <button
+                    onClick={() => handleSelectAvatar(-1)}
+                    className={`
+                      w-full aspect-square rounded-full flex items-center justify-center transition-all duration-200
+                      ${avatarIndex === -1
+                        ? 'ring-2 ring-gold ring-offset-2 ring-offset-white dark:ring-offset-[#002b36] scale-105 shadow-lg shadow-gold/30'
+                        : 'hover:scale-105 opacity-80 hover:opacity-100'
+                      }
+                    `}
+                    title="Custom Photo"
+                  >
+                    <div className="w-full h-full flex items-center justify-center rounded-full overflow-hidden">
+                      <img src={avatarUrl} alt="Custom Photo" className="w-full h-full object-cover" />
+                    </div>
+                  </button>
+                )}
                 {Array.from({ length: AVATAR_COUNT }).map((_, idx) => (
                   <button
                     key={idx}
