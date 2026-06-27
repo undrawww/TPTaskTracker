@@ -3,7 +3,7 @@ import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
 import { useAuth } from '../../contexts/AuthContext';
 import { AVATAR_COUNT, AVATAR_LABELS, renderAvatar } from '../Dashboard/AvatarIcons';
 import Cropper from 'react-easy-crop';
-import getCroppedImg, { cropWhitespaceFromImage } from '../../utils/cropImage';
+import getCroppedImg from '../../utils/cropImage';
 
 interface Props {
   isOpen: boolean;
@@ -151,9 +151,13 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
     window.dispatchEvent(new Event('avatar-change'));
   };
 
-  const onCropComplete = useCallback((_: any, croppedAreaPixels: any) => {
-    setCroppedAreaPixels(croppedAreaPixels);
-  }, []);
+  useEffect(() => {
+    return () => {
+      if (cropImageSrc) {
+        URL.revokeObjectURL(cropImageSrc);
+      }
+    };
+  }, [cropImageSrc]);
 
   const handleUploadPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
