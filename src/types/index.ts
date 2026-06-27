@@ -43,6 +43,7 @@ export interface Intern {
   required_hours?: number;
   // Profile fields
   status?: string;
+  gcash_qr_url?: string;
   start_date?: string;
   bio?: string;
   skills?: string[];

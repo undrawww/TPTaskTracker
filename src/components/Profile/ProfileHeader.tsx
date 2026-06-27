@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { Intern, DailyTask } from '../../types';
 import { renderAvatar } from '../Dashboard/AvatarIcons';
 
@@ -11,6 +11,7 @@ interface ProfileHeaderProps {
 }
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, weeklyTasks = [], onEditClick, isOwnProfile = true }) => {
+  const [isGcashOpen, setIsGcashOpen] = useState(false);
   // Tasks marked as 'is_verified' are considered verified completed by the admin
   const completedDaily = tasks.filter(t => t.is_verified).length;
   const completedWeekly = weeklyTasks.filter(t => t.is_verified).length;
@@ -113,6 +114,20 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, wee
                 Edit Profile
               </button>
             )}
+            
+            {intern.gcash_qr_url && (
+              <button
+                onClick={() => setIsGcashOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-xs font-bold text-blue-600 dark:text-blue-400 border border-blue-500/20 transition-colors"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                GCash QR
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -134,6 +149,49 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, wee
               <p className="text-[11px] font-bold text-teal/50 dark:text-cream/50 uppercase tracking-wider mb-1">Member Since</p>
               <p className="text-sm font-bold text-teal dark:text-cream mt-3">{formattedStartDate}</p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* GCash QR Modal */}
+      {isGcashOpen && intern.gcash_qr_url && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in"
+          onClick={() => setIsGcashOpen(false)}
+        >
+          <div 
+            className="bg-white dark:bg-[#002b36] rounded-3xl p-6 shadow-2xl max-w-sm w-full mx-auto flex flex-col items-center animate-scale-in border border-teal/10 dark:border-white/10"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="w-full flex justify-between items-center mb-6">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
+                  <span className="text-blue-600 dark:text-blue-400 font-bold text-xs">GC</span>
+                </div>
+                <h3 className="text-lg font-bold text-teal dark:text-cream">GCash QR</h3>
+              </div>
+              <button 
+                onClick={() => setIsGcashOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-teal/10 dark:hover:bg-white/10 text-teal/50 dark:text-cream/50 transition-colors"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            
+            <div className="w-full aspect-square rounded-2xl overflow-hidden border-2 border-teal/10 dark:border-white/5 bg-gray-50 dark:bg-black/20">
+              <img 
+                src={intern.gcash_qr_url} 
+                alt={`${intern.full_name}'s GCash QR`} 
+                className="w-full h-full object-contain"
+              />
+            </div>
+            
+            <p className="mt-5 text-sm font-medium text-teal/70 dark:text-cream/70 text-center">
+              Scan this QR code to send payments to {intern.full_name}.
+            </p>
           </div>
         </div>
       )}

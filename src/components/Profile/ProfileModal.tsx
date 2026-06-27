@@ -61,20 +61,22 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [gcashQrUrl, setGcashQrUrl] = useState<string | undefined>(undefined);
+  const [uploadingGcash, setUploadingGcash] = useState(false);
   
   // Crop state
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'profile' | 'academic' | 'security'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'academic' | 'security' | 'payment'>('profile');
 
   // Fetch current profile name on open
   React.useEffect(() => {
     if (isOpen && user?.email && isSupabaseConfigured) {
       supabase
         .from('profiles')
-        .select('full_name, avatar_index, avatar_url, location, pin_location, pin_location_name, program, current_year, school, contact_number, personal_email, birthday, expected_graduation_date, required_hours')
+        .select('full_name, avatar_index, avatar_url, gcash_qr_url, location, pin_location, pin_location_name, program, current_year, school, contact_number, personal_email, birthday, expected_graduation_date, required_hours')
         .eq('email', user.email)
         .single()
         .then(({ data }) => {
@@ -89,6 +91,9 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
             }
             if (data.avatar_url) {
               setAvatarUrl(data.avatar_url);
+            }
+            if (data.gcash_qr_url) {
+              setGcashQrUrl(data.gcash_qr_url);
             }
             if (data.location) setLocation(data.location);
             if (data.pin_location) setPinLocation(data.pin_location);
@@ -156,6 +161,89 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
     const reader = new FileReader();
     reader.addEventListener('load', () => setCropImageSrc(reader.result?.toString() || null));
     reader.readAsDataURL(file);
+  };
+
+  const handleUploadGcash = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.email || !isSupabaseConfigured) return;
+
+    try {
+      setUploadingGcash(true);
+      setError(null);
+
+      const fileName = `gcash-${user.id || user.email}-${Math.random()}.jpg`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { contentType: file.type });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      const publicUrl = data.publicUrl;
+
+      // Update backend
+      await supabase
+        .from('profiles')
+        .update({ gcash_qr_url: publicUrl })
+        .eq('email', user.email);
+        
+      if (role === 'intern') {
+        await supabase
+          .from('interns')
+          .update({ gcash_qr_url: publicUrl })
+          .eq('email', user.email);
+      }
+
+      setGcashQrUrl(publicUrl);
+      setSuccess('GCash QR uploaded successfully!');
+      
+      setTimeout(() => {
+        setSuccess(null);
+      }, 5000);
+      
+    } catch (err: any) {
+      setError(err.message || 'Failed to upload GCash QR');
+    } finally {
+      setUploadingGcash(false);
+    }
+  };
+
+  const handleRemoveGcash = async () => {
+    if (!user?.email || !isSupabaseConfigured) return;
+    
+    try {
+      setUploadingGcash(true);
+      setError(null);
+      
+      // Update backend to null
+      await supabase
+        .from('profiles')
+        .update({ gcash_qr_url: null })
+        .eq('email', user.email);
+        
+      if (role === 'intern') {
+        await supabase
+          .from('interns')
+          .update({ gcash_qr_url: null })
+          .eq('email', user.email);
+      }
+      
+      setGcashQrUrl(undefined);
+      setSuccess('GCash QR removed successfully!');
+      
+      setTimeout(() => {
+        setSuccess(null);
+      }, 5000);
+    } catch (err: any) {
+      setError(err.message || 'Failed to remove GCash QR');
+    } finally {
+      setUploadingGcash(false);
+    }
   };
 
   const confirmCrop = async () => {
@@ -347,6 +435,13 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
               className={`pb-3 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${activeTab === 'security' ? 'border-gold text-teal dark:text-cream' : 'border-transparent text-teal/50 dark:text-cream/50 hover:text-teal dark:hover:text-cream'}`}
             >
               Contact & Security
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('payment')}
+              className={`pb-3 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${activeTab === 'payment' ? 'border-gold text-teal dark:text-cream' : 'border-transparent text-teal/50 dark:text-cream/50 hover:text-teal dark:hover:text-cream'}`}
+            >
+              Payment
             </button>
           </div>
         )}
@@ -668,7 +763,62 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
                   </div>
                 )}
 
-                {error && <p className="text-sm text-status-hold bg-status-hold-bg px-4 py-3 rounded-xl border border-status-hold/20">{error}</p>}
+                {/* PAYMENT TAB */}
+                {activeTab === 'payment' && (
+                  <div className="space-y-5 animate-fade-in">
+                    <div>
+                      <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-3">GCash QR Code</label>
+                      {gcashQrUrl ? (
+                        <div className="flex flex-col items-center gap-4">
+                          <div className="w-48 h-48 rounded-xl border-2 border-teal/20 dark:border-white/10 overflow-hidden shadow-md">
+                            <img src={gcashQrUrl} alt="GCash QR" className="w-full h-full object-cover" />
+                          </div>
+                          <div className="flex gap-3 w-full max-w-xs">
+                            <label className="flex-1 cursor-pointer py-2 px-4 bg-teal/10 dark:bg-white/5 text-teal dark:text-cream rounded-xl text-sm font-semibold text-center hover:bg-teal/20 dark:hover:bg-white/10 transition-colors">
+                              {uploadingGcash ? 'Uploading...' : 'Change QR'}
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleUploadGcash}
+                                className="hidden"
+                                disabled={uploadingGcash}
+                              />
+                            </label>
+                            <button
+                              type="button"
+                              onClick={handleRemoveGcash}
+                              disabled={uploadingGcash}
+                              className="flex-1 py-2 px-4 bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl text-sm font-semibold hover:bg-red-500/20 transition-colors"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-teal/20 dark:border-white/10 rounded-2xl bg-teal/5 dark:bg-white/5">
+                          <svg className="w-12 h-12 text-teal/40 dark:text-white/20 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                            <circle cx="8.5" cy="8.5" r="1.5" />
+                            <polyline points="21 15 16 10 5 21" />
+                          </svg>
+                          <p className="text-sm font-medium text-teal/60 dark:text-white/40 mb-4 text-center">
+                            Upload your GCash QR code to easily receive payments or allowances.
+                          </p>
+                          <label className="cursor-pointer py-2.5 px-6 bg-teal text-white dark:bg-teal-light rounded-xl text-sm font-semibold hover:bg-teal-light transition-colors shadow-md shadow-teal/20">
+                            {uploadingGcash ? 'Uploading...' : 'Select Image'}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleUploadGcash}
+                              className="hidden"
+                              disabled={uploadingGcash}
+                            />
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end gap-3 pt-6 border-t border-teal/10 dark:border-white/10 shrink-0 mt-auto">
