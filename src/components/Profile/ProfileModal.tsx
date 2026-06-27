@@ -505,6 +505,46 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
                 </button>
               </div>
             </div>
+          ) : cropGcashSrc ? (
+            /* GCash Crop Overlay */
+            <div className="space-y-4 animate-scale-in">
+              <div className="text-center">
+                <h3 className="font-poppins text-base font-bold text-teal dark:text-cream">Crop Your GCash QR</h3>
+                <p className="text-xs text-teal/50 dark:text-cream/50 mt-1 mb-4">Pinch or scroll to zoom, drag to pan</p>
+              </div>
+              <div className="relative w-full h-[400px] bg-black/10 rounded-2xl overflow-hidden">
+                <Cropper
+                  image={cropGcashSrc}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  cropShape="rect"
+                  showGrid={true}
+                  onCropChange={setCrop}
+                  onCropComplete={(_, croppedPixels) => setCroppedAreaPixels(croppedPixels)}
+                  onZoomChange={setZoom}
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setCropGcashSrc(null)}
+                  disabled={uploadingGcash}
+                  className="flex-1 py-3 rounded-xl border border-cream-dark dark:border-teal-light text-cream-dark dark:text-teal-light font-semibold text-sm hover:bg-cream/50 dark:hover:bg-[#003946] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmGcashCrop}
+                  disabled={uploadingGcash}
+                  className="flex-1 py-3 rounded-xl bg-gold text-teal font-semibold text-sm hover:bg-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {uploadingGcash && <div className="w-4 h-4 rounded-full border-2 border-teal/20 border-t-teal animate-spin" />}
+                  {uploadingGcash ? 'Uploading...' : 'Upload QR Code'}
+                </button>
+              </div>
+            </div>
           ) : showAvatarPicker ? (
             <div className="space-y-4 animate-scale-in">
               <div className="text-center">
