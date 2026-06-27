@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TaskRow } from './TaskRow';
-import { getAvatarIcon, getAvatarByIndex, renderAvatar } from './AvatarIcons';
+import { getAvatarIcon, renderAvatar } from './AvatarIcons';
 import type { DailyTask, WeeklyTask, TaskStatus } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDroppable } from '@dnd-kit/core';
@@ -25,7 +25,7 @@ interface Props {
 }
 
 export const InternTaskGroup: React.FC<Props> = ({ internId, internName, avatarIndex, avatarUrl, tasks, onStatusChange, onVerifyChange, onEditTask, onDeleteIntern, onDeleteTask, onViewProfile, onAddTask, activeCommentTaskId, setActiveCommentTaskId }) => {
-  const { role, currentInternId } = useAuth();
+  const {} = useAuth();
   const canAddTask = true; // allow everyone to add tasks anywhere
   const { setNodeRef: setDroppableRef } = useDroppable({ id: `task-container-${internId}` });
   const { attributes, listeners, setNodeRef: setSortableRef, transform, transition, isDragging } = useSortable({ id: internId, data: { type: 'Intern' } });

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTaskComments } from '../../hooks/useTaskComments';
 import { useAuth } from '../../contexts/AuthContext';
-import { getAvatarByIndex, renderAvatar } from './AvatarIcons';
+import { renderAvatar } from './AvatarIcons';
 import { ConfirmModal } from '../common/ConfirmModal';
 
 interface Props {

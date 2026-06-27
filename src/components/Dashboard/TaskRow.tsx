@@ -6,7 +6,7 @@ import { TASK_STATUSES, type TaskStatus } from '../../types';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getAvatarByIndex, renderAvatar } from './AvatarIcons';
+import { renderAvatar } from './AvatarIcons';
 
 interface Props {
   id: string;

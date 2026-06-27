@@ -7,7 +7,7 @@ export const DEPARTMENTS = [
   'Business Support Associate',
   'Client Relations Associate',
   'Design Content Associate',
-  'BizDev Team',
+  'BizDev Leadership Team',
 ] as const;
 
 export type Department = (typeof DEPARTMENTS)[number];

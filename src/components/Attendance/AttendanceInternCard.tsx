@@ -2,7 +2,7 @@ import React from 'react';
 import type { AttendanceWithIntern, AttendanceAction } from '../../types';
 import { TimeStampButton } from './TimeStampButton';
 import { useAuth } from '../../contexts/AuthContext';
-import { getAvatarIcon, getAvatarByIndex, renderAvatar } from '../Dashboard/AvatarIcons';
+import { getAvatarIcon, renderAvatar } from '../Dashboard/AvatarIcons';
 import { DailyRecordModal } from './DailyRecordModal';
 import { AdminFeedbackModal } from './AdminFeedbackModal';
 import { useState } from 'react';

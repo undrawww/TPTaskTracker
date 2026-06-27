@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Intern, DailyTask } from '../../types';
-import { getAvatarByIndex, renderAvatar } from '../Dashboard/AvatarIcons';
+import { renderAvatar } from '../Dashboard/AvatarIcons';
 
 interface ProfileHeaderProps {
   intern: Intern;

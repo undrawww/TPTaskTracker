@@ -210,7 +210,7 @@ export const DailyTracker: React.FC<Props> = ({
         <div className="flex flex-col gap-6">
           {/* Regular Departments */}
           <div className="flex overflow-x-auto pb-6 gap-6 items-start w-full min-h-[500px]">
-            {DEPARTMENTS.filter(dept => dept !== 'BizDev Team').map((dept) => (
+            {DEPARTMENTS.filter(dept => dept !== 'BizDev Leadership Team').map((dept) => (
               <DepartmentPanel
                 key={dept}
                 department={dept}
@@ -231,7 +231,7 @@ export const DailyTracker: React.FC<Props> = ({
 
           <div className="w-full h-px bg-teal/10 dark:bg-white/5 my-2"></div>
 
-          {/* BizDev Team Section */}
+          {/* BizDev Leadership Team Section */}
           <div className="w-full">
             <button
               onClick={() => setIsBizDevExpanded(!isBizDevExpanded)}
@@ -257,7 +257,7 @@ export const DailyTracker: React.FC<Props> = ({
             {isBizDevExpanded && (
               <div className="flex overflow-x-auto pb-6 gap-6 items-start w-full">
                 <DepartmentPanel
-                  department="BizDev Team"
+                  department="BizDev Leadership Team"
                   interns={interns}
                   tasks={tasks}
                   onStatusChange={onStatusChange}

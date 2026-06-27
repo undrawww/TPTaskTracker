@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
 import { useAuth } from '../../contexts/AuthContext';
-import { AVATAR_COUNT, AVATAR_LABELS, getAvatarByIndex, renderAvatar } from '../Dashboard/AvatarIcons';
+import { AVATAR_COUNT, AVATAR_LABELS, renderAvatar } from '../Dashboard/AvatarIcons';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../../utils/cropImage';
 
@@ -74,7 +74,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
     if (isOpen && user?.email && isSupabaseConfigured) {
       supabase
         .from('profiles')
-        .select('full_name, avatar_index, location, pin_location, pin_location_name, program, current_year, school, contact_number, personal_email, birthday, expected_graduation_date, required_hours')
+        .select('full_name, avatar_index, avatar_url, location, pin_location, pin_location_name, program, current_year, school, contact_number, personal_email, birthday, expected_graduation_date, required_hours')
         .eq('email', user.email)
         .single()
         .then(({ data }) => {
@@ -145,9 +145,9 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
     window.dispatchEvent(new Event('avatar-change'));
   };
 
-  const onCropComplete = (croppedArea: any, croppedAreaPixels: any) => {
+  const onCropComplete = useCallback((_: any, croppedAreaPixels: any) => {
     setCroppedAreaPixels(croppedAreaPixels);
-  };
+  }, []);
 
   const handleUploadPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

@@ -16,6 +16,7 @@ const DEPT_INITIALS: Record<Department, string> = {
   'Business Support Associate': 'BSA',
   'Client Relations Associate': 'CRA',
   'Design Content Associate': 'DCA',
+  'BizDev Leadership Team': 'BDT',
 };
 
 export function useAnalytics(interns: Intern[], dailyTasks: DailyTask[]): AnalyticsData {
@@ -41,7 +42,7 @@ export function useAnalytics(interns: Intern[], dailyTasks: DailyTask[]): Analyt
 
     // Per-intern active task counts
     const internProgress = interns
-      .filter((intern) => intern.department !== 'BizDev Team')
+      .filter((intern) => intern.department !== 'BizDev Leadership Team')
       .map((intern) => {
       const internTasks = dailyTasks.filter((t) => t.intern_id === intern.id);
       const active = internTasks.filter((t) => !t.is_verified).length;
@@ -61,7 +62,7 @@ export function useAnalytics(interns: Intern[], dailyTasks: DailyTask[]): Analyt
 
     // Status distribution per intern (for stacked chart)
     const internStatusDistribution = interns
-      .filter((intern) => intern.department !== 'BizDev Team')
+      .filter((intern) => intern.department !== 'BizDev Leadership Team')
       .map((intern) => {
       const internTasks = dailyTasks.filter((t) => t.intern_id === intern.id);
       const counts: { name: string; [key: string]: string | number } = {

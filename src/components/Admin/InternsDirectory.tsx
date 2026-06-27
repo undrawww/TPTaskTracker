@@ -1,6 +1,6 @@
 import React from 'react';
 import { useInterns } from '../../hooks/useInterns';
-import { getAvatarIcon, getAvatarByIndex, renderAvatar } from '../Dashboard/AvatarIcons';
+import { getAvatarIcon, renderAvatar } from '../Dashboard/AvatarIcons';
 
 interface Props {
   onViewProfile?: (id: string) => void;
@@ -8,7 +8,7 @@ interface Props {
 
 export const InternsDirectory: React.FC<Props> = ({ onViewProfile }) => {
   const { interns: allInterns, loading, error } = useInterns();
-  const interns = allInterns.filter(i => i.department !== 'BizDev Team');
+  const interns = allInterns.filter(i => i.department !== 'BizDev Leadership Team');
 
   return (
     <div className="space-y-6 animate-fade-in">
