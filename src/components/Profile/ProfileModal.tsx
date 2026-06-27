@@ -819,6 +819,8 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
                     </div>
                   </div>
                 )}
+                {error && <p className="text-sm text-status-hold bg-status-hold-bg px-4 py-3 rounded-xl border border-status-hold/20">{error}</p>}
+                {success && <p className="text-sm text-status-done bg-status-done-bg px-4 py-3 rounded-xl border border-status-done/20">{success}</p>}
               </div>
 
               <div className="flex justify-end gap-3 pt-6 border-t border-teal/10 dark:border-white/10 shrink-0 mt-auto">
