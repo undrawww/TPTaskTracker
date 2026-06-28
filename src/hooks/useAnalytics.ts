@@ -21,8 +21,9 @@ const DEPT_INITIALS: Record<Department, string> = {
 
 export function useAnalytics(interns: Intern[], dailyTasks: DailyTask[]): AnalyticsData {
   return useMemo(() => {
-    const todayTotal = dailyTasks.length;
-    const completedTotal = dailyTasks.filter((t) => t.is_verified).length;
+    const validTasks = dailyTasks.filter(t => t.task_name.trim() !== '');
+    const todayTotal = validTasks.length;
+    const completedTotal = validTasks.filter((t) => t.is_verified).length;
 
     // Department completion rates (only verified tasks count)
     const departmentCompletion = DEPARTMENTS
@@ -31,7 +32,7 @@ export function useAnalytics(interns: Intern[], dailyTasks: DailyTask[]): Analyt
       const deptInternIds = interns
         .filter((i) => i.department === dept)
         .map((i) => i.id);
-      const deptTasks = dailyTasks.filter((t) => deptInternIds.includes(t.intern_id));
+      const deptTasks = validTasks.filter((t) => deptInternIds.includes(t.intern_id));
       const deptDone = deptTasks.filter((t) => t.is_verified).length;
       const total = deptTasks.length;
       return {
@@ -46,7 +47,7 @@ export function useAnalytics(interns: Intern[], dailyTasks: DailyTask[]): Analyt
     const internProgress = interns
       .filter((intern) => intern.department !== 'BizDev Leadership Team' && (intern.department as string) !== 'BizDev Team')
       .map((intern) => {
-      const internTasks = dailyTasks.filter((t) => t.intern_id === intern.id);
+      const internTasks = validTasks.filter((t) => t.intern_id === intern.id);
       const active = internTasks.filter((t) => !t.is_verified).length;
       const done = internTasks.filter((t) => t.is_verified).length;
       return {
@@ -59,14 +60,14 @@ export function useAnalytics(interns: Intern[], dailyTasks: DailyTask[]): Analyt
     // Status distribution
     const statusDistribution = TASK_STATUSES.map((status) => ({
       status,
-      count: dailyTasks.filter((t) => t.status === status).length,
+      count: validTasks.filter((t) => t.status === status).length,
     }));
 
     // Status distribution per intern (for stacked chart)
     const internStatusDistribution = interns
       .filter((intern) => intern.department !== 'BizDev Leadership Team' && (intern.department as string) !== 'BizDev Team')
       .map((intern) => {
-      const internTasks = dailyTasks.filter((t) => t.intern_id === intern.id);
+      const internTasks = validTasks.filter((t) => t.intern_id === intern.id);
       const counts: { name: string; [key: string]: string | number } = {
         name: intern.full_name.split(' ')[0], // first name for brevity
       };

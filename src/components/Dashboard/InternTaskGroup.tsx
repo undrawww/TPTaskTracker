@@ -100,7 +100,7 @@ export const InternTaskGroup: React.FC<Props> = ({ internId, internName, avatarI
           </h4>
         </div>
         <span className="text-[13px] text-teal/40 dark:text-cream/40 font-bold tabular-nums">
-          {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
+          {tasks.filter(t => t.task_name.trim() !== '').length} {tasks.filter(t => t.task_name.trim() !== '').length === 1 ? 'task' : 'tasks'}
         </span>
         {onDeleteIntern && (
           <button
