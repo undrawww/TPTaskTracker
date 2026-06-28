@@ -19,8 +19,8 @@ export function useInterns() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchInterns = useCallback(async () => {
-    setLoading(true);
+  const fetchInterns = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     setError(null);
 
     if (!isSupabaseConfigured) {
@@ -117,7 +117,7 @@ export function useInterns() {
       )
       .subscribe();
 
-    const handleAvatarChange = () => fetchInterns();
+    const handleAvatarChange = () => fetchInterns(true);
     window.addEventListener('avatar-change', handleAvatarChange);
 
     return () => {
