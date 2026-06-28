@@ -230,6 +230,7 @@ export function useDailyTasks(date?: string) {
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to add task';
         console.error('Error adding task:', err);
+        alert(`Failed to add task: ${message}\n\nThis is likely a database permissions issue. Please check your Supabase Row Level Security (RLS) policies for the 'daily_tasks' table to ensure all authenticated users are allowed to insert tasks.`);
         return { success: false, error: message };
       }
     },
