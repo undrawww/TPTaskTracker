@@ -25,7 +25,9 @@ export function useAnalytics(interns: Intern[], dailyTasks: DailyTask[]): Analyt
     const completedTotal = dailyTasks.filter((t) => t.is_verified).length;
 
     // Department completion rates (only verified tasks count)
-    const departmentCompletion = DEPARTMENTS.map((dept: Department) => {
+    const departmentCompletion = DEPARTMENTS
+      .filter((dept: Department) => dept !== 'BizDev Leadership Team' && (dept as string) !== 'BizDev Team')
+      .map((dept: Department) => {
       const deptInternIds = interns
         .filter((i) => i.department === dept)
         .map((i) => i.id);
