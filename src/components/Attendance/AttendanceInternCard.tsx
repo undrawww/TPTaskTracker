@@ -91,6 +91,16 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
   const canBreakIn = break_out !== null && break_in === null;
   const canTimeOut = time_in !== null && time_out === null && (break_out === null || break_in !== null);
 
+  // Date lock logic: prevent stamping if the record date is not today
+  const getLocalDateString = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  const isPastDate = record.attendance_date !== getLocalDateString();
+
   return (
     <tr className="hover:bg-teal/5 dark:hover:bg-white/5 transition-colors duration-200 group">
       {/* Intern Info */}
@@ -120,7 +130,7 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
           <TimeStampButton
             label="Time In"
             timestamp={time_in}
-            disabled={!isOwner || time_in !== null}
+            disabled={!isOwner || time_in !== null || isPastDate}
             onClick={() => onStamp(intern_name, 'time_in')}
             onUndo={(isOwner || isAdmin) ? () => onUndoStamp(intern_name, 'time_in') : undefined}
             icon={ICONS.time_in}
@@ -134,7 +144,7 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
           <TimeStampButton
             label="Break Out"
             timestamp={break_out}
-            disabled={!isOwner || !canBreakOut}
+            disabled={!isOwner || !canBreakOut || isPastDate}
             onClick={() => onStamp(intern_name, 'break_out')}
             onUndo={(isOwner || isAdmin) ? () => onUndoStamp(intern_name, 'break_out') : undefined}
             icon={ICONS.break_out}
@@ -148,7 +158,7 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
           <TimeStampButton
             label="Break In"
             timestamp={break_in}
-            disabled={!isOwner || !canBreakIn}
+            disabled={!isOwner || !canBreakIn || isPastDate}
             onClick={() => onStamp(intern_name, 'break_in')}
             onUndo={(isOwner || isAdmin) ? () => onUndoStamp(intern_name, 'break_in') : undefined}
             icon={ICONS.break_in}
@@ -162,7 +172,7 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
           <TimeStampButton
             label="Time Out"
             timestamp={time_out}
-            disabled={!isOwner || !canTimeOut}
+            disabled={!isOwner || !canTimeOut || isPastDate}
             onClick={() => onStamp(intern_name, 'time_out')}
             onUndo={(isOwner || isAdmin) ? () => onUndoStamp(intern_name, 'time_out') : undefined}
             icon={ICONS.time_out}

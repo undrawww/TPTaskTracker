@@ -38,47 +38,47 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, wee
   };
 
   return (
-    <div className="bg-white dark:bg-[#001a22] rounded-3xl border border-teal/10 dark:border-white/5 shadow-sm p-8 flex flex-col md:flex-row gap-8 items-start relative animate-fade-in">
+    <div className="bg-white dark:bg-[#001a22] rounded-3xl border border-teal/10 dark:border-white/5 shadow-sm p-6 sm:p-8 flex flex-col md:flex-row gap-6 sm:gap-8 items-start relative animate-fade-in">
       
       {/* Left side: Avatar & Info */}
       <div className="flex items-start gap-6 flex-1">
-        <div className="w-28 h-28 shrink-0 rounded-full bg-teal/5 dark:bg-white/5 border-[3px] border-white dark:border-[#001f26] shadow-xl flex items-center justify-center overflow-hidden">
+        <div className="w-20 h-20 sm:w-28 sm:h-28 shrink-0 rounded-full bg-teal/5 dark:bg-white/5 border-[3px] border-white dark:border-[#001f26] shadow-xl flex items-center justify-center overflow-hidden">
           {renderAvatar(intern.avatar_index, intern.avatar_url)}
         </div>
         
         <div className="flex flex-col pt-1">
           <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-3xl font-bold text-teal dark:text-cream tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold text-teal dark:text-cream tracking-tight break-words">
               {intern.full_name}
             </h1>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-gold mt-1">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-gold mt-1 shrink-0">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
             </svg>
           </div>
-          <p className="text-sm font-medium text-teal/70 dark:text-cream/70 mb-4">
+          <p className="text-xs sm:text-sm font-medium text-teal/70 dark:text-cream/70 mb-4">
             {intern.department}
           </p>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-6 text-xs text-teal/60 dark:text-cream/50">
-            <div className="flex items-center gap-2">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-              <span>{intern.email}</span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-y-2 gap-x-6 text-[11px] sm:text-xs text-teal/60 dark:text-cream/50 w-full">
+            <div className="flex items-start gap-2 min-w-0">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+              <span className="break-all">{intern.email}</span>
             </div>
             {intern.contact_number && (
-              <div className="flex items-center gap-2">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                <span>{intern.contact_number}</span>
+              <div className="flex items-start gap-2 min-w-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                <span className="truncate">{intern.contact_number}</span>
               </div>
             )}
             {intern.location && (
-              <div className="flex items-center gap-2">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                <span>{intern.location}</span>
+              <div className="flex items-start gap-2 min-w-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span className="break-words">{intern.location}</span>
               </div>
             )}
             {intern.pin_location && (
-              <div className="flex items-center gap-2">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gold">
+              <div className="flex items-start gap-2 min-w-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gold shrink-0 mt-0.5">
                   <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
                   <line x1="8" y1="2" x2="8" y2="18"></line>
                   <line x1="16" y1="6" x2="16" y2="22"></line>

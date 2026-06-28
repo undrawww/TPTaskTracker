@@ -39,6 +39,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isFormLoaded, setIsFormLoaded] = useState(false);
 
   // Intern Specific Fields
   const [location, setLocation] = useState('');
@@ -75,62 +76,101 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
 
   // Fetch current profile name on open
   React.useEffect(() => {
-    if (isOpen && user?.email && isSupabaseConfigured) {
-      supabase
-        .from('profiles')
-        .select('full_name, avatar_index, avatar_url, gcash_qr_url, location, pin_location, pin_location_name, program, current_year, school, contact_number, personal_email, birthday, expected_graduation_date, required_hours')
-        .eq('email', user.email)
-        .single()
-        .then(({ data }) => {
-          if (data) {
-            if (data.full_name) {
-              setCurrentName(data.full_name);
-              setFullName(data.full_name);
+    if (isOpen && user?.email) {
+      const draftStr = localStorage.getItem('tp_profile_draft');
+      if (draftStr) {
+        try {
+          const draft = JSON.parse(draftStr);
+          if (Date.now() - draft.timestamp < 5 * 60 * 1000) {
+            // Valid draft, load it
+            if (draft.fullName) {
+              setFullName(draft.fullName);
+              setCurrentName(draft.fullName);
             }
-            if (data.avatar_index !== null && data.avatar_index !== undefined) {
-              setAvatarIndex(data.avatar_index);
-              localStorage.setItem('tp_avatar', String(data.avatar_index));
-            }
-            if (data.avatar_url) {
-              setAvatarUrl(data.avatar_url);
-            }
-            if (data.gcash_qr_url) {
-              setGcashQrUrl(data.gcash_qr_url);
-            }
-            if (data.location) setLocation(data.location);
-            if (data.pin_location) setPinLocation(data.pin_location);
-            if (data.pin_location_name) setPinLocationName(data.pin_location_name);
-            if (data.program) setProgram(data.program);
-            if (data.current_year) setCurrentYear(data.current_year);
-            if (data.school) setSchool(data.school);
-            if (data.contact_number) setContactNumber(formatPHMobileNumber(data.contact_number));
-            if (data.personal_email) setPersonalEmail(data.personal_email);
-            if (data.birthday) setBirthday(data.birthday);
-            if (data.expected_graduation_date) setExpectedGraduationDate(data.expected_graduation_date);
-            if (data.required_hours) setRequiredHours(String(data.required_hours));
+            setLocation(draft.location || '');
+            setPinLocation(draft.pinLocation || '');
+            setPinLocationName(draft.pinLocationName || '');
+            setProgram(draft.program || '');
+            setCurrentYear(draft.currentYear || '');
+            setSchool(draft.school || '');
+            setContactNumber(draft.contactNumber || '');
+            setPersonalEmail(draft.personalEmail || '');
+            setBirthday(draft.birthday || '');
+            setExpectedGraduationDate(draft.expectedGraduationDate || '');
+            setRequiredHours(draft.requiredHours || '');
+            setBio(draft.bio || '');
+            setSkills(draft.skills || '');
+            
+            setIsFormLoaded(true);
+            return; // Skip supabase fetch
+          } else {
+            // Expired draft, clean it up
+            localStorage.removeItem('tp_profile_draft');
           }
-        });
-
-      if (role === 'intern') {
-        supabase
-          .from('interns')
-          .select('bio, skills')
-          .eq('email', user.email)
-          .single()
-          .then(({ data }) => {
-            if (data) {
-              if (data.bio) setBio(data.bio);
-              if (data.skills && Array.isArray(data.skills)) setSkills(data.skills.join(', '));
-            }
-          });
+        } catch (e) {
+          localStorage.removeItem('tp_profile_draft');
+        }
       }
-    } else if (!isSupabaseConfigured) {
-      setCurrentName('Demo User');
-      setFullName('Demo User');
+
+      if (isSupabaseConfigured) {
+        Promise.all([
+          supabase.from('profiles').select('*').eq('email', user.email).single(),
+          role === 'intern' ? supabase.from('interns').select('bio, skills').eq('email', user.email).single() : Promise.resolve({ data: null })
+        ]).then(([profilesRes, internsRes]) => {
+          const pData = profilesRes.data;
+          const iData = internsRes.data;
+          
+          if (pData) {
+            if (pData.full_name) {
+              setCurrentName(pData.full_name);
+              setFullName(pData.full_name);
+            }
+            if (pData.avatar_index !== null && pData.avatar_index !== undefined) {
+              setAvatarIndex(pData.avatar_index);
+              localStorage.setItem('tp_avatar', String(pData.avatar_index));
+            }
+            if (pData.avatar_url) setAvatarUrl(pData.avatar_url);
+            if (pData.gcash_qr_url) setGcashQrUrl(pData.gcash_qr_url);
+            if (pData.location) setLocation(pData.location);
+            if (pData.pin_location) setPinLocation(pData.pin_location);
+            if (pData.pin_location_name) setPinLocationName(pData.pin_location_name);
+            if (pData.program) setProgram(pData.program);
+            if (pData.current_year) setCurrentYear(pData.current_year);
+            if (pData.school) setSchool(pData.school);
+            if (pData.contact_number) setContactNumber(formatPHMobileNumber(pData.contact_number));
+            if (pData.personal_email) setPersonalEmail(pData.personal_email);
+            if (pData.birthday) setBirthday(pData.birthday);
+            if (pData.expected_graduation_date) setExpectedGraduationDate(pData.expected_graduation_date);
+            if (pData.required_hours) setRequiredHours(String(pData.required_hours));
+          }
+          if (iData) {
+            if (iData.bio) setBio(iData.bio);
+            if (iData.skills && Array.isArray(iData.skills)) setSkills(iData.skills.join(', '));
+          }
+          setIsFormLoaded(true);
+        });
+      } else {
+        setCurrentName('Demo User');
+        setFullName('Demo User');
+        setIsFormLoaded(true);
+      }
+    } else {
+      setIsFormLoaded(false);
     }
+    
     setAvatarIndex(getSavedAvatar());
     setAvatarUrl(localStorage.getItem('tp_avatar_url') || undefined);
-  }, [isOpen, user]);
+  }, [isOpen, user?.id, role]);
+
+  React.useEffect(() => {
+    if (isOpen && isFormLoaded) {
+      const draft = {
+        fullName, location, pinLocation, pinLocationName, program, currentYear, school, contactNumber, personalEmail, birthday, expectedGraduationDate, requiredHours, bio, skills,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('tp_profile_draft', JSON.stringify(draft));
+    }
+  }, [isOpen, isFormLoaded, fullName, location, pinLocation, pinLocationName, program, currentYear, school, contactNumber, personalEmail, birthday, expectedGraduationDate, requiredHours, bio, skills]);
 
   const handleSelectAvatar = async (idx: number) => {
     setAvatarIndex(idx);
@@ -398,6 +438,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
       }
 
       setSuccess('Profile updated successfully!');
+      localStorage.removeItem('tp_profile_draft');
       setPassword('');
       setConfirmPassword('');
       if (onSave) onSave();
