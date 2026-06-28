@@ -245,7 +245,7 @@ export const Dashboard: React.FC = () => {
                   onVerifyChange={handleVerifyChange}
                   onEditTask={handleEditDailyTask}
                   onDeleteIntern={role === 'admin' ? handleRemoveIntern : undefined}
-                  onDeleteTask={role === 'admin' ? removeDailyTask : undefined}
+                  onDeleteTask={removeDailyTask}
                   isAdmin={role === 'admin'}
                   onViewProfile={handleViewProfile}
                   onAddTask={addDailyTask}

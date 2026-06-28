@@ -206,15 +206,9 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
           {...attributes}
           {...listeners}
           onClick={() => {
-            // Prevent drag from triggering click by checking if we moved? dnd-kit handles this usually.
-            if (role === 'admin') {
-              // Admin: single click to edit
-              setEditName(taskName);
-              setIsEditing(true);
-            } else if (!isBlank) {
-              // Intern: single click to expand status (if not blank)
-              setIsStatusExpanded(!isStatusExpanded);
-            }
+            // Everyone: single click to edit
+            setEditName(taskName);
+            setIsEditing(true);
           }}
         >
           <span 
@@ -285,9 +279,8 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
             </>
             )}
 
-            {/* Delete Button (Admin only) */}
-              {role === 'admin' && (
-                <button
+            {/* Delete Button (Available to all) */}
+              <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onDeleteTask?.(id);
@@ -299,7 +292,6 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
                     <line x1="6" y1="6" x2="18" y2="18" />
                   </svg>
                 </button>
-              )}
             </div>
           </div>
       </div>
