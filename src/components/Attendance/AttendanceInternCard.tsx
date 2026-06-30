@@ -5,12 +5,19 @@ import { useAuth } from '../../contexts/AuthContext';
 import { getAvatarIcon, renderAvatar } from '../Dashboard/AvatarIcons';
 import { DailyRecordModal } from './DailyRecordModal';
 import { AdminFeedbackModal } from './AdminFeedbackModal';
+import { EditTimeModal } from './EditTimeModal';
 import { useState } from 'react';
+
+// ... (omitting unchanged code for brevity, but I must replace the exact lines)
+// Wait, I will just replace from 'import { useState }' to the component body
+
+// Actually I can just add import and then add state inside the component.
 
 interface AttendanceInternCardProps {
   record: AttendanceWithIntern;
   onStamp: (internName: string, action: AttendanceAction) => void;
   onUndoStamp: (internName: string, action: AttendanceAction) => void;
+  onEditTime?: (internName: string, action: AttendanceAction, isoString: string | null) => void;
   onTextChange: (internName: string, field: 'accomplishments' | 'admin_feedback', value: string) => void;
   isAdmin: boolean;
   showTimeColumns?: boolean;
@@ -78,9 +85,11 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
   onTextChange,
   isAdmin,
   showTimeColumns = true,
+  onEditTime,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [editTimeConfig, setEditTimeConfig] = useState<{isOpen: boolean; action: AttendanceAction; currentValue: string | null}>({ isOpen: false, action: 'time_in', currentValue: null });
   const { currentInternId, role } = useAuth();
   const { intern_name, time_in, break_out, break_in, time_out, total_hours } = record;
 
@@ -133,6 +142,7 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
             disabled={!isOwner || time_in !== null || isPastDate}
             onClick={() => onStamp(intern_name, 'time_in')}
             onUndo={(isOwner || isAdmin) ? () => onUndoStamp(intern_name, 'time_in') : undefined}
+            onEdit={isAdmin || isOwner ? () => setEditTimeConfig({ isOpen: true, action: 'time_in', currentValue: time_in }) : undefined}
             icon={ICONS.time_in}
           />
         </td>
@@ -147,6 +157,7 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
             disabled={!isOwner || !canBreakOut || isPastDate}
             onClick={() => onStamp(intern_name, 'break_out')}
             onUndo={(isOwner || isAdmin) ? () => onUndoStamp(intern_name, 'break_out') : undefined}
+            onEdit={isAdmin || isOwner ? () => setEditTimeConfig({ isOpen: true, action: 'break_out', currentValue: break_out }) : undefined}
             icon={ICONS.break_out}
           />
         </td>
@@ -161,6 +172,7 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
             disabled={!isOwner || !canBreakIn || isPastDate}
             onClick={() => onStamp(intern_name, 'break_in')}
             onUndo={(isOwner || isAdmin) ? () => onUndoStamp(intern_name, 'break_in') : undefined}
+            onEdit={isAdmin || isOwner ? () => setEditTimeConfig({ isOpen: true, action: 'break_in', currentValue: break_in }) : undefined}
             icon={ICONS.break_in}
           />
         </td>
@@ -175,6 +187,7 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
             disabled={!isOwner || !canTimeOut || isPastDate}
             onClick={() => onStamp(intern_name, 'time_out')}
             onUndo={(isOwner || isAdmin) ? () => onUndoStamp(intern_name, 'time_out') : undefined}
+            onEdit={isAdmin || isOwner ? () => setEditTimeConfig({ isOpen: true, action: 'time_out', currentValue: time_out }) : undefined}
             icon={ICONS.time_out}
           />
         </td>
@@ -269,6 +282,21 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
           onSave={(value) => onTextChange(intern_name, 'admin_feedback', value)}
           isAdmin={isAdmin}
         />
+
+        {editTimeConfig.isOpen && onEditTime && (
+          <EditTimeModal
+            isOpen={editTimeConfig.isOpen}
+            onClose={() => setEditTimeConfig(prev => ({ ...prev, isOpen: false }))}
+            onSave={(isoString) => {
+              onEditTime(intern_name, editTimeConfig.action, isoString);
+              setEditTimeConfig(prev => ({ ...prev, isOpen: false }));
+            }}
+            action={editTimeConfig.action}
+            date={record.attendance_date}
+            currentValue={editTimeConfig.currentValue}
+            internName={intern_name}
+          />
+        )}
       </td>
     </tr>
   );

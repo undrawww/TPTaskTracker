@@ -205,6 +205,57 @@ export function useAttendance() {
     }
   }, [selectedDate]);
 
+  // ── Edit a time stamp manually ────────────────────────────────
+  const editTimeAction = useCallback(async (internName: string, action: AttendanceAction, isoString: string | null) => {
+    setError(null);
+    const now = new Date().toISOString();
+
+    if (!isSupabaseConfigured) {
+      setRecords((prev) => {
+        const updated = prev.map((r) => {
+          if (r.intern_name !== internName) return r;
+          const patched = { ...r, [action]: isoString, updated_at: now };
+          patched.total_hours = computeHours(patched);
+          return patched;
+        });
+        localStorage.setItem(
+          `padua_attendance_${selectedDate}`,
+          JSON.stringify(updated.map(({ intern, ...rest }) => rest))
+        );
+        return updated;
+      });
+      return;
+    }
+
+    try {
+      const { error: upsertError } = await supabase
+        .from('attendance')
+        .upsert(
+          {
+            intern_name: internName,
+            attendance_date: selectedDate,
+            [action]: isoString,
+          },
+          { onConflict: 'intern_name,attendance_date' }
+        );
+
+      if (upsertError) throw upsertError;
+
+      setRecords((prev) =>
+        prev.map((r) => {
+          if (r.intern_name !== internName) return r;
+          const patched = { ...r, [action]: isoString, updated_at: now };
+          patched.total_hours = computeHours(patched);
+          return patched;
+        })
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to edit stamp';
+      setError(message);
+      console.error('Edit stamp error:', err);
+    }
+  }, [selectedDate]);
+
   // ── Update text fields (debounced) ────────────────────────────
   const updateText = useCallback(
     (internName: string, field: 'accomplishments' | 'admin_feedback', value: string) => {
@@ -294,6 +345,7 @@ export function useAttendance() {
     setSelectedDate,
     stampAction,
     undoStampAction,
+    editTimeAction,
     updateText,
     refetch: () => fetchAttendance(selectedDate),
   };

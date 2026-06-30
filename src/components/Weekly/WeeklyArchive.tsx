@@ -66,7 +66,7 @@ export const WeeklyArchive: React.FC<Props> = ({ interns, activeCommentTaskId, s
               key={dept}
               department={dept}
               interns={interns}
-              tasks={tasks.filter(t => t.status === 'Done')}
+              tasks={selectedWeek > 1 ? tasks.filter(t => t.status === 'Done') : tasks}
               onStatusChange={handleStatusChange}
               onVerifyChange={handleVerifyChange}
               activeCommentTaskId={activeCommentTaskId}

@@ -6,6 +6,7 @@ interface TimeStampButtonProps {
   disabled: boolean;
   onClick: () => void;
   onUndo?: () => void;
+  onEdit?: () => void;
   icon: React.ReactNode;
 }
 
@@ -26,6 +27,7 @@ export const TimeStampButton: React.FC<TimeStampButtonProps> = ({
   disabled,
   onClick,
   onUndo,
+  onEdit,
   icon,
 }) => {
   const isStamped = timestamp !== null;
@@ -52,27 +54,53 @@ export const TimeStampButton: React.FC<TimeStampButtonProps> = ({
               </svg>
             </button>
           )}
+          {onEdit && (
+            <button
+              onClick={onEdit}
+              title="Edit time manually"
+              className="absolute -left-6 w-4 h-4 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-500 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-blue-500 hover:text-white transition-all duration-200"
+            >
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
     );
   }
 
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`
-        w-10 h-10 mx-auto flex items-center justify-center rounded-xl
-        transition-all duration-200 group relative
-        ${disabled
-          ? 'bg-teal/10 dark:bg-white/5 text-teal dark:text-white/30 cursor-not-allowed opacity-70'
-          : 'bg-teal/10 dark:bg-gold/10 hover:bg-teal/20 dark:hover:bg-gold/20 text-teal dark:text-gold hover:text-[#004d5e] dark:hover:text-gold-dark border border-teal/30 dark:border-gold/30 hover:border-teal/50 dark:hover:border-gold/50 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer shadow-sm hover:shadow'
-        }
-      `}
-    >
-      <span className="w-5 h-5 flex items-center justify-center">
-        {icon}
-      </span>
-    </button>
+    <div className="relative inline-block group">
+      <button
+        onClick={onClick}
+        disabled={disabled}
+        className={`
+          w-10 h-10 mx-auto flex items-center justify-center rounded-xl
+          transition-all duration-200 relative
+          ${disabled
+            ? 'bg-teal/10 dark:bg-white/5 text-teal dark:text-white/30 cursor-not-allowed opacity-70'
+            : 'bg-teal/10 dark:bg-gold/10 hover:bg-teal/20 dark:hover:bg-gold/20 text-teal dark:text-gold hover:text-[#004d5e] dark:hover:text-gold-dark border border-teal/30 dark:border-gold/30 hover:border-teal/50 dark:hover:border-gold/50 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer shadow-sm hover:shadow'
+          }
+        `}
+      >
+        <span className="w-5 h-5 flex items-center justify-center">
+          {icon}
+        </span>
+      </button>
+      {onEdit && (
+        <button
+          onClick={onEdit}
+          title="Edit time manually"
+          className="absolute -right-1 -top-1 w-4 h-4 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-500 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-blue-500 hover:text-white transition-all duration-200 shadow-sm"
+        >
+          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+          </svg>
+        </button>
+      )}
+    </div>
   );
 };

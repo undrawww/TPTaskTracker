@@ -16,6 +16,7 @@ export const AttendanceView: React.FC = () => {
     setSelectedDate,
     stampAction,
     undoStampAction,
+    editTimeAction,
     updateText,
   } = useAttendance();
 
@@ -263,6 +264,7 @@ export const AttendanceView: React.FC = () => {
                       record={record}
                       onStamp={stampAction}
                       onUndoStamp={undoStampAction}
+                      onEditTime={editTimeAction}
                       onTextChange={updateText}
                       isAdmin={isAdmin}
                       showTimeColumns={showTimeColumns}

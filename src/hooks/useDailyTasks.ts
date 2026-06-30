@@ -39,9 +39,9 @@ export function useDailyTasks(date?: string) {
     if (!isSupabaseConfigured) {
       const stored = localStorage.getItem('padua_daily_tasks');
       if (stored) {
-        setTasks(JSON.parse(stored).filter((t: DailyTask) => t.task_date === targetDate));
+        setTasks(JSON.parse(stored).filter((t: DailyTask) => t.task_date === targetDate || (t.status !== 'Done' && t.task_date < targetDate)));
       } else {
-        setTasks(DEMO_DAILY_TASKS.filter((t) => t.task_date === targetDate));
+        setTasks(DEMO_DAILY_TASKS.filter((t) => t.task_date === targetDate || (t.status !== 'Done' && t.task_date < targetDate)));
         localStorage.setItem('padua_daily_tasks', JSON.stringify(DEMO_DAILY_TASKS));
       }
       setLoading(false);
@@ -52,7 +52,7 @@ export function useDailyTasks(date?: string) {
       let query = supabase
         .from('daily_tasks')
         .select('*')
-        .eq('task_date', targetDate)
+        .or(`task_date.eq.${targetDate},and(status.neq.Done,task_date.lt.${targetDate})`)
         .order('order_index', { ascending: true })
         .order('task_name', { ascending: true });
 
@@ -64,7 +64,7 @@ export function useDailyTasks(date?: string) {
         const fallbackQuery = await supabase
           .from('daily_tasks')
           .select('*')
-          .eq('task_date', targetDate)
+          .or(`task_date.eq.${targetDate},and(status.neq.Done,task_date.lt.${targetDate})`)
           .order('created_at', { ascending: true });
         data = fallbackQuery.data;
         fetchError = fallbackQuery.error;
