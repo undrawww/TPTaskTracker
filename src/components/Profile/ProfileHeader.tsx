@@ -41,12 +41,12 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, wee
     <div className="bg-white dark:bg-[#001a22] rounded-3xl border border-teal/10 dark:border-white/5 shadow-sm p-6 sm:p-8 flex flex-col md:flex-row gap-6 sm:gap-8 items-start relative animate-fade-in">
       
       {/* Left side: Avatar & Info */}
-      <div className="flex items-start gap-6 flex-1">
+      <div className="flex items-start gap-4 sm:gap-6 flex-1 min-w-0">
         <div className="w-20 h-20 sm:w-28 sm:h-28 shrink-0 rounded-full bg-teal/5 dark:bg-white/5 border-[3px] border-white dark:border-[#001f26] shadow-xl flex items-center justify-center overflow-hidden">
           {renderAvatar(intern.avatar_index, intern.avatar_url)}
         </div>
         
-        <div className="flex flex-col pt-1">
+        <div className="flex flex-col pt-1 min-w-0">
           <div className="flex items-center gap-3 mb-1">
             <h1 className="text-2xl sm:text-3xl font-bold text-teal dark:text-cream tracking-tight break-words">
               {intern.full_name}
@@ -90,7 +90,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, wee
             )}
           </div>
 
-          <div className="mt-4 flex items-center gap-4">
+          <div className="mt-4 flex flex-wrap items-center gap-2 sm:gap-4">
             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
               intern.status === 'Active' 
                 ? 'bg-status-done-bg text-status-done border border-status-done/20' 
