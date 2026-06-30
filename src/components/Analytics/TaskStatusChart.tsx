@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BarChart,
   Bar,
@@ -23,6 +23,13 @@ const STATUS_COLOR_MAP: Record<string, string> = {
 
 export const TaskStatusChart: React.FC<Props> = ({ data }) => {
   const { theme } = useTheme();
+  const [needsAngle, setNeedsAngle] = useState(window.innerWidth < 1440);
+
+  useEffect(() => {
+    const handleResize = () => setNeedsAngle(window.innerWidth < 1440);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const textColor = theme === 'light' ? '#003946' : '#f5e7c6';
   const gridColor = theme === 'light' ? 'rgba(0,57,70,0.08)' : 'rgba(245,231,198,0.08)';
@@ -49,7 +56,7 @@ export const TaskStatusChart: React.FC<Props> = ({ data }) => {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: textColor, fontWeight: 'bold' }} tickLine={false} axisLine={false} interval={0} />
+              <XAxis dataKey="name" tick={{ fontSize: needsAngle ? 10 : 11, fill: textColor, fontWeight: 'bold' }} tickLine={false} axisLine={false} interval={0} angle={needsAngle ? -45 : 0} textAnchor={needsAngle ? "end" : "middle"} height={needsAngle ? 45 : 30} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: tooltipBg,
