@@ -119,39 +119,40 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
       if (isSupabaseConfigured) {
         Promise.all([
           supabase.from('profiles').select('*').eq('email', user.email).single(),
-          role === 'intern' ? supabase.from('interns').select('bio, skills').eq('email', user.email).single() : Promise.resolve({ data: null })
+          role === 'intern' ? supabase.from('interns').select('*').eq('email', user.email).single() : Promise.resolve({ data: null })
         ]).then(([profilesRes, internsRes]) => {
           const pData = profilesRes.data;
           const iData = internsRes.data;
           
-          if (pData) {
-            if (pData.full_name) {
-              setCurrentName(pData.full_name);
-              setFullName(pData.full_name);
+          // Merge data, using iData as fallback if pData is missing/null, but giving pData precedence
+          const merged = { ...(iData || {}), ...(pData || {}) };
+          
+          if (Object.keys(merged).length > 0) {
+            if (merged.full_name) {
+              setCurrentName(merged.full_name);
+              setFullName(merged.full_name);
             }
-            if (pData.avatar_index !== null && pData.avatar_index !== undefined) {
-              setAvatarIndex(pData.avatar_index);
-              localStorage.setItem('tp_avatar', String(pData.avatar_index));
+            if (merged.avatar_index !== null && merged.avatar_index !== undefined) {
+              setAvatarIndex(merged.avatar_index);
+              localStorage.setItem('tp_avatar', String(merged.avatar_index));
             }
-            if (pData.avatar_url) setAvatarUrl(pData.avatar_url);
-            if (pData.gcash_qr_url) setGcashQrUrl(pData.gcash_qr_url);
-            if (pData.location) setLocation(pData.location);
-            if (pData.pin_location) setPinLocation(pData.pin_location);
-            if (pData.pin_location_name) setPinLocationName(pData.pin_location_name);
-            if (pData.program) setProgram(pData.program);
-            if (pData.current_year) setCurrentYear(pData.current_year);
-            if (pData.school) setSchool(pData.school);
-            if (pData.businesses) setBusiness(pData.businesses);
-            else if (pData.business) setBusiness([pData.business]);
-            if (pData.contact_number) setContactNumber(formatPHMobileNumber(pData.contact_number));
-            if (pData.personal_email) setPersonalEmail(pData.personal_email);
-            if (pData.birthday) setBirthday(pData.birthday);
-            if (pData.expected_graduation_date) setExpectedGraduationDate(pData.expected_graduation_date);
-            if (pData.required_hours) setRequiredHours(String(pData.required_hours));
-          }
-          if (iData) {
-            if (iData.bio) setBio(iData.bio);
-            if (iData.skills && Array.isArray(iData.skills)) setSkills(iData.skills);
+            if (merged.avatar_url) setAvatarUrl(merged.avatar_url);
+            if (merged.gcash_qr_url) setGcashQrUrl(merged.gcash_qr_url);
+            if (merged.location) setLocation(merged.location);
+            if (merged.pin_location) setPinLocation(merged.pin_location);
+            if (merged.pin_location_name) setPinLocationName(merged.pin_location_name);
+            if (merged.program) setProgram(merged.program);
+            if (merged.current_year) setCurrentYear(merged.current_year);
+            if (merged.school) setSchool(merged.school);
+            if (merged.businesses) setBusiness(merged.businesses);
+            else if (merged.business) setBusiness([merged.business]);
+            if (merged.contact_number) setContactNumber(formatPHMobileNumber(merged.contact_number));
+            if (merged.personal_email) setPersonalEmail(merged.personal_email);
+            if (merged.birthday) setBirthday(merged.birthday);
+            if (merged.expected_graduation_date) setExpectedGraduationDate(merged.expected_graduation_date);
+            if (merged.required_hours) setRequiredHours(String(merged.required_hours));
+            if (merged.bio) setBio(merged.bio);
+            if (merged.skills && Array.isArray(merged.skills)) setSkills(merged.skills);
           }
           setIsFormLoaded(true);
         });
@@ -761,6 +762,22 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
                         tags={business} 
                         onChange={setBusiness} 
                       />
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {['Maxilink', 'SunLife', 'PruLife UK', 'FWD', 'Philam Life'].map(biz => (
+                          <button
+                            key={biz}
+                            type="button"
+                            onClick={() => {
+                              if (!business.includes(biz)) {
+                                setBusiness([...business, biz]);
+                              }
+                            }}
+                            className="px-2.5 py-1 text-[10px] font-semibold bg-teal/5 dark:bg-white/5 text-teal/70 dark:text-cream/70 rounded-lg hover:bg-teal/10 dark:hover:bg-white/10 transition-colors"
+                          >
+                            + {biz}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                     {role === 'intern' && (
                       <>

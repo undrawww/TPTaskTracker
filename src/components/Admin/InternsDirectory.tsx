@@ -57,6 +57,7 @@ export const InternsDirectory: React.FC<Props> = ({ onViewProfile }) => {
                 <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">School</th>
                 <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">Program</th>
                 <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">Graduation</th>
+                <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">Businesses</th>
                 <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">Req. Hours</th>
                 <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">Location</th>
               </tr>
@@ -120,6 +121,19 @@ export const InternsDirectory: React.FC<Props> = ({ onViewProfile }) => {
                   </td>
                   <td className="px-5 py-4 align-middle">
                     <span className="text-[13px] text-teal dark:text-cream">{intern.expected_graduation_date || '—'}</span>
+                  </td>
+                  <td className="px-5 py-4 align-middle">
+                    <div className="flex flex-wrap gap-1">
+                      {intern.businesses && intern.businesses.length > 0 ? (
+                        intern.businesses.map(biz => (
+                          <span key={biz} className="px-2 py-0.5 bg-teal/5 dark:bg-white/5 text-teal/70 dark:text-cream/70 text-[10px] font-semibold rounded-md">
+                            {biz}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs text-teal/30 dark:text-cream/20 italic">None</span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-5 py-4 align-middle">
                     <span className="text-[13px] font-semibold text-teal dark:text-cream">{intern.required_hours ? `${intern.required_hours} hrs` : '—'}</span>

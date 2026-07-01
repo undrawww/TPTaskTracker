@@ -22,10 +22,11 @@ const DEPT_INITIALS: Record<Department, string> = {
 export function useAnalytics(interns: Intern[], dailyTasks: DailyTask[]): AnalyticsData {
   return useMemo(() => {
     const validTasks = dailyTasks.filter(t => t.task_name.trim() !== '');
+    const isTaskDone = (t: DailyTask) => t.is_verified || t.status === 'Done';
     const todayTotal = validTasks.length;
-    const completedTotal = validTasks.filter((t) => t.is_verified).length;
+    const completedTotal = validTasks.filter(isTaskDone).length;
 
-    // Department completion rates (only verified tasks count)
+    // Department completion rates (verified or Done tasks count)
     const departmentCompletion = DEPARTMENTS
       .filter((dept: Department) => dept !== 'BizDev Leadership Team' && (dept as string) !== 'BizDev Team')
       .map((dept: Department) => {
@@ -33,7 +34,7 @@ export function useAnalytics(interns: Intern[], dailyTasks: DailyTask[]): Analyt
         .filter((i) => i.department === dept)
         .map((i) => i.id);
       const deptTasks = validTasks.filter((t) => deptInternIds.includes(t.intern_id));
-      const deptDone = deptTasks.filter((t) => t.is_verified).length;
+      const deptDone = deptTasks.filter(isTaskDone).length;
       const total = deptTasks.length;
       return {
         department: DEPT_INITIALS[dept],
@@ -48,8 +49,8 @@ export function useAnalytics(interns: Intern[], dailyTasks: DailyTask[]): Analyt
       .filter((intern) => intern.department !== 'BizDev Leadership Team' && (intern.department as string) !== 'BizDev Team')
       .map((intern) => {
       const internTasks = validTasks.filter((t) => t.intern_id === intern.id);
-      const active = internTasks.filter((t) => !t.is_verified).length;
-      const done = internTasks.filter((t) => t.is_verified).length;
+      const active = internTasks.filter((t) => !isTaskDone(t)).length;
+      const done = internTasks.filter(isTaskDone).length;
       return {
         name: intern.full_name.split(' ')[0], // first name for chart brevity
         active,
