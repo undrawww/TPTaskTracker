@@ -241,9 +241,9 @@ export function useDailyTasks(date?: string) {
     async (taskId: string, status: TaskStatus) => {
       if (!isSupabaseConfigured) {
         setTasks((prev) => {
-          const next = prev.map((t) => (t.id === taskId ? { ...t, status } : t));
+          const next = prev.map((t) => (t.id === taskId ? { ...t, status, task_date: targetDate } : t));
           const allStored = JSON.parse(localStorage.getItem('padua_daily_tasks') || '[]');
-          const updatedStored = allStored.map((t: DailyTask) => t.id === taskId ? { ...t, status } : t);
+          const updatedStored = allStored.map((t: DailyTask) => t.id === taskId ? { ...t, status, task_date: targetDate } : t);
           localStorage.setItem('padua_daily_tasks', JSON.stringify(updatedStored));
           return next;
         });
@@ -253,7 +253,7 @@ export function useDailyTasks(date?: string) {
       try {
         const { data, error: updateError } = await supabase
           .from('daily_tasks')
-          .update({ status })
+          .update({ status, task_date: targetDate })
           .eq('id', taskId)
           .select();
 
@@ -265,7 +265,7 @@ export function useDailyTasks(date?: string) {
         }
 
         setTasks((prev) =>
-          prev.map((t) => (t.id === taskId ? { ...t, status } : t))
+          prev.map((t) => (t.id === taskId ? { ...t, status, task_date: targetDate } : t))
         );
         return { success: true };
       } catch (err) {
@@ -274,7 +274,7 @@ export function useDailyTasks(date?: string) {
         return { success: false, error: message };
       }
     },
-    []
+    [targetDate]
   );
 
   const removeTask = async (id: string) => {

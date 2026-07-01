@@ -41,6 +41,7 @@ export interface Intern {
   birthday?: string;
   expected_graduation_date?: string;
   required_hours?: number;
+  businesses?: string[];
   // Profile fields
   status?: string;
   gcash_qr_url?: string;

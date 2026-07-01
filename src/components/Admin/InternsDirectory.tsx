@@ -1,6 +1,7 @@
 import React from 'react';
 import { useInterns } from '../../hooks/useInterns';
 import { getAvatarIcon, renderAvatar } from '../Dashboard/AvatarIcons';
+import { formatAddress } from '../../utils/formatAddress';
 
 interface Props {
   onViewProfile?: (id: string) => void;
@@ -124,7 +125,7 @@ export const InternsDirectory: React.FC<Props> = ({ onViewProfile }) => {
                     <span className="text-[13px] font-semibold text-teal dark:text-cream">{intern.required_hours ? `${intern.required_hours} hrs` : '—'}</span>
                   </td>
                   <td className="px-5 py-4 align-middle">
-                    <span className="text-[13px] text-teal dark:text-cream">{intern.location || '—'}</span>
+                    <span className="text-[13px] text-teal dark:text-cream">{formatAddress(intern.location)}</span>
                   </td>
                 </tr>
               ))}

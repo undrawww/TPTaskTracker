@@ -43,6 +43,10 @@ export const ProfileAbout: React.FC<ProfileAboutProps> = ({ intern, role }) => {
             {intern.program || '-'} {intern.current_year ? `(${intern.current_year})` : ''}
           </p>
         </div>
+        <div>
+          <p className="text-[11px] font-bold text-teal/50 dark:text-cream/40 uppercase tracking-wider mb-1">Businesses</p>
+          <p className="text-sm font-semibold text-teal dark:text-cream">{intern.businesses?.join(', ') || '-'}</p>
+        </div>
       </div>
 
       <div className="mt-auto pt-6 border-t border-teal/10 dark:border-white/5">

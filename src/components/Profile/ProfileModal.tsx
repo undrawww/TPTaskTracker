@@ -4,6 +4,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { AVATAR_COUNT, AVATAR_LABELS, renderAvatar } from '../Dashboard/AvatarIcons';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../../utils/cropImage';
+import { AddressInput } from './AddressInput';
+import { TagInput } from '../common/TagInput';
 
 interface Props {
   isOpen: boolean;
@@ -48,13 +50,14 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
   const [program, setProgram] = useState('');
   const [currentYear, setCurrentYear] = useState('');
   const [school, setSchool] = useState('');
+  const [business, setBusiness] = useState<string[]>([]);
   const [contactNumber, setContactNumber] = useState('');
   const [personalEmail, setPersonalEmail] = useState('');
   const [birthday, setBirthday] = useState('');
   const [expectedGraduationDate, setExpectedGraduationDate] = useState('');
   const [requiredHours, setRequiredHours] = useState('');
   const [bio, setBio] = useState('');
-  const [skills, setSkills] = useState('');
+  const [skills, setSkills] = useState<string[]>([]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [currentName, setCurrentName] = useState<string>('');
@@ -93,13 +96,14 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
             setProgram(draft.program || '');
             setCurrentYear(draft.currentYear || '');
             setSchool(draft.school || '');
+            setBusiness(draft.businesses || (draft.business ? [draft.business] : []));
             setContactNumber(draft.contactNumber || '');
             setPersonalEmail(draft.personalEmail || '');
             setBirthday(draft.birthday || '');
             setExpectedGraduationDate(draft.expectedGraduationDate || '');
             setRequiredHours(draft.requiredHours || '');
             setBio(draft.bio || '');
-            setSkills(draft.skills || '');
+            setSkills(draft.skills || []);
             
             setIsFormLoaded(true);
             return; // Skip supabase fetch
@@ -137,6 +141,8 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
             if (pData.program) setProgram(pData.program);
             if (pData.current_year) setCurrentYear(pData.current_year);
             if (pData.school) setSchool(pData.school);
+            if (pData.businesses) setBusiness(pData.businesses);
+            else if (pData.business) setBusiness([pData.business]);
             if (pData.contact_number) setContactNumber(formatPHMobileNumber(pData.contact_number));
             if (pData.personal_email) setPersonalEmail(pData.personal_email);
             if (pData.birthday) setBirthday(pData.birthday);
@@ -145,7 +151,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
           }
           if (iData) {
             if (iData.bio) setBio(iData.bio);
-            if (iData.skills && Array.isArray(iData.skills)) setSkills(iData.skills.join(', '));
+            if (iData.skills && Array.isArray(iData.skills)) setSkills(iData.skills);
           }
           setIsFormLoaded(true);
         });
@@ -407,6 +413,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
           program,
           current_year: currentYear,
           school,
+          businesses: business,
           contact_number: contactNumber,
           personal_email: personalEmail,
           birthday: birthday || null,
@@ -422,13 +429,12 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
         if (profileError) throw profileError;
 
         if (role === 'intern') {
-          const skillsArray = skills ? skills.split(',').map(s => s.trim()).filter(Boolean) : [];
           const { error: internError } = await supabase
             .from('interns')
             .update({ 
               ...updateData,
               bio, 
-              skills: skillsArray
+              skills: skills
             })
             .eq('email', user.email);
           if (internError) throw internError;
@@ -741,6 +747,14 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
                         className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold"
                       />
                     </div>
+                    <div>
+                      <TagInput 
+                        label="Businesses"
+                        placeholder="e.g. Maxilink, SunLife" 
+                        tags={business} 
+                        onChange={setBusiness} 
+                      />
+                    </div>
                     {role === 'intern' && (
                       <>
                         <div>
@@ -754,24 +768,15 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Skills</label>
-                          <input
-                            type="text"
-                            value={skills}
-                            onChange={(e) => setSkills(e.target.value)}
-                            placeholder="e.g., React, TypeScript, Communication (comma separated)"
-                            className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold"
+                          <TagInput 
+                            label="Skills"
+                            placeholder="e.g., React, TypeScript, Communication" 
+                            tags={skills} 
+                            onChange={setSkills} 
                           />
                         </div>
-                        <div>
-                          <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Location (Text)</label>
-                          <input 
-                            type="text" 
-                            placeholder="City, Country"
-                            value={location} 
-                            onChange={(e) => setLocation(e.target.value)} 
-                            className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold" 
-                          />
+                        <div className="bg-teal/5 dark:bg-white/5 p-4 rounded-2xl border border-teal/10 dark:border-white/10">
+                          <AddressInput value={location} onChange={setLocation} />
                         </div>
                         <div>
                           <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Pin Location Name</label>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { Intern, DailyTask } from '../../types';
 import { renderAvatar } from '../Dashboard/AvatarIcons';
+import { formatAddress } from '../../utils/formatAddress';
 
 interface ProfileHeaderProps {
   intern: Intern;
@@ -73,7 +74,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, wee
             {intern.location && (
               <div className="flex items-start gap-2 min-w-0">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                <span className="break-words">{intern.location}</span>
+                <span className="break-words">{formatAddress(intern.location)}</span>
               </div>
             )}
             {intern.pin_location && (
