@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { useInterns } from './useInterns';
+import { sendNotification } from './useNotifications';
 import type { AttendanceRecord, AttendanceAction, AttendanceWithIntern } from '../types';
 
 /** Get today's date as YYYY-MM-DD in local timezone */
@@ -316,6 +317,38 @@ export function useAttendance() {
               setError("Admins need permission to edit attendance/feedback. Please run the SQL command provided in the fix.");
             } else {
               console.error('Text sync error:', upsertError);
+            }
+          } else if (field === 'admin_feedback' && value.trim()) {
+            // Notify the intern that admin left feedback
+            let internEmail = '';
+            
+            // Try to find from current state (might be stale due to useCallback deps)
+            const record = records.find(r => r.intern_name === internName);
+            if (record?.intern?.email) {
+              internEmail = record.intern.email;
+            } else {
+              // Fetch directly to be safe
+              try {
+                const { data } = await supabase
+                  .from('interns')
+                  .select('email')
+                  .eq('full_name', internName)
+                  .single();
+                if (data?.email) internEmail = data.email;
+              } catch (e) {
+                console.warn('Could not find intern email for feedback notification');
+              }
+            }
+
+            if (internEmail) {
+              const authorName = localStorage.getItem('tp_avatar_name') || 'Admin';
+              sendNotification(
+                internEmail,
+                'feedback',
+                `${authorName} left feedback`,
+                `Feedback on your ${selectedDate} attendance record`,
+                { intern_name: internName, date: selectedDate }
+              );
             }
           }
         } catch (err) {

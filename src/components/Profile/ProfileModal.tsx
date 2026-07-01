@@ -192,6 +192,13 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
         .from('profiles')
         .update({ avatar_index: idx })
         .eq('email', user.email);
+        
+      if (role === 'intern') {
+        await supabase
+          .from('interns')
+          .update({ avatar_index: idx })
+          .eq('email', user.email);
+      }
     }
 
     // Dispatch a storage event so the header and dashboard update live

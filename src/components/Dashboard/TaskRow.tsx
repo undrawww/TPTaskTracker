@@ -125,6 +125,17 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
     }
   }, [activeCommentTaskId, id, loadCommentCount]);
 
+  useEffect(() => {
+    const handleCommentsChanged = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail?.taskId === id) {
+        loadCommentCount();
+      }
+    };
+    window.addEventListener('task-comments-changed', handleCommentsChanged);
+    return () => window.removeEventListener('task-comments-changed', handleCommentsChanged);
+  }, [id, loadCommentCount]);
+
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const isChecked = e.target.checked;
     if (onVerifyChange) {

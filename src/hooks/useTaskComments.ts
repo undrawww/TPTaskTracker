@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
+import { sendNotification } from './useNotifications';
 
 export interface TaskComment {
   id: string;
@@ -10,6 +11,13 @@ export interface TaskComment {
   created_at: string;
   avatar_index?: number;
   avatar_url?: string;
+}
+
+/** Optional metadata to send notifications when comments are posted */
+export interface CommentNotifyOptions {
+  taskName: string;
+  internEmail?: string;    // Email of the intern who owns the task
+  adminEmails?: string[];  // Emails of admins to notify
 }
 
 const STORAGE_KEY = 'padua_task_comments';
@@ -51,25 +59,45 @@ export function useTaskComments(taskId: string) {
       
       let commentsData = data ?? [];
       
-      // Fetch avatars based on author_name
+      // Fetch avatars based on author_name and role
       if (commentsData.length > 0) {
-        const names = Array.from(new Set(commentsData.map(c => c.author_name)));
-        const { data: profilesData } = await supabase
-          .from('profiles')
-          .select('full_name, avatar_index, avatar_url')
-          .in('full_name', names);
-          
-        if (profilesData) {
-          const avatarMap = new Map(profilesData.map(p => [p.full_name, { index: p.avatar_index, url: p.avatar_url }]));
-          commentsData = commentsData.map(c => {
-            const avatarData = avatarMap.get(c.author_name);
-            return {
-              ...c,
-              avatar_index: avatarData?.index ?? undefined,
-              avatar_url: avatarData?.url ?? undefined
-            };
-          });
+        const adminNames = Array.from(new Set(commentsData.filter(c => c.author_role === 'admin').map(c => c.author_name)));
+        const internNames = Array.from(new Set(commentsData.filter(c => c.author_role === 'intern').map(c => c.author_name)));
+        
+        const avatarMap = new Map<string, { index: number | null, url: string | null }>();
+
+        // Fetch admin avatars from profiles
+        if (adminNames.length > 0) {
+          const { data: profilesData } = await supabase
+            .from('profiles')
+            .select('full_name, avatar_index, avatar_url')
+            .in('full_name', adminNames);
+            
+          if (profilesData) {
+            profilesData.forEach(p => avatarMap.set(p.full_name, { index: p.avatar_index, url: p.avatar_url }));
+          }
         }
+
+        // Fetch intern avatars from interns table
+        if (internNames.length > 0) {
+          const { data: internsData } = await supabase
+            .from('interns')
+            .select('full_name, avatar_index, avatar_url')
+            .in('full_name', internNames);
+            
+          if (internsData) {
+            internsData.forEach(i => avatarMap.set(i.full_name, { index: i.avatar_index, url: i.avatar_url }));
+          }
+        }
+
+        commentsData = commentsData.map(c => {
+          const avatarData = avatarMap.get(c.author_name);
+          return {
+            ...c,
+            avatar_index: avatarData?.index ?? undefined,
+            avatar_url: avatarData?.url ?? undefined
+          };
+        });
       }
       
       setComments(commentsData);
@@ -120,10 +148,13 @@ export function useTaskComments(taskId: string) {
   }, [taskId]);
 
   const addComment = useCallback(
-    async (content: string, authorName: string, authorRole: 'admin' | 'intern') => {
+    async (content: string, authorName: string, authorRole: 'admin' | 'intern', notifyOptions?: CommentNotifyOptions) => {
       if (!content.trim()) return;
 
       if (!isSupabaseConfigured) {
+        const localAvatar = localStorage.getItem('tp_avatar');
+        const localAvatarUrl = localStorage.getItem('tp_avatar_url');
+        
         const newComment: TaskComment = {
           id: `tc-${Date.now()}`,
           task_id: taskId,
@@ -131,11 +162,14 @@ export function useTaskComments(taskId: string) {
           author_role: authorRole,
           content: content.trim(),
           created_at: new Date().toISOString(),
+          avatar_index: localAvatar ? parseInt(localAvatar, 10) : undefined,
+          avatar_url: localAvatarUrl || undefined
         };
         const all = getStoredComments();
         all.push(newComment);
         saveStoredComments(all);
         setComments((prev) => [...prev, newComment]);
+        window.dispatchEvent(new CustomEvent('task-comments-changed', { detail: { taskId } }));
         return;
       }
 
@@ -155,13 +189,97 @@ export function useTaskComments(taskId: string) {
 
         if (error) throw error;
         if (data) {
-          // Read local avatar index to show immediately
+          // Read local avatar to show immediately
           const localAvatar = localStorage.getItem('tp_avatar');
+          const localAvatarUrl = localStorage.getItem('tp_avatar_url');
+          
           const commentWithAvatar: TaskComment = {
             ...data,
-            avatar_index: localAvatar ? parseInt(localAvatar, 10) : undefined
+            avatar_index: localAvatar ? parseInt(localAvatar, 10) : undefined,
+            avatar_url: localAvatarUrl || undefined
           };
           setComments((prev) => [...prev, commentWithAvatar]);
+          window.dispatchEvent(new CustomEvent('task-comments-changed', { detail: { taskId } }));
+
+          // ── Auto-discover and send notifications ────────────
+          const snippet = content.trim().length > 60 ? content.trim().substring(0, 60) + '…' : content.trim();
+
+          try {
+            // Look up the task to get the intern_id and task_name
+            const { data: taskData } = await supabase
+              .from('daily_tasks')
+              .select('task_name, intern_id')
+              .eq('id', taskId)
+              .single();
+
+            if (taskData) {
+              const taskName = notifyOptions?.taskName || taskData.task_name;
+
+              if (authorRole === 'intern') {
+                // Intern commented → notify all admins
+                const adminEmails = notifyOptions?.adminEmails;
+                let emails: string[] = [];
+
+                if (adminEmails && adminEmails.length > 0) {
+                  emails = adminEmails;
+                } else {
+                  // Auto-discover admin emails
+                  const { data: admins } = await supabase
+                    .from('profiles')
+                    .select('email')
+                    .eq('role', 'admin');
+                  emails = (admins ?? []).map((a) => a.email).filter(Boolean);
+                }
+
+                console.log('[Notification Debug] Intern commented. Admins to notify:', emails);
+
+                for (const adminEmail of emails) {
+                  sendNotification(
+                    adminEmail,
+                    'comment',
+                    `${authorName} commented`,
+                    `"${snippet}" on task "${taskName}"`,
+                    { task_id: taskId, task_name: taskName }
+                  );
+                }
+              } else if (authorRole === 'admin') {
+                // Admin commented → notify the intern who owns the task
+                let internEmail = notifyOptions?.internEmail;
+
+                if (!internEmail && taskData.intern_id) {
+                  const { data: internData, error: internError } = await supabase
+                    .from('interns')
+                    .select('email')
+                    .eq('id', taskData.intern_id)
+                    .single();
+                  
+                  if (internError) {
+                    console.error('[Notification Debug] Error fetching intern email:', internError);
+                  }
+                  internEmail = internData?.email;
+                }
+
+                console.log('[Notification Debug] Admin commented. Intern to notify:', internEmail);
+
+                if (internEmail) {
+                  sendNotification(
+                    internEmail,
+                    'comment',
+                    `${authorName} commented`,
+                    `"${snippet}" on your task "${taskName}"`,
+                    { task_id: taskId, task_name: taskName }
+                  );
+                } else {
+                  console.warn('[Notification Debug] Could not find an email for the intern to notify.');
+                }
+              }
+            } else {
+              console.warn('[Notification Debug] Task data not found for ID:', taskId);
+            }
+          } catch (notifErr) {
+            // Don't block comment posting if notification fails
+            console.warn('Could not send comment notification:', notifErr);
+          }
         }
       } catch (err) {
         console.error('Error adding comment:', err);
@@ -176,6 +294,7 @@ export function useTaskComments(taskId: string) {
         const all = getStoredComments().filter((c) => c.id !== commentId);
         saveStoredComments(all);
         setComments((prev) => prev.filter((c) => c.id !== commentId));
+        window.dispatchEvent(new CustomEvent('task-comments-changed', { detail: { taskId } }));
         return;
       }
 
@@ -183,6 +302,7 @@ export function useTaskComments(taskId: string) {
         const { error } = await supabase.from('task_comments').delete().eq('id', commentId);
         if (error) throw error;
         setComments((prev) => prev.filter((c) => c.id !== commentId));
+        window.dispatchEvent(new CustomEvent('task-comments-changed', { detail: { taskId } }));
       } catch (err) {
         console.error('Error deleting comment:', err);
       }

@@ -11,6 +11,7 @@ import { WeeklyArchive } from '../components/Weekly/WeeklyArchive';
 import { ProfileModal } from '../components/Profile/ProfileModal';
 import { DashboardSkeleton, InternsSkeleton } from '../components/Skeleton/DashboardSkeleton';
 import { HeaderProfileMenu } from '../components/Header/HeaderProfileMenu';
+import { NotificationBell } from '../components/Header/NotificationBell';
 import { Sidebar } from '../components/Layout/Sidebar';
 import { AttendanceView } from '../components/Attendance/AttendanceView';
 import { InternsDirectory } from '../components/Admin/InternsDirectory';
@@ -195,6 +196,7 @@ export const Dashboard: React.FC = () => {
             </div>
             {/* Header Right */}
             <div className="flex items-center gap-3 pr-2">
+              <NotificationBell />
               <HeaderProfileMenu 
                 onLogout={handleLogout} 
                 onViewMyProfile={() => handleViewChange('profile')}

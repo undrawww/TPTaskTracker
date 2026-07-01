@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
+import { sendNotification } from './useNotifications';
 import type { DailyTask, TaskStatus } from '../types';
 
 /** Helper to get local date in YYYY-MM-DD format */
@@ -225,6 +226,50 @@ export function useDailyTasks(date?: string) {
             const next = [...prev, ...data];
             return next.sort((a, b) => (Number(a.order_index) || 0) - (Number(b.order_index) || 0));
           });
+
+          // ── Auto-discover and notify intern about new task ──────────────────────
+          if (taskName.trim()) {
+            try {
+              // Find the intern's email
+              const { data: internData } = await supabase
+                .from('interns')
+                .select('email')
+                .eq('id', internId)
+                .single();
+              
+              const internEmail = internData?.email;
+
+              // Find assigner's name
+              let assignerName = 'An Admin';
+              if (userData.user?.email) {
+                const { data: profile } = await supabase
+                  .from('profiles')
+                  .select('full_name')
+                  .eq('email', userData.user.email)
+                  .single();
+                if (profile?.full_name) {
+                  assignerName = profile.full_name;
+                }
+              } else {
+                assignerName = localStorage.getItem('tp_avatar_name') || assignerName;
+              }
+
+              if (internEmail) {
+                console.log('[Notification Debug] Task Assigned. Intern to notify:', internEmail);
+                sendNotification(
+                  internEmail,
+                  'task_assigned',
+                  `${assignerName} assigned you a task`,
+                  `"${taskName}" has been added to your daily tasks`,
+                  { task_name: taskName, intern_id: internId }
+                );
+              } else {
+                console.warn('[Notification Debug] Task Assigned. Could not find intern email for internId:', internId);
+              }
+            } catch (notifErr) {
+              console.warn('Could not send task assignment notification:', notifErr);
+            }
+          }
         }
         return { success: true };
       } catch (err) {
@@ -267,6 +312,74 @@ export function useDailyTasks(date?: string) {
         setTasks((prev) =>
           prev.map((t) => (t.id === taskId ? { ...t, status, task_date: targetDate } : t))
         );
+
+        // ── Auto-discover and send notifications ──────────
+        if (status === 'Done') {
+          try {
+            const taskData = data[0];
+            const taskName = taskData.task_name;
+            const internId = taskData.intern_id;
+
+            // Get current user to see who is doing the action
+            const { data: authData } = await supabase.auth.getUser();
+            const currentUserEmail = authData.user?.email;
+
+            // Determine if current user is admin
+            let isCurrentUserAdmin = false;
+            let currentUserName = 'Someone';
+            
+            if (currentUserEmail) {
+              const { data: profile } = await supabase.from('profiles').select('role, full_name').eq('email', currentUserEmail).single();
+              if (profile) {
+                isCurrentUserAdmin = profile.role === 'admin';
+                currentUserName = profile.full_name || currentUserName;
+              }
+            }
+
+            // Find intern info
+            const { data: internData } = await supabase
+              .from('interns')
+              .select('full_name, email')
+              .eq('id', internId)
+              .single();
+            const internName = internData?.full_name || 'An intern';
+            const internEmail = internData?.email;
+
+            if (isCurrentUserAdmin) {
+              // Admin marked it as Done -> Notify Intern
+              if (internEmail) {
+                sendNotification(
+                  internEmail,
+                  'task_done',
+                  `${currentUserName} updated your task`,
+                  `"${taskName}" has been marked as Done`,
+                  { task_id: taskId, task_name: taskName }
+                );
+              }
+            } else {
+              // Intern marked it as Done -> Notify Admins
+              const { data: admins } = await supabase
+                .from('profiles')
+                .select('email')
+                .eq('role', 'admin');
+              
+              const adminEmails = (admins ?? []).map((a) => a.email).filter(Boolean);
+              
+              for (const adminEmail of adminEmails) {
+                sendNotification(
+                  adminEmail,
+                  'task_done',
+                  `${internName} completed a task`,
+                  `"${taskName}" has been marked as Done`,
+                  { task_id: taskId, task_name: taskName }
+                );
+              }
+            }
+          } catch (notifErr) {
+            console.warn('Could not send task completion notification:', notifErr);
+          }
+        }
+
         return { success: true };
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to update status';
