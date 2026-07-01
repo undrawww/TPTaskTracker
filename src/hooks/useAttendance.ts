@@ -135,7 +135,12 @@ export function useAttendance() {
           { onConflict: 'intern_name,attendance_date' }
         );
 
-      if (upsertError) throw upsertError;
+      if (upsertError) {
+        if (upsertError.message.toLowerCase().includes('row-level security') || upsertError.code === '42501') {
+          throw new Error("Admins need permission to edit attendance. Please run the SQL command provided in the fix to allow Admins to edit attendance.");
+        }
+        throw upsertError;
+      }
 
       // Optimistic update
       setRecords((prev) =>
@@ -187,7 +192,12 @@ export function useAttendance() {
           { onConflict: 'intern_name,attendance_date' }
         );
 
-      if (upsertError) throw upsertError;
+      if (upsertError) {
+        if (upsertError.message.toLowerCase().includes('row-level security') || upsertError.code === '42501') {
+          throw new Error("Admins need permission to edit attendance. Please run the SQL command provided in the fix to allow Admins to edit attendance.");
+        }
+        throw upsertError;
+      }
 
       // Optimistic update
       setRecords((prev) =>
@@ -239,7 +249,12 @@ export function useAttendance() {
           { onConflict: 'intern_name,attendance_date' }
         );
 
-      if (upsertError) throw upsertError;
+      if (upsertError) {
+        if (upsertError.message.toLowerCase().includes('row-level security') || upsertError.code === '42501') {
+          throw new Error("Admins need permission to edit attendance. Please run the SQL command provided in the fix to allow Admins to edit attendance.");
+        }
+        throw upsertError;
+      }
 
       setRecords((prev) =>
         prev.map((r) => {
@@ -297,7 +312,11 @@ export function useAttendance() {
             );
 
           if (upsertError) {
-            console.error('Text sync error:', upsertError);
+            if (upsertError.message.toLowerCase().includes('row-level security') || upsertError.code === '42501') {
+              setError("Admins need permission to edit attendance/feedback. Please run the SQL command provided in the fix.");
+            } else {
+              console.error('Text sync error:', upsertError);
+            }
           }
         } catch (err) {
           console.error('Text sync error:', err);
