@@ -41,7 +41,11 @@ function timeAgo(dateStr: string): string {
   return date.toLocaleDateString();
 }
 
-export const NotificationBell: React.FC = () => {
+interface NotificationBellProps {
+  onNotificationClick?: (notif: { type: string; metadata: Record<string, unknown> }) => void;
+}
+
+export const NotificationBell: React.FC<NotificationBellProps> = ({ onNotificationClick }) => {
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -163,6 +167,10 @@ export const NotificationBell: React.FC = () => {
                       transition={{ delay: idx === 0 ? 0.1 : 0 }}
                       onClick={() => {
                         if (!notif.is_read) markAsRead(notif.id);
+                        if (onNotificationClick) {
+                          onNotificationClick({ type: notif.type, metadata: notif.metadata });
+                          setIsOpen(false);
+                        }
                       }}
                       className={`
                         w-full text-left px-5 py-3.5 flex items-start gap-3.5 transition-all duration-200

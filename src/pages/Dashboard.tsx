@@ -22,7 +22,7 @@ import { TaskComments } from '../components/Dashboard/TaskComments';
 
 import { useAnalytics } from '../hooks/useAnalytics';
 import { ProfilePage } from '../components/Profile/ProfilePage';
-import type { TaskStatus } from '../types';
+import { isPoolId, type TaskStatus } from '../types';
 
 type ActiveView = 'tracker' | 'attendance' | 'interns' | 'profile';
 
@@ -112,7 +112,7 @@ export const Dashboard: React.FC = () => {
     if (role === 'admin') return dailyTasks;
     if (role === 'intern' && currentInternId) return dailyTasks;
     return [];
-  })().filter(t => validInternIds.has(t.intern_id));
+  })().filter(t => validInternIds.has(t.intern_id) || isPoolId(t.intern_id));
 
   const analytics = useAnalytics(displayInterns, displayDailyTasks);
 
@@ -196,7 +196,28 @@ export const Dashboard: React.FC = () => {
             </div>
             {/* Header Right */}
             <div className="flex items-center gap-3 pr-2">
-              <NotificationBell />
+              <NotificationBell 
+                onNotificationClick={(notif) => {
+                  const taskId = notif.metadata?.task_id as string | undefined;
+                  // Navigate to task tracker view
+                  handleViewChange('tracker');
+                  if (taskId) {
+                    // If it's a comment notification, open the comment thread
+                    if (notif.type === 'comment') {
+                      setActiveCommentTaskId(taskId);
+                    }
+                    // Scroll to the task after a brief delay for rendering
+                    setTimeout(() => {
+                      const el = document.getElementById(`task-${taskId}`);
+                      if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        el.classList.add('ring-2', 'ring-gold', 'ring-offset-2');
+                        setTimeout(() => el.classList.remove('ring-2', 'ring-gold', 'ring-offset-2'), 3000);
+                      }
+                    }, 300);
+                  }
+                }}
+              />
               <HeaderProfileMenu 
                 onLogout={handleLogout} 
                 onViewMyProfile={() => handleViewChange('profile')}

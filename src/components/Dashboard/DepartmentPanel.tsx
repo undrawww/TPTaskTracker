@@ -1,6 +1,7 @@
 import { InternTaskGroup } from './InternTaskGroup';
+import { DepartmentTaskPool } from './DepartmentTaskPool';
+import { POOL_UUIDS, type Intern, type DailyTask, type WeeklyTask, type TaskStatus, type Department } from '../../types';
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
-import type { Intern, DailyTask, WeeklyTask, TaskStatus, Department } from '../../types';
 
 interface Props {
   department: Department;
@@ -43,6 +44,10 @@ export const DepartmentPanel: React.FC<Props> = ({
     return dept.split(' ').map(w => w[0]).join('');
   };
 
+  // Pool tasks for this department
+  const poolId = POOL_UUIDS[department];
+  const poolTasks = (tasks as DailyTask[]).filter(t => t.intern_id === poolId);
+
   return (
     <div className="bg-transparent border-none flex-shrink-0 min-w-min">
       {!hideHeader && (
@@ -54,6 +59,22 @@ export const DepartmentPanel: React.FC<Props> = ({
             {department}
           </span>
         </div>
+      )}
+
+      {/* Department Task Pool */}
+      {onAddTask && (
+        <DepartmentTaskPool
+          poolId={poolId}
+          departmentLabel={getInitials(department)}
+          tasks={poolTasks}
+          onStatusChange={onStatusChange}
+          onVerifyChange={onVerifyChange}
+          onEditTask={onEditTask}
+          onDeleteTask={onDeleteTask}
+          onAddTask={onAddTask}
+          activeCommentTaskId={activeCommentTaskId}
+          setActiveCommentTaskId={setActiveCommentTaskId}
+        />
       )}
 
       {/* Intern task groups */}
@@ -76,6 +97,7 @@ export const DepartmentPanel: React.FC<Props> = ({
                 key={intern.id}
                 internId={intern.id}
                 internName={intern.full_name}
+                internUsername={intern.username}
                 avatarIndex={intern.avatar_index}
                 avatarUrl={intern.avatar_url}
                 tasks={internTasks}

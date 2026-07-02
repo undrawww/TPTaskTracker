@@ -183,6 +183,7 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
 
   return (
     <div 
+      id={`task-${id}`}
       ref={(node) => {
         setNodeRef(node);
         containerRef.current = node;

@@ -9,6 +9,7 @@ import { CSS } from '@dnd-kit/utilities';
 interface Props {
   internId: string;
   internName: string;
+  internUsername?: string;
   avatarIndex?: number;
   avatarUrl?: string;
   tasks: (DailyTask | WeeklyTask)[];
@@ -23,7 +24,7 @@ interface Props {
   setActiveCommentTaskId?: (id: string | null) => void;
 }
 
-export const InternTaskGroup: React.FC<Props> = ({ internId, internName, avatarIndex, avatarUrl, tasks, onStatusChange, onVerifyChange, onEditTask, onDeleteIntern, onDeleteTask, onViewProfile, onAddTask, activeCommentTaskId, setActiveCommentTaskId }) => {
+export const InternTaskGroup: React.FC<Props> = ({ internId, internName, internUsername, avatarIndex, avatarUrl, tasks, onStatusChange, onVerifyChange, onEditTask, onDeleteIntern, onDeleteTask, onViewProfile, onAddTask, activeCommentTaskId, setActiveCommentTaskId }) => {
   const canAddTask = true; // Allow anyone to add tasks
   const { setNodeRef: setDroppableRef } = useDroppable({ id: `task-container-${internId}` });
   const { attributes, listeners, setNodeRef: setSortableRef, transform, transition, isDragging } = useSortable({ id: internId, data: { type: 'Intern' } });
@@ -41,7 +42,7 @@ export const InternTaskGroup: React.FC<Props> = ({ internId, internName, avatarI
     return null;
   });
 
-  const firstName = internName.split(' ')[0];
+  const firstName = internUsername || internName.split(' ')[0];
 
   useEffect(() => {
     const handler = () => {

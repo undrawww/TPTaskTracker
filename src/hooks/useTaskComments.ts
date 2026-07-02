@@ -59,44 +59,47 @@ export function useTaskComments(taskId: string) {
       
       let commentsData = data ?? [];
       
-      // Fetch avatars based on author_name and role
+      // Fetch avatars for all comment authors
       if (commentsData.length > 0) {
-        const adminNames = Array.from(new Set(commentsData.filter(c => c.author_role === 'admin').map(c => c.author_name)));
-        const internNames = Array.from(new Set(commentsData.filter(c => c.author_role === 'intern').map(c => c.author_name)));
-        
         const avatarMap = new Map<string, { index: number | null, url: string | null }>();
 
-        // Fetch admin avatars from profiles
-        if (adminNames.length > 0) {
-          const { data: profilesData } = await supabase
-            .from('profiles')
-            .select('full_name, avatar_index, avatar_url')
-            .in('full_name', adminNames);
-            
-          if (profilesData) {
-            profilesData.forEach(p => avatarMap.set(p.full_name, { index: p.avatar_index, url: p.avatar_url }));
-          }
+        // Fetch all profiles
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('full_name, username, avatar_index, avatar_url');
+          
+        if (profilesData) {
+          profilesData.forEach(p => {
+            if (p.full_name) avatarMap.set(p.full_name, { index: p.avatar_index, url: p.avatar_url });
+            if (p.username) avatarMap.set(p.username, { index: p.avatar_index, url: p.avatar_url });
+          });
         }
 
-        // Fetch intern avatars from interns table
-        if (internNames.length > 0) {
-          const { data: internsData } = await supabase
-            .from('interns')
-            .select('full_name, avatar_index, avatar_url')
-            .in('full_name', internNames);
-            
-          if (internsData) {
-            internsData.forEach(i => avatarMap.set(i.full_name, { index: i.avatar_index, url: i.avatar_url }));
-          }
+        // Fetch all interns
+        const { data: internsData } = await supabase
+          .from('interns')
+          .select('full_name, username, avatar_index, avatar_url');
+          
+        if (internsData) {
+          internsData.forEach(i => {
+            // Only override if there's actually an avatar set
+            if (i.avatar_index !== null || i.avatar_url !== null) {
+              if (i.full_name) avatarMap.set(i.full_name, { index: i.avatar_index, url: i.avatar_url });
+              if (i.username) avatarMap.set(i.username, { index: i.avatar_index, url: i.avatar_url });
+            }
+          });
         }
 
         commentsData = commentsData.map(c => {
           const avatarData = avatarMap.get(c.author_name);
-          return {
-            ...c,
-            avatar_index: avatarData?.index ?? undefined,
-            avatar_url: avatarData?.url ?? undefined
-          };
+          if (avatarData && (avatarData.index !== null && avatarData.index !== undefined)) {
+            return {
+              ...c,
+              avatar_index: avatarData.index,
+              avatar_url: avatarData.url ?? undefined
+            };
+          }
+          return { ...c, avatar_index: undefined, avatar_url: undefined };
         });
       }
       

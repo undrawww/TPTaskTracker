@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { DepartmentPanel } from './DepartmentPanel';
 import { DEPARTMENTS, type Intern, type DailyTask, type TaskStatus, type Department } from '../../types';
-import { DndContext, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/core';
+import { DndContext, DragOverlay, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates, arrayMove } from '@dnd-kit/sortable';
 import { ConfirmModal } from '../common/ConfirmModal';
 
@@ -41,6 +41,7 @@ export const DailyTracker: React.FC<Props> = ({
 }) => {
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
   const [isBizDevExpanded, setIsBizDevExpanded] = useState(true);
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -53,8 +54,12 @@ export const DailyTracker: React.FC<Props> = ({
     })
   );
 
-  const handleDragStart = () => {
-    // setActiveId(event.active.id);
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveDragId(event.active.id as string);
+  };
+
+  const handleDragCancel = () => {
+    setActiveDragId(null);
   };
 
   const handleDragOver = () => {
@@ -172,7 +177,11 @@ export const DailyTracker: React.FC<Props> = ({
 
       reorderTasks(updates, newFullTasks);
     }
+    setActiveDragId(null);
   };
+
+  // Find the active task for drag overlay
+  const activeDragTask = activeDragId ? tasks.find(t => t.id === activeDragId) : null;
 
   return (
     <section id="daily-tracker">
@@ -182,6 +191,7 @@ export const DailyTracker: React.FC<Props> = ({
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
       >
       <div className="flex items-center gap-3 mb-4">
         <h2 className="text-lg font-bold text-teal dark:text-gold">Daily Task Tracker</h2>
@@ -276,6 +286,14 @@ export const DailyTracker: React.FC<Props> = ({
           </div>
         </div>
       )}
+      {/* Drag overlay - renders a floating task preview that follows the cursor */}
+      <DragOverlay dropAnimation={null}>
+        {activeDragTask ? (
+          <div className="px-3 py-2 bg-white dark:bg-[#002530] rounded-lg shadow-xl border border-teal/20 dark:border-white/20 max-w-[260px] opacity-90">
+            <span className="text-sm text-teal dark:text-cream truncate block">{activeDragTask.task_name}</span>
+          </div>
+        ) : null}
+      </DragOverlay>
       </DndContext>
 
       <ConfirmModal

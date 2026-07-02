@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { Intern, DailyTask, Department } from '../types';
-import { DEPARTMENTS, TASK_STATUSES } from '../types';
+import { DEPARTMENTS, TASK_STATUSES, isPoolId } from '../types';
 
 export interface AnalyticsData {
   todayTotal: number;
@@ -21,7 +21,7 @@ const DEPT_INITIALS: Record<Department, string> = {
 
 export function useAnalytics(interns: Intern[], dailyTasks: DailyTask[]): AnalyticsData {
   return useMemo(() => {
-    const validTasks = dailyTasks.filter(t => t.task_name.trim() !== '');
+    const validTasks = dailyTasks.filter(t => t.task_name.trim() !== '' && !isPoolId(t.intern_id));
     const isTaskDone = (t: DailyTask) => t.is_verified || t.status === 'Done';
     const todayTotal = validTasks.length;
     const completedTotal = validTasks.filter(isTaskDone).length;
@@ -52,7 +52,7 @@ export function useAnalytics(interns: Intern[], dailyTasks: DailyTask[]): Analyt
       const active = internTasks.filter((t) => !isTaskDone(t)).length;
       const done = internTasks.filter(isTaskDone).length;
       return {
-        name: intern.full_name.split(' ')[0], // first name for chart brevity
+        name: intern.username || intern.full_name.split(' ')[0], // custom username or first name for chart brevity
         active,
         done,
       };
@@ -70,7 +70,7 @@ export function useAnalytics(interns: Intern[], dailyTasks: DailyTask[]): Analyt
       .map((intern) => {
       const internTasks = validTasks.filter((t) => t.intern_id === intern.id);
       const counts: { name: string; [key: string]: string | number } = {
-        name: intern.full_name.split(' ')[0], // first name for brevity
+        name: intern.username || intern.full_name.split(' ')[0], // custom username or first name for brevity
       };
       TASK_STATUSES.forEach(status => {
         counts[status] = internTasks.filter(t => t.status === status).length;

@@ -36,6 +36,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
   const { user, role } = useAuth();
   
   const [fullName, setFullName] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -90,6 +91,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
               setFullName(draft.fullName);
               setCurrentName(draft.fullName);
             }
+            setUsername(draft.username || '');
             setLocation(draft.location || '');
             setPinLocation(draft.pinLocation || '');
             setPinLocationName(draft.pinLocationName || '');
@@ -132,6 +134,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
               setCurrentName(merged.full_name);
               setFullName(merged.full_name);
             }
+            if (merged.username) setUsername(merged.username);
             if (merged.avatar_index !== null && merged.avatar_index !== undefined) {
               setAvatarIndex(merged.avatar_index);
               localStorage.setItem('tp_avatar', String(merged.avatar_index));
@@ -172,12 +175,12 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
   React.useEffect(() => {
     if (isOpen && isFormLoaded) {
       const draft = {
-        fullName, location, pinLocation, pinLocationName, program, currentYear, school, contactNumber, personalEmail, birthday, expectedGraduationDate, requiredHours, bio, skills,
+        fullName, username, location, pinLocation, pinLocationName, program, currentYear, school, contactNumber, personalEmail, birthday, expectedGraduationDate, requiredHours, bio, skills,
         timestamp: Date.now()
       };
       localStorage.setItem('tp_profile_draft', JSON.stringify(draft));
     }
-  }, [isOpen, isFormLoaded, fullName, location, pinLocation, pinLocationName, program, currentYear, school, contactNumber, personalEmail, birthday, expectedGraduationDate, requiredHours, bio, skills]);
+  }, [isOpen, isFormLoaded, fullName, username, location, pinLocation, pinLocationName, program, currentYear, school, contactNumber, personalEmail, birthday, expectedGraduationDate, requiredHours, bio, skills]);
 
   const handleSelectAvatar = async (idx: number) => {
     setAvatarIndex(idx);
@@ -415,6 +418,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
       if (user?.email) {
         const updateData = {
           full_name: fullName,
+          username: username || null,
           location,
           pin_location: pinLocation,
           pin_location_name: pinLocationName,
@@ -736,15 +740,28 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
                 {/* PROFILE TAB */}
                 {activeTab === 'profile' && (
                   <div className="space-y-5 animate-fade-in">
-                    <div>
-                      <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Full Name</label>
-                      <input
-                        type="text"
-                        placeholder="Your Full Name"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Full Name</label>
+                        <input
+                          type="text"
+                          placeholder="Your Full Name"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Username (Display)</label>
+                        <input
+                          type="text"
+                          placeholder="Optional short name"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          maxLength={15}
+                          className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold"
+                        />
+                      </div>
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Birthday</label>

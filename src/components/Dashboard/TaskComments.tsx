@@ -172,7 +172,7 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
                     {formatTime(c.created_at)}
                   </span>
                   
-                  {role === 'admin' && (
+                  {(role === 'admin' || c.author_name === (localStorage.getItem('tp_avatar_name') || user?.email?.split('@')[0] || 'User')) && (
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => startEdit(c.id, c.content)}

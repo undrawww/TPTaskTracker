@@ -69,6 +69,43 @@ export const AttendanceView: React.FC = () => {
     return 0;
   });
 
+  const [csvDataUri, setCsvDataUri] = useState<string>('');
+
+  React.useEffect(() => {
+    if (!isAdmin) return;
+
+    try {
+      const headers = ['Name', 'Department', 'Daily Records'];
+
+      const rows = displayRecords.map(a => {
+        const name = a.intern?.username || a.intern?.full_name || 'Unknown';
+        const dept = a.intern?.department || 'Unknown';
+
+        let recordsStr = '';
+        if (a.accomplishments) {
+          try {
+            const parsed = JSON.parse(a.accomplishments);
+            if (Array.isArray(parsed)) recordsStr = parsed.join('; ');
+            else recordsStr = String(a.accomplishments).replace(/\n/g, '; ');
+          } catch {
+            recordsStr = String(a.accomplishments).replace(/\n/g, '; ');
+          }
+        }
+        const escapedRecords = recordsStr.replace(/"/g, '""');
+        
+        return `"${name}","${dept}","${escapedRecords}"`;
+      });
+
+      const csvContent = [headers.join(','), ...rows].join('\n');
+      
+      // Use data URI instead of Blob to try to bypass strict localhost download blocks
+      const dataUri = `data:text/csv;charset=utf-8,\ufeff${encodeURIComponent(csvContent)}`;
+      setCsvDataUri(dataUri);
+    } catch (error) {
+      console.error("Failed to generate CSV Data URI:", error);
+    }
+  }, [displayRecords, isAdmin]);
+
   /** Format date for the header display */
   const displayDate = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
     weekday: 'long',
@@ -169,6 +206,22 @@ export const AttendanceView: React.FC = () => {
               >
                 {showTimeColumns ? 'Hide Times' : 'Show Times'}
               </button>
+
+              {isAdmin && csvDataUri && (
+                <a
+                  href={csvDataUri}
+                  download={`daily_records_${selectedDate}.csv`}
+                  className="ml-2 flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-xl transition-all duration-200 border bg-teal/5 dark:bg-white/5 text-teal dark:text-cream border-teal/10 dark:border-white/10 hover:bg-teal/10 dark:hover:bg-white/10"
+                  title="Download records as CSV"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  Export CSV
+                </a>
+              )}
 
               <select
                 value={sortBy}
