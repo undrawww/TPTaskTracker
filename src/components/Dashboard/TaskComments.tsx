@@ -3,7 +3,7 @@ import { useTaskComments } from '../../hooks/useTaskComments';
 import { useAuth } from '../../contexts/AuthContext';
 import { renderAvatar } from './AvatarIcons';
 import { ConfirmModal } from '../common/ConfirmModal';
-import { supabase, isSupabaseConfigured } from '../../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
 
 interface Props {
   taskId: string;
