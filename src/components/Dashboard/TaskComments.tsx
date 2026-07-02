@@ -43,7 +43,10 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
         };
         (p || []).forEach(add);
         (i || []).forEach(add);
-        setMentionUsers(all);
+        
+        // Deduplicate by email
+        const uniqueUsers = Array.from(new Map(all.map(item => [item.email, item])).values());
+        setMentionUsers(uniqueUsers);
       } catch (e) {
         // fail silently
       }
