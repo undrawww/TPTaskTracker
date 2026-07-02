@@ -3,6 +3,7 @@ import { useTaskComments } from '../../hooks/useTaskComments';
 import { useAuth } from '../../contexts/AuthContext';
 import { renderAvatar } from './AvatarIcons';
 import { ConfirmModal } from '../common/ConfirmModal';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 
 interface Props {
   taskId: string;
@@ -20,6 +21,35 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
   const [savingEdit, setSavingEdit] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Mention state
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const [mentionUsers, setMentionUsers] = useState<{name: string, email: string}[]>([]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) {
+      setMentionUsers([{ name: 'Admin', email: 'local' }, { name: 'Intern', email: 'local' }]);
+      return;
+    }
+    const fetchUsers = async () => {
+      try {
+        const { data: p } = await supabase.from('profiles').select('username, full_name, email');
+        const { data: i } = await supabase.from('interns').select('username, full_name, email');
+        const all: {name: string, email: string}[] = [];
+        const add = (u: any) => {
+          if (!u.email) return;
+          if (u.username) all.push({ name: u.username, email: u.email });
+          else if (u.full_name) all.push({ name: u.full_name.split(' ')[0], email: u.email });
+        };
+        (p || []).forEach(add);
+        (i || []).forEach(add);
+        setMentionUsers(all);
+      } catch (e) {
+        // fail silently
+      }
+    };
+    fetchUsers();
+  }, []);
 
   useEffect(() => {
     fetchComments();
