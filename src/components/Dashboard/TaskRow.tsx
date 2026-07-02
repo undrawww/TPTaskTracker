@@ -224,7 +224,7 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
           }}
         >
           <span 
-            className={`text-sm tracking-wide transition-all duration-300 select-none ${isChecked ? 'text-teal/40 dark:text-cream/40 line-through' : 'text-teal dark:text-cream'} ${hovered ? 'block break-words whitespace-pre-wrap' : 'block truncate'}`}
+            className={`text-[13.5px] tracking-[0.02em] [word-spacing:0.1em] transition-all duration-300 select-none ${isChecked ? 'text-teal/40 dark:text-cream/40 line-through' : 'text-teal dark:text-cream'} ${hovered ? 'block break-words whitespace-pre-wrap' : 'block truncate'}`}
           >
             {taskName}
           </span>

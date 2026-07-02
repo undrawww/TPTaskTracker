@@ -238,11 +238,27 @@ export function useTaskComments(taskId: string) {
               if (mentionMatches && mentionMatches.length > 0) {
                 const mentionedNames = mentionMatches.map(m => m.slice(1).toLowerCase());
                 
-                // Fetch all profiles and interns to match mentions
-                const [{ data: profiles }, { data: internsList }] = await Promise.all([
-                  supabase.from('profiles').select('email, username, full_name'),
-                  supabase.from('interns').select('email, username, full_name')
-                ]);
+                // Fetch all profiles and interns safely (fallback if 'username' column is missing in Vercel)
+                let profiles = [];
+                let internsList = [];
+                
+                try {
+                  const resP = await supabase.from('profiles').select('email, username, full_name');
+                  if (resP.error) throw resP.error;
+                  profiles = resP.data || [];
+                } catch (e) {
+                  const fallbackP = await supabase.from('profiles').select('email, full_name');
+                  profiles = fallbackP.data || [];
+                }
+                
+                try {
+                  const resI = await supabase.from('interns').select('email, username, full_name');
+                  if (resI.error) throw resI.error;
+                  internsList = resI.data || [];
+                } catch (e) {
+                  const fallbackI = await supabase.from('interns').select('email, full_name');
+                  internsList = fallbackI.data || [];
+                }
                 
                 const mentionCheck = (u: any) => {
                   if (!u.email) return;
@@ -262,8 +278,8 @@ export function useTaskComments(taskId: string) {
                   }
                 };
                 
-                profiles?.forEach(mentionCheck);
-                internsList?.forEach(mentionCheck);
+                profiles.forEach(mentionCheck);
+                internsList.forEach(mentionCheck);
               }
 
               // 2. Default Notifications

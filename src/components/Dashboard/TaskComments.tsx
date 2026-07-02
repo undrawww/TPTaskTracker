@@ -206,12 +206,46 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
       </div>
 
       {/* New comment input */}
-      <form onSubmit={handleSubmit} className="mt-auto flex items-end gap-2 px-4 py-4 border-t border-teal/10 dark:border-white/5 bg-white dark:bg-[#001f26]">
+      <form onSubmit={handleSubmit} className="relative mt-auto flex items-end gap-2 px-4 py-4 border-t border-teal/10 dark:border-white/5 bg-white dark:bg-[#001f26]">
+        {mentionQuery !== null && mentionUsers.length > 0 && (
+          <div className="absolute bottom-[calc(100%+8px)] left-4 bg-white dark:bg-[#002b36] border border-teal/10 dark:border-white/10 rounded-xl shadow-lg p-1.5 flex flex-wrap max-w-[90%] gap-1 z-50">
+            {mentionUsers.filter(u => u.name.toLowerCase().startsWith(mentionQuery.toLowerCase())).slice(0, 6).map(u => (
+              <button
+                key={u.name}
+                type="button"
+                onClick={() => {
+                  const parts = newComment.split(/([\s\n]+)/); // preserve whitespace
+                  parts.pop(); // remove the @... part
+                  const newText = parts.join('') + '@' + u.name + ' ';
+                  setNewComment(newText);
+                  setMentionQuery(null);
+                  textareaRef.current?.focus();
+                }}
+                className="px-2.5 py-1 text-xs font-bold rounded-lg bg-teal/5 dark:bg-gold/10 text-teal dark:text-cream hover:bg-teal/10 dark:hover:bg-gold/20 transition-colors"
+              >
+                @{u.name}
+              </button>
+            ))}
+            {mentionUsers.filter(u => u.name.toLowerCase().startsWith(mentionQuery.toLowerCase())).length === 0 && (
+              <div className="px-2 py-1 text-xs text-teal/50 dark:text-cream/50">No matching users</div>
+            )}
+          </div>
+        )}
         <textarea
           ref={textareaRef}
           rows={1}
           value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
+          onChange={(e) => {
+            const val = e.target.value;
+            setNewComment(val);
+            const words = val.split(/[\s\n]+/);
+            const lastWord = words[words.length - 1];
+            if (lastWord.startsWith('@')) {
+              setMentionQuery(lastWord.slice(1));
+            } else {
+              setMentionQuery(null);
+            }
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
