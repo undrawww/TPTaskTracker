@@ -173,6 +173,20 @@ export function useTaskComments(taskId: string) {
         saveStoredComments(all);
         setComments((prev) => [...prev, newComment]);
         window.dispatchEvent(new CustomEvent('task-comments-changed', { detail: { taskId } }));
+
+        // Local Mode Notifications
+        const snippet = content.trim().length > 60 ? content.trim().substring(0, 60) + '…' : content.trim();
+        const taskName = notifyOptions?.taskName || "Task";
+        
+        const mentionMatches = content.match(/@([a-zA-Z0-9_]+)/gi);
+        if (mentionMatches && mentionMatches.length > 0) {
+          sendNotification('local', 'comment', `${authorName} mentioned you`, `"${snippet}" on task "${taskName}"`, { task_id: taskId, task_name: taskName });
+        } else if (authorRole === 'intern') {
+          sendNotification('local', 'comment', `${authorName} commented`, `"${snippet}" on task "${taskName}"`, { task_id: taskId, task_name: taskName });
+        } else if (authorRole === 'admin') {
+          sendNotification('local', 'comment', `${authorName} commented`, `"${snippet}" on your task "${taskName}"`, { task_id: taskId, task_name: taskName });
+        }
+
         return;
       }
 
