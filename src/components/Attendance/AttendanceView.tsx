@@ -72,8 +72,6 @@ export const AttendanceView: React.FC = () => {
   const [csvDataUri, setCsvDataUri] = useState<string>('');
 
   React.useEffect(() => {
-    if (!isAdmin) return;
-
     try {
       const headers = ['Name', 'Department', 'Daily Records'];
 
