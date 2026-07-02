@@ -161,7 +161,16 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
                     </div>
                   ) : (
                     <p className="text-[13px] sm:text-sm text-[#003946]/90 dark:text-cream/80 leading-relaxed break-words whitespace-pre-wrap">
-                      {c.content}
+                      {c.content.split(/(@[a-zA-Z0-9_]+)/g).map((part, i) => {
+                        if (part.startsWith('@')) {
+                          return (
+                            <span key={i} className="font-bold text-teal dark:text-gold bg-teal/10 dark:bg-gold/10 px-1 rounded">
+                              {part}
+                            </span>
+                          );
+                        }
+                        return part;
+                      })}
                     </p>
                   )}
                 </div>

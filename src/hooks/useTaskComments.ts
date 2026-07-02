@@ -217,7 +217,42 @@ export function useTaskComments(taskId: string) {
 
             if (taskData) {
               const taskName = notifyOptions?.taskName || taskData.task_name;
+              const notifiedEmails = new Set<string>();
 
+              // 1. Process Mentions
+              const mentionMatches = content.match(/@([a-zA-Z0-9_]+)/gi);
+              if (mentionMatches && mentionMatches.length > 0) {
+                const mentionedNames = mentionMatches.map(m => m.slice(1).toLowerCase());
+                
+                // Fetch all profiles and interns to match mentions
+                const [{ data: profiles }, { data: internsList }] = await Promise.all([
+                  supabase.from('profiles').select('email, username, full_name'),
+                  supabase.from('interns').select('email, username, full_name')
+                ]);
+                
+                const mentionCheck = (u: any) => {
+                  if (!u.email) return;
+                  const isMatch = 
+                    (u.username && mentionedNames.includes(u.username.toLowerCase())) ||
+                    (u.full_name && mentionedNames.includes(u.full_name.split(' ')[0].toLowerCase()));
+                    
+                  if (isMatch && !notifiedEmails.has(u.email)) {
+                    notifiedEmails.add(u.email);
+                    sendNotification(
+                      u.email,
+                      'comment',
+                      `${authorName} mentioned you`,
+                      `"${snippet}" on task "${taskName}"`,
+                      { task_id: taskId, task_name: taskName }
+                    );
+                  }
+                };
+                
+                profiles?.forEach(mentionCheck);
+                internsList?.forEach(mentionCheck);
+              }
+
+              // 2. Default Notifications
               if (authorRole === 'intern') {
                 // Intern commented → notify all admins
                 const adminEmails = notifyOptions?.adminEmails;
@@ -237,13 +272,16 @@ export function useTaskComments(taskId: string) {
                 console.log('[Notification Debug] Intern commented. Admins to notify:', emails);
 
                 for (const adminEmail of emails) {
-                  sendNotification(
-                    adminEmail,
-                    'comment',
-                    `${authorName} commented`,
-                    `"${snippet}" on task "${taskName}"`,
-                    { task_id: taskId, task_name: taskName }
-                  );
+                  if (!notifiedEmails.has(adminEmail)) {
+                    notifiedEmails.add(adminEmail);
+                    sendNotification(
+                      adminEmail,
+                      'comment',
+                      `${authorName} commented`,
+                      `"${snippet}" on task "${taskName}"`,
+                      { task_id: taskId, task_name: taskName }
+                    );
+                  }
                 }
               } else if (authorRole === 'admin') {
                 // Admin commented → notify the intern who owns the task
@@ -264,7 +302,8 @@ export function useTaskComments(taskId: string) {
 
                 console.log('[Notification Debug] Admin commented. Intern to notify:', internEmail);
 
-                if (internEmail) {
+                if (internEmail && !notifiedEmails.has(internEmail)) {
+                  notifiedEmails.add(internEmail);
                   sendNotification(
                     internEmail,
                     'comment',
@@ -272,8 +311,6 @@ export function useTaskComments(taskId: string) {
                     `"${snippet}" on your task "${taskName}"`,
                     { task_id: taskId, task_name: taskName }
                   );
-                } else {
-                  console.warn('[Notification Debug] Could not find an email for the intern to notify.');
                 }
               }
             } else {
