@@ -207,7 +207,7 @@ export const AttendanceView: React.FC = () => {
                 {showTimeColumns ? 'Hide Times' : 'Show Times'}
               </button>
 
-              {isAdmin && csvDataUri && (
+              {csvDataUri && (
                 <a
                   href={csvDataUri}
                   download={`daily_records_${selectedDate}.csv`}
