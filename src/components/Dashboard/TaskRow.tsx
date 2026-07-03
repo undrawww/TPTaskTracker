@@ -23,6 +23,10 @@ interface Props {
 }
 
 export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onStatusChange, onVerifyChange, onEditTask, onDeleteTask, internId, activeCommentTaskId, setActiveCommentTaskId }) => {
+  const getCleanText = (text: string) => {
+    if (!text) return text;
+    return text.replace(/https:\/\/[^\s]+supabase\.co\/storage[^\s]+/g, '[Uploaded a photo]');
+  };
   const { role, currentInternId } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(taskName);
@@ -269,7 +273,7 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
                       </div>
                     </div>
                     <p className="text-sm text-teal/90 dark:text-cream/90 break-words whitespace-pre-wrap">
-                      {latestComment.content}
+                      {getCleanText(latestComment.content)}
                     </p>
                   </div>
                 )}

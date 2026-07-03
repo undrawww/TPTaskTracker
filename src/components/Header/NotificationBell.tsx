@@ -46,6 +46,10 @@ interface NotificationBellProps {
 }
 
 export const NotificationBell: React.FC<NotificationBellProps> = ({ onNotificationClick }) => {
+  const getCleanText = (text: string) => {
+    if (!text) return text;
+    return text.replace(/https:\/\/[^\s]+supabase\.co\/storage[^\s]+/g, '[Uploaded a photo]');
+  };
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -195,7 +199,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ onNotificati
                           )}
                         </div>
                         <p className={`text-xs mt-0.5 leading-relaxed line-clamp-2 ${!notif.is_read ? 'text-teal/60 dark:text-cream/50' : 'text-teal/40 dark:text-cream/35'}`}>
-                          {notif.message}
+                          {getCleanText(notif.message)}
                         </p>
                         <p className="text-[11px] text-teal/40 dark:text-cream/30 mt-1.5 font-medium">
                           {timeAgo(notif.created_at)}

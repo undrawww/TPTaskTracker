@@ -154,6 +154,11 @@ export function useTaskComments(taskId: string) {
     async (content: string, authorName: string, authorRole: 'admin' | 'intern', notifyOptions?: CommentNotifyOptions) => {
       if (!content.trim()) return;
 
+      const getSnippet = (text: string) => {
+        const cleaned = text.trim().replace(/https:\/\/[^\s]+supabase\.co\/storage[^\s]+/g, '[Uploaded a photo]');
+        return cleaned.length > 60 ? cleaned.substring(0, 60) + '…' : cleaned;
+      };
+
       if (!isSupabaseConfigured) {
         const localAvatar = localStorage.getItem('tp_avatar');
         const localAvatarUrl = localStorage.getItem('tp_avatar_url');
@@ -175,7 +180,7 @@ export function useTaskComments(taskId: string) {
         window.dispatchEvent(new CustomEvent('task-comments-changed', { detail: { taskId } }));
 
         // Local Mode Notifications
-        const snippet = content.trim().length > 60 ? content.trim().substring(0, 60) + '…' : content.trim();
+        const snippet = getSnippet(content);
         const taskName = notifyOptions?.taskName || "Task";
         
         const mentionMatches = content.match(/@([a-zA-Z0-9_]+)/gi);
@@ -219,7 +224,7 @@ export function useTaskComments(taskId: string) {
           window.dispatchEvent(new CustomEvent('task-comments-changed', { detail: { taskId } }));
 
           // ── Auto-discover and send notifications ────────────
-          const snippet = content.trim().length > 60 ? content.trim().substring(0, 60) + '…' : content.trim();
+          const snippet = getSnippet(content);
 
           try {
             // Look up the task to get the intern_id and task_name
