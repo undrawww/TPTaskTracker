@@ -111,7 +111,10 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
   const isPastDate = record.attendance_date !== getLocalDateString();
 
   return (
-    <tr className="hover:bg-teal/5 dark:hover:bg-white/5 transition-colors duration-200 group">
+    <tr 
+      id={`attendance-${intern_name.replace(/\s+/g, '-')}`}
+      className="hover:bg-teal/5 dark:hover:bg-white/5 transition-colors duration-200 group"
+    >
       {/* Intern Info */}
       <td className="px-5 py-4 align-middle">
         <div className="flex items-center gap-3">

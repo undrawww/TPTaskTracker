@@ -261,7 +261,7 @@ export function useDailyTasks(date?: string) {
                   'task_assigned',
                   `${assignerName} assigned you a task`,
                   `"${taskName}" has been added to your daily tasks`,
-                  { task_name: taskName, intern_id: internId }
+                  { task_id: data?.[0]?.id, task_name: taskName, intern_id: internId }
                 );
               } else {
                 console.warn('[Notification Debug] Task Assigned. Could not find intern email for internId:', internId);

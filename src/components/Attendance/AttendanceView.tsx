@@ -6,7 +6,7 @@ import { DashboardSkeleton } from '../Skeleton/DashboardSkeleton';
 
 export type SortOption = 'department' | 'name' | 'time_in';
 
-export const AttendanceView: React.FC = () => {
+export const AttendanceView: React.FC<{initialDate?: string}> = ({ initialDate }) => {
   const { role, currentInternId } = useAuth();
   const {
     records,
@@ -18,7 +18,7 @@ export const AttendanceView: React.FC = () => {
     undoStampAction,
     editTimeAction,
     updateText,
-  } = useAttendance();
+  } = useAttendance(initialDate);
 
   const [showTimeColumns, setShowTimeColumns] = useState<boolean>(() => {
     const saved = localStorage.getItem('padua_attendance_show_times');

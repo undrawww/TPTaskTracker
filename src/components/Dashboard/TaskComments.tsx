@@ -26,6 +26,45 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [mentionUsers, setMentionUsers] = useState<{name: string, email: string}[]>([]);
 
+  // Upload state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [attachment, setAttachment] = useState<{ url: string; name: string } | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!isSupabaseConfigured) {
+      alert("Storage is not available in local demo mode.");
+      return;
+    }
+
+    try {
+      setUploading(true);
+      
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('attachments')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from('attachments').getPublicUrl(fileName);
+      
+      setAttachment({ url: data.publicUrl, name: file.name });
+    } catch (err: any) {
+      console.error('Error uploading file:', err);
+      alert(`Failed to upload file: ${err.message || err.toString()}`);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   useEffect(() => {
     if (!isSupabaseConfigured) {
       setMentionUsers([{ name: 'Admin', email: 'local' }, { name: 'Intern', email: 'local' }]);
@@ -67,13 +106,20 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || submitting) return;
+    if ((!newComment.trim() && !attachment) || submitting) return;
 
     setSubmitting(true);
     const authorName =
       localStorage.getItem('tp_avatar_name') || user?.email?.split('@')[0] || 'User';
-    await addComment(newComment, authorName, role || 'intern');
+      
+    const finalComment = attachment 
+      ? (newComment.trim() ? `${newComment}\n\n${attachment.url}` : attachment.url)
+      : newComment;
+      
+    await addComment(finalComment, authorName, role || 'intern');
+    
     setNewComment('');
+    setAttachment(null);
     setSubmitting(false);
   };
 
@@ -105,6 +151,47 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
     const diffHr = Math.floor(diffMin / 60);
     if (diffHr < 24) return `${diffHr}h ago`;
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  const renderCommentContent = (content: string) => {
+    // First split by URLs
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = content.split(urlRegex);
+    
+    return parts.map((part, i) => {
+      if (part.match(urlRegex)) {
+        // Check if it's an image
+        if (part.match(/\.(jpeg|jpg|gif|png|webp)(\?.*)?$/i)) {
+          return (
+            <button 
+              key={i} 
+              type="button"
+              onClick={() => setSelectedImage(part)}
+              className="block my-2 text-left focus:outline-none"
+            >
+              <img src={part} alt="attachment" className="max-w-full h-auto max-h-48 rounded-lg border border-teal/10 dark:border-white/10 hover:opacity-90 transition-opacity" />
+            </button>
+          );
+        }
+        return (
+          <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-500 dark:text-blue-400 hover:underline break-all">
+            {part}
+          </a>
+        );
+      }
+      
+      // Process mentions in non-URL text
+      return part.split(/(@[a-zA-Z0-9_]+)/g).map((subPart, j) => {
+        if (subPart.startsWith('@')) {
+          return (
+            <span key={`${i}-${j}`} className="font-bold text-teal dark:text-gold bg-teal/10 dark:bg-gold/10 px-1 rounded">
+              {subPart}
+            </span>
+          );
+        }
+        return <React.Fragment key={`${i}-${j}`}>{subPart}</React.Fragment>;
+      });
+    });
   };
 
   return (
@@ -193,18 +280,9 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
                       </div>
                     </div>
                   ) : (
-                    <p className="text-[13px] sm:text-sm text-[#003946]/90 dark:text-cream/80 leading-relaxed break-words whitespace-pre-wrap">
-                      {c.content.split(/(@[a-zA-Z0-9_]+)/g).map((part, i) => {
-                        if (part.startsWith('@')) {
-                          return (
-                            <span key={i} className="font-bold text-teal dark:text-gold bg-teal/10 dark:bg-gold/10 px-1 rounded">
-                              {part}
-                            </span>
-                          );
-                        }
-                        return part;
-                      })}
-                    </p>
+                    <div className="text-[13px] sm:text-sm text-[#003946]/90 dark:text-cream/80 leading-relaxed break-words whitespace-pre-wrap">
+                      {renderCommentContent(c.content)}
+                    </div>
                   )}
                 </div>
 
@@ -264,37 +342,83 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
             )}
           </div>
         )}
-        <textarea
-          ref={textareaRef}
-          rows={1}
-          value={newComment}
-          onChange={(e) => {
-            const val = e.target.value;
-            setNewComment(val);
-            const words = val.split(/[\s\n]+/);
-            const lastWord = words[words.length - 1];
-            if (lastWord.startsWith('@')) {
-              setMentionQuery(lastWord.slice(1));
-            } else {
-              setMentionQuery(null);
-            }
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              handleSubmit(e);
-            }
-          }}
-          placeholder="Write a comment…"
-          className="flex-1 resize-none text-sm px-4 py-3 rounded-xl border border-teal/20 dark:border-white/10 bg-transparent text-teal dark:text-cream placeholder:text-teal/40 dark:placeholder:text-cream/30 focus:outline-none focus:border-teal dark:focus:border-cream transition-all max-h-[120px] scrollbar-thin"
+        <div className="flex-1 flex flex-col gap-2">
+          {attachment && (
+            <div className="relative inline-block w-fit max-w-full group/preview">
+              {attachment.url.match(/\.(jpeg|jpg|gif|png|webp)(\?.*)?$/i) ? (
+                <img src={attachment.url} alt="attachment preview" className="w-auto h-24 object-cover rounded-lg border border-teal/20 dark:border-white/10 shadow-sm" />
+              ) : (
+                <div className="w-auto min-w-[120px] h-24 p-3 flex flex-col items-center justify-center bg-teal/5 dark:bg-white/5 rounded-lg border border-teal/20 dark:border-white/10 text-teal/80 dark:text-cream/80 shadow-sm">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                  </svg>
+                  <span className="text-[10px] font-medium truncate w-full px-2 text-center max-w-[150px]">{attachment.name}</span>
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => setAttachment(null)}
+                className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 shadow-md transform transition-transform hover:scale-110 active:scale-95"
+                title="Remove attachment"
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+          )}
+          <textarea
+            ref={textareaRef}
+            rows={1}
+            value={newComment}
+            onChange={(e) => {
+              const val = e.target.value;
+              setNewComment(val);
+              const words = val.split(/[\s\n]+/);
+              const lastWord = words[words.length - 1];
+              if (lastWord.startsWith('@')) {
+                setMentionQuery(lastWord.slice(1));
+              } else {
+                setMentionQuery(null);
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit(e);
+              }
+            }}
+            placeholder="Write a comment…"
+            className="w-full resize-none text-sm px-4 py-3 rounded-xl border border-teal/20 dark:border-white/10 bg-transparent text-teal dark:text-cream placeholder:text-teal/40 dark:placeholder:text-cream/30 focus:outline-none focus:border-teal dark:focus:border-cream transition-all max-h-[120px] scrollbar-thin"
+          />
+        </div>
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          onChange={handleFileUpload} 
+          className="hidden" 
         />
         <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="p-3 rounded-xl bg-teal/5 dark:bg-white/5 text-teal/70 dark:text-cream/70 hover:bg-teal/10 dark:hover:bg-white/10 hover:text-teal dark:hover:text-cream transition-all disabled:opacity-50 shrink-0"
+          title="Attach file or photo"
+        >
+          {uploading ? (
+            <div className="w-5 h-5 rounded-full border-2 border-current border-t-transparent animate-spin" />
+          ) : (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+            </svg>
+          )}
+        </button>
+        <button
           type="submit"
-          disabled={!newComment.trim() || submitting}
-          className="p-3 rounded-xl bg-[#003946] dark:bg-teal-light text-white hover:bg-[#003946] dark:hover:bg-teal-lighter disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
+          disabled={(!newComment.trim() && !attachment) || submitting || uploading}
+          className="p-3 rounded-xl bg-[#003946] dark:bg-teal-light text-white hover:bg-[#003946] dark:hover:bg-teal-lighter disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95 shrink-0"
           title="Send comment"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="22" y1="2" x2="11" y2="13" />
             <polygon points="22 2 15 22 11 13 2 9 22 2" />
           </svg>
@@ -313,6 +437,32 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
         }}
         onClose={() => setCommentToDelete(null)}
       />
+
+      {/* Full Screen Image Modal */}
+      {selectedImage && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative max-w-5xl max-h-full flex flex-col justify-center items-center">
+            <button 
+              onClick={() => setSelectedImage(null)}
+              className="absolute -top-10 right-0 text-white hover:text-gold transition-colors p-2"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+            <img 
+              src={selectedImage} 
+              alt="fullscreen attachment" 
+              className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl border border-white/10"
+              onClick={(e) => e.stopPropagation()} 
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

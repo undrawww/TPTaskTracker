@@ -90,12 +90,12 @@ export const Dashboard: React.FC = () => {
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showWeekly, setShowWeekly] = useState(false);
+  const [activeCommentTaskId, setActiveCommentTaskId] = useState<string | null>(null);
+  const [attendanceInitialDate, setAttendanceInitialDate] = useState<string | undefined>(undefined);
 
   // Data hooks
   const { interns, loading: internsLoading, addIntern, removeIntern, reorderInterns } = useInterns();
   const { tasks: dailyTasks, loading: tasksLoading, addTask: addDailyTask, updateStatus: updateDailyStatus, toggleVerify: toggleDailyVerify, editTask: editDailyTask, removeTask: removeDailyTask, reorderTasks } = useDailyTasks();
-
-  const [activeCommentTaskId, setActiveCommentTaskId] = useState<string | null>(null);
 
   const isLoading = internsLoading || tasksLoading;
 
@@ -198,6 +198,34 @@ export const Dashboard: React.FC = () => {
             <div className="flex items-center gap-3 pr-2">
               <NotificationBell 
                 onNotificationClick={(notif) => {
+                  const scrollTarget = (targetId: string) => {
+                    let attempts = 0;
+                    const tryScroll = () => {
+                      const el = document.getElementById(targetId);
+                      if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        el.classList.add('ring-2', 'ring-gold', 'ring-offset-2');
+                        setTimeout(() => el.classList.remove('ring-2', 'ring-gold', 'ring-offset-2'), 3000);
+                      } else if (attempts < 20) {
+                        attempts++;
+                        setTimeout(tryScroll, 100);
+                      }
+                    };
+                    tryScroll();
+                  };
+
+                  if (notif.type === 'feedback') {
+                    if (notif.metadata?.date) {
+                      setAttendanceInitialDate(notif.metadata.date as string);
+                    }
+                    handleViewChange('attendance');
+                    const internName = notif.metadata?.intern_name as string | undefined;
+                    if (internName) {
+                      scrollTarget(`attendance-${internName.replace(/\s+/g, '-')}`);
+                    }
+                    return;
+                  }
+
                   const taskId = notif.metadata?.task_id as string | undefined;
                   // Navigate to task tracker view
                   handleViewChange('tracker');
@@ -206,15 +234,8 @@ export const Dashboard: React.FC = () => {
                     if (notif.type === 'comment') {
                       setActiveCommentTaskId(taskId);
                     }
-                    // Scroll to the task after a brief delay for rendering
-                    setTimeout(() => {
-                      const el = document.getElementById(`task-${taskId}`);
-                      if (el) {
-                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        el.classList.add('ring-2', 'ring-gold', 'ring-offset-2');
-                        setTimeout(() => el.classList.remove('ring-2', 'ring-gold', 'ring-offset-2'), 3000);
-                      }
-                    }, 300);
+                    // Scroll to the task
+                    scrollTarget(`task-${taskId}`);
                   }
                 }}
               />
@@ -230,7 +251,7 @@ export const Dashboard: React.FC = () => {
       <main className="flex-1 w-full mx-auto px-4 sm:px-6 md:px-8 py-6 space-y-8">
         {activeView === 'attendance' ? (
           <ErrorBoundary>
-            <AttendanceView />
+            <AttendanceView initialDate={attendanceInitialDate} />
           </ErrorBoundary>
         ) : (
           <>

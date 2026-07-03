@@ -35,13 +35,17 @@ function computeHours(rec: AttendanceRecord): number | null {
   return Math.round((inMs / 3600000) * 100) / 100;
 }
 
-export function useAttendance() {
+export function useAttendance(initialDate?: string) {
   const { interns, loading: internsLoading } = useInterns();
   const [records, setRecords] = useState<AttendanceWithIntern[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState(todayStr());
+  const [selectedDate, setSelectedDate] = useState(initialDate || todayStr());
   const debounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  useEffect(() => {
+    if (initialDate) setSelectedDate(initialDate);
+  }, [initialDate]);
 
   // ── Fetch attendance for the selected date ────────────────────
   const fetchAttendance = useCallback(async (date: string = selectedDate) => {
