@@ -31,11 +31,9 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
   const [uploading, setUploading] = useState(false);
   const [attachment, setAttachment] = useState<{ url: string; name: string } | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const uploadFile = async (file: File) => {
     if (!isSupabaseConfigured) {
       alert("Storage is not available in local demo mode.");
       return;
@@ -44,7 +42,7 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
     try {
       setUploading(true);
       
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name ? file.name.split('.').pop() : 'png';
       const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
@@ -55,13 +53,60 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
 
       const { data } = supabase.storage.from('attachments').getPublicUrl(fileName);
       
-      setAttachment({ url: data.publicUrl, name: file.name });
+      setAttachment({ url: data.publicUrl, name: file.name || 'Pasted Image.png' });
     } catch (err: any) {
       console.error('Error uploading file:', err);
       alert(`Failed to upload file: ${err.message || err.toString()}`);
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await uploadFile(file);
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          e.preventDefault();
+          await uploadFile(file);
+          break;
+        }
+      }
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (e.dataTransfer.types.includes('Files')) {
+      setIsDraggingFile(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsDraggingFile(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsDraggingFile(false);
+    
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (file.type.startsWith('image/')) {
+        await uploadFile(file);
+      }
     }
   };
 
@@ -317,7 +362,13 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
       </div>
 
       {/* New comment input */}
-      <form onSubmit={handleSubmit} className="relative mt-auto flex items-end gap-2 px-4 py-4 border-t border-teal/10 dark:border-white/5 bg-white dark:bg-[#001f26]">
+      <form 
+        onSubmit={handleSubmit} 
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={`relative mt-auto flex items-end gap-2 px-4 py-4 border-t border-teal/10 dark:border-white/5 bg-white dark:bg-[#001f26] transition-colors ${isDraggingFile ? 'bg-teal/5 dark:bg-white/5 ring-2 ring-teal dark:ring-gold border-transparent' : ''}`}
+      >
         {mentionQuery !== null && mentionUsers.length > 0 && (
           <div className="absolute bottom-[calc(100%+8px)] left-4 bg-white dark:bg-[#002b36] border border-teal/10 dark:border-white/10 rounded-xl shadow-lg p-1.5 flex flex-wrap max-w-[90%] gap-1 z-50">
             {mentionUsers.filter(u => u.name.toLowerCase().startsWith(mentionQuery.toLowerCase())).slice(0, 6).map(u => (
@@ -387,6 +438,7 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
                 handleSubmit(e);
               }
             }}
+            onPaste={handlePaste}
             placeholder="Write a comment…"
             className="w-full resize-none text-sm px-4 py-3 rounded-xl border border-teal/20 dark:border-white/10 bg-transparent text-teal dark:text-cream placeholder:text-teal/40 dark:placeholder:text-cream/30 focus:outline-none focus:border-teal dark:focus:border-cream transition-all max-h-[120px] scrollbar-thin"
           />
