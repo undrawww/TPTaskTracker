@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
-import { sendNotification } from './useNotifications';
+import { sendNotification, removeNotificationByMetadata } from './useNotifications';
 import type { DailyTask, TaskStatus } from '../types';
 
 /** Helper to get local date in YYYY-MM-DD format */
@@ -108,7 +108,14 @@ export function useDailyTasks(date?: string) {
               setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
             }
           } else if (payload.eventType === 'DELETE') {
-            setTasks((prev) => prev.filter((t) => t.id !== payload.old.id));
+            const deletedId = payload.old?.id;
+            if (deletedId) {
+              setTasks((prev) => prev.filter((t) => t.id !== deletedId));
+              // Allow the client that owns the notification (intern) to delete it when they receive the realtime task deletion event
+              removeNotificationByMetadata('task_assigned', { task_id: deletedId });
+              removeNotificationByMetadata('task_done', { task_id: deletedId });
+              removeNotificationByMetadata('comment', { task_id: deletedId });
+            }
           }
         }
       )
@@ -254,7 +261,8 @@ export function useDailyTasks(date?: string) {
                 assignerName = localStorage.getItem('tp_avatar_name') || assignerName;
               }
 
-              if (internEmail) {
+              // Only send a notification if the assigner is NOT the intern themselves
+              if (internEmail && internEmail !== userData.user?.email) {
                 console.log('[Notification Debug] Task Assigned. Intern to notify:', internEmail);
                 sendNotification(
                   internEmail,
@@ -263,7 +271,7 @@ export function useDailyTasks(date?: string) {
                   `"${taskName}" has been added to your daily tasks`,
                   { task_id: data?.[0]?.id, task_name: taskName, intern_id: internId }
                 );
-              } else {
+              } else if (!internEmail) {
                 console.warn('[Notification Debug] Task Assigned. Could not find intern email for internId:', internId);
               }
             } catch (notifErr) {
@@ -398,6 +406,9 @@ export function useDailyTasks(date?: string) {
         localStorage.setItem('padua_daily_tasks', JSON.stringify(allStored.filter((t: DailyTask) => t.id !== id)));
         return next;
       });
+      removeNotificationByMetadata('task_assigned', { task_id: id });
+      removeNotificationByMetadata('task_done', { task_id: id });
+      removeNotificationByMetadata('comment', { task_id: id });
       return;
     }
 
@@ -405,6 +416,9 @@ export function useDailyTasks(date?: string) {
       const { error } = await supabase.from('daily_tasks').delete().eq('id', id);
       if (error) throw error;
       setTasks(prev => prev.filter(t => t.id !== id));
+      removeNotificationByMetadata('task_assigned', { task_id: id });
+      removeNotificationByMetadata('task_done', { task_id: id });
+      removeNotificationByMetadata('comment', { task_id: id });
     } catch (err: any) {
       setError(err.message);
     }

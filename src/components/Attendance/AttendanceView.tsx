@@ -69,13 +69,26 @@ export const AttendanceView: React.FC<{initialDate?: string}> = ({ initialDate }
     return 0;
   });
 
-  const [csvDataUri, setCsvDataUri] = useState<string>('');
+  const [isExportingToSheets, setIsExportingToSheets] = useState(false);
+  const [toastMsg, setToastMsg] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
-  React.useEffect(() => {
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToastMsg({ message, type });
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  const handleExportToSheets = async () => {
+    const webhookUrl = import.meta.env.VITE_MAKE_WEBHOOK_URL;
+    if (!webhookUrl || webhookUrl === 'your_make_webhook_url_here') {
+      alert('Please add your Make.com Webhook URL to the .env file first!');
+      return;
+    }
+
     try {
-      const headers = ['Name', 'Department', 'Daily Records'];
-
-      const rows = displayRecords.map(a => {
+      setIsExportingToSheets(true);
+      
+      // Prepare the payload
+      const payload = displayRecords.map(a => {
         const name = a.intern?.username || a.intern?.full_name || 'Unknown';
         const dept = a.intern?.department || 'Unknown';
 
@@ -83,26 +96,50 @@ export const AttendanceView: React.FC<{initialDate?: string}> = ({ initialDate }
         if (a.accomplishments) {
           try {
             const parsed = JSON.parse(a.accomplishments);
-            if (Array.isArray(parsed)) recordsStr = parsed.join('; ');
-            else recordsStr = String(a.accomplishments).replace(/\n/g, '; ');
+            if (Array.isArray(parsed)) recordsStr = parsed.join('\n');
+            else recordsStr = String(a.accomplishments);
           } catch {
-            recordsStr = String(a.accomplishments).replace(/\n/g, '; ');
+            recordsStr = String(a.accomplishments);
           }
         }
-        const escapedRecords = recordsStr.replace(/"/g, '""');
         
-        return `"${name}","${dept}","${escapedRecords}"`;
+        return {
+          date: selectedDate,
+          name,
+          department: dept,
+          daily_records: recordsStr
+        };
       });
 
-      const csvContent = [headers.join(','), ...rows].join('\n');
-      
-      // Use data URI instead of Blob to try to bypass strict localhost download blocks
-      const dataUri = `data:text/csv;charset=utf-8,\ufeff${encodeURIComponent(csvContent)}`;
-      setCsvDataUri(dataUri);
-    } catch (error) {
-      console.error("Failed to generate CSV Data URI:", error);
+      // Add a completely blank record at the end of the payload.
+      // Make.com will process this as an empty row to create a visual spacer!
+      payload.push({
+        date: ' ',
+        name: ' ',
+        department: ' ',
+        daily_records: ' '
+      });
+
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ records: payload })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send data to webhook');
+      }
+
+      showToast('Successfully exported to Google Sheets!', 'success');
+    } catch (err) {
+      console.error('Export error:', err);
+      showToast('Failed to export. Please check your scenario.', 'error');
+    } finally {
+      setIsExportingToSheets(false);
     }
-  }, [displayRecords, isAdmin]);
+  };
 
   /** Format date for the header display */
   const displayDate = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
@@ -205,21 +242,26 @@ export const AttendanceView: React.FC<{initialDate?: string}> = ({ initialDate }
                 {showTimeColumns ? 'Hide Times' : 'Show Times'}
               </button>
 
-              {csvDataUri && (
-                <a
-                  href={csvDataUri}
-                  download={`daily_records_${selectedDate}.csv`}
-                  className="ml-2 flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-xl transition-all duration-200 border bg-teal/5 dark:bg-white/5 text-teal dark:text-cream border-teal/10 dark:border-white/10 hover:bg-teal/10 dark:hover:bg-white/10"
-                  title="Download records as CSV"
-                >
+              <button
+                onClick={handleExportToSheets}
+                disabled={isExportingToSheets || displayRecords.length === 0}
+                className="ml-2 flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-xl transition-all duration-200 border bg-teal text-white border-teal hover:bg-teal-light disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Export directly to Google Sheets via Make"
+              >
+                {isExportingToSheets ? (
+                  <svg className="animate-spin h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
                   </svg>
-                  Export CSV
-                </a>
-              )}
+                )}
+                {isExportingToSheets ? 'Exporting...' : 'Export to Sheets'}
+              </button>
 
               <select
                 value={sortBy}
@@ -326,6 +368,40 @@ export const AttendanceView: React.FC<{initialDate?: string}> = ({ initialDate }
             </div>
           )}
         </>
+      )}
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
+          <div className={`px-6 py-4 rounded-xl shadow-lg border flex items-center gap-3 ${
+            toastMsg.type === 'success' 
+              ? 'bg-white dark:bg-[#001a22] border-green-500/30 text-green-700 dark:text-green-400' 
+              : 'bg-white dark:bg-[#001a22] border-red-500/30 text-red-700 dark:text-red-400'
+          }`}>
+            {toastMsg.type === 'success' ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-red-500">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            )}
+            <span className="font-semibold text-sm">{toastMsg.message}</span>
+            <button 
+              onClick={() => setToastMsg(null)}
+              className="ml-2 text-current opacity-50 hover:opacity-100 transition-opacity"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

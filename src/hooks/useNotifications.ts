@@ -115,6 +115,20 @@ export function useNotifications() {
           );
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'notifications',
+        },
+        (payload) => {
+          const deletedId = payload.old?.id;
+          if (deletedId) {
+            setNotifications((prev) => prev.filter((n) => n.id !== deletedId));
+          }
+        }
+      )
       .subscribe();
 
     // Local storage event listener for demo mode
@@ -241,5 +255,63 @@ export async function sendNotification(
     });
   } catch (err) {
     console.error('Error sending notification:', err);
+  }
+}
+
+export async function removeNotificationByMetadata(
+  type: string,
+  metadataMatches: Record<string, unknown>
+) {
+  if (!isSupabaseConfigured) {
+    let all = getStoredNotifications();
+    all = all.filter((n) => {
+      if (n.type !== type) return true;
+      for (const key in metadataMatches) {
+        if (n.metadata[key] !== metadataMatches[key]) return true;
+      }
+      return false; // remove
+    });
+    saveStoredNotifications(all);
+    window.dispatchEvent(new Event('notification-change'));
+    return;
+  }
+
+  try {
+    // Fetch notifications of this type. RLS will automatically restrict this to what the user can see.
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('id, metadata')
+      .eq('type', type);
+
+    if (error) throw error;
+    if (!data) return;
+
+    const toDelete = data
+      .filter((n) => {
+        if (!n.metadata) return false;
+        
+        // Handle both JSONB and stringified JSON just in case
+        let meta = n.metadata as any;
+        if (typeof meta === 'string') {
+          try {
+            meta = JSON.parse(meta);
+          } catch (e) {
+            return false;
+          }
+        }
+
+        for (const key in metadataMatches) {
+          if (meta[key] !== metadataMatches[key]) return false;
+        }
+        return true;
+      })
+      .map((n) => n.id);
+
+    if (toDelete.length > 0) {
+      await supabase.from('notifications').delete().in('id', toDelete);
+      window.dispatchEvent(new Event('notification-change'));
+    }
+  } catch (err) {
+    console.error('Error removing notification by metadata:', err);
   }
 }

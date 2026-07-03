@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
-import { sendNotification } from './useNotifications';
+import { sendNotification, removeNotificationByMetadata } from './useNotifications';
 
 export interface TaskComment {
   id: string;
@@ -370,6 +370,7 @@ export function useTaskComments(taskId: string) {
         saveStoredComments(all);
         setComments((prev) => prev.filter((c) => c.id !== commentId));
         window.dispatchEvent(new CustomEvent('task-comments-changed', { detail: { taskId } }));
+        removeNotificationByMetadata('comment', { task_id: taskId });
         return;
       }
 
@@ -378,6 +379,7 @@ export function useTaskComments(taskId: string) {
         if (error) throw error;
         setComments((prev) => prev.filter((c) => c.id !== commentId));
         window.dispatchEvent(new CustomEvent('task-comments-changed', { detail: { taskId } }));
+        removeNotificationByMetadata('comment', { task_id: taskId });
       } catch (err) {
         console.error('Error deleting comment:', err);
       }

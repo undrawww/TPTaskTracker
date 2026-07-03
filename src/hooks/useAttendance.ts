@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { useInterns } from './useInterns';
-import { sendNotification } from './useNotifications';
+import { sendNotification, removeNotificationByMetadata } from './useNotifications';
 import type { AttendanceRecord, AttendanceAction, AttendanceWithIntern } from '../types';
 
 /** Get today's date as YYYY-MM-DD in local timezone */
@@ -354,6 +354,9 @@ export function useAttendance(initialDate?: string) {
                 { intern_name: internName, date: selectedDate }
               );
             }
+          } else if (field === 'admin_feedback' && !value.trim()) {
+            // Feedback was cleared, remove the notification
+            removeNotificationByMetadata('feedback', { intern_name: internName, date: selectedDate });
           }
         } catch (err) {
           console.error('Text sync error:', err);
