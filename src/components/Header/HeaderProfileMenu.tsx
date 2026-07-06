@@ -5,12 +5,15 @@ import { renderAvatar } from '../Dashboard/AvatarIcons';
 
 import { useNavigate } from 'react-router-dom';
 
+import type { Intern } from '../../types';
+
 interface Props {
   onLogout: () => void;
   onViewMyProfile?: () => void;
+  currentUser?: Intern;
 }
 
-export const HeaderProfileMenu: React.FC<Props> = ({ onLogout, onViewMyProfile }) => {
+export const HeaderProfileMenu: React.FC<Props> = ({ onLogout, onViewMyProfile, currentUser }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -18,19 +21,31 @@ export const HeaderProfileMenu: React.FC<Props> = ({ onLogout, onViewMyProfile }
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [avatarIdx, setAvatarIdx] = useState(() => {
+    if (currentUser?.avatar_index !== undefined) return currentUser.avatar_index;
     const val = localStorage.getItem('tp_avatar');
     return val !== null ? parseInt(val, 10) : 0;
   });
   
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(() => {
+    if (currentUser?.avatar_url) return currentUser.avatar_url;
     return user?.user_metadata?.avatar_url || localStorage.getItem('tp_avatar_url') || undefined;
   });
 
   const [displayName, setDisplayName] = useState(() => {
+    if (currentUser?.full_name) return currentUser.full_name;
     const rawName = localStorage.getItem('tp_avatar_name') || user?.user_metadata?.full_name;
     if (rawName) return rawName;
     return user?.email?.split('@')[0] || 'User';
   });
+
+  // Keep synced with currentUser if it updates from the database
+  useEffect(() => {
+    if (currentUser) {
+      if (currentUser.avatar_index !== undefined) setAvatarIdx(currentUser.avatar_index);
+      if (currentUser.avatar_url) setAvatarUrl(currentUser.avatar_url);
+      if (currentUser.full_name) setDisplayName(currentUser.full_name);
+    }
+  }, [currentUser]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

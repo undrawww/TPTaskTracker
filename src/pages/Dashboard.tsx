@@ -257,6 +257,7 @@ export const Dashboard: React.FC = () => {
               <HeaderProfileMenu 
                 onLogout={handleLogout} 
                 onViewMyProfile={() => handleViewChange('profile')}
+                currentUser={currentUser}
               />
             </div>
           </div>
