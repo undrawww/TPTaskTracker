@@ -78,7 +78,7 @@ export const DepartmentPanel: React.FC<Props> = ({
       )}
 
       {/* Intern task groups */}
-      <div className="py-4 flex flex-row gap-4">
+      <div className="py-4 flex flex-row gap-3">
         {deptInterns.length === 0 ? (
           <p className="text-sm text-[#003946] dark:text-[#f5e7c6] italic text-center py-4">
             No interns in this department

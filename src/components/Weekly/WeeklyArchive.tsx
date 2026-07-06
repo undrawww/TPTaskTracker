@@ -11,6 +11,7 @@ interface Props {
 
 export const WeeklyArchive: React.FC<Props> = ({ interns, activeCommentTaskId, setActiveCommentTaskId }) => {
   const [selectedWeek, setSelectedWeek] = useState(1);
+  const [isBizDevExpanded, setIsBizDevExpanded] = useState(false);
   const { tasks, loading, updateStatus, toggleVerify } = useWeeklyTasks(selectedWeek);
 
   const handleStatusChange = async (taskId: string, status: TaskStatus) => {
@@ -60,19 +61,61 @@ export const WeeklyArchive: React.FC<Props> = ({ interns, activeCommentTaskId, s
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          {DEPARTMENTS.map((dept) => (
-            <DepartmentPanel
-              key={dept}
-              department={dept}
-              interns={interns}
-              tasks={selectedWeek > 1 ? tasks.filter(t => t.status === 'Done') : tasks}
-              onStatusChange={handleStatusChange}
-              onVerifyChange={handleVerifyChange}
-              activeCommentTaskId={activeCommentTaskId}
-              setActiveCommentTaskId={setActiveCommentTaskId}
-            />
-          ))}
+        <div className="flex flex-col gap-6">
+          {/* Regular Departments */}
+          <div className="flex overflow-x-auto overflow-y-hidden pb-6 gap-4 items-start w-full min-h-[500px]">
+            {DEPARTMENTS.filter(dept => dept !== 'BizDev Leadership Team' && (dept as string) !== 'BizDev Team').map((dept) => (
+              <DepartmentPanel
+                key={dept}
+                department={dept}
+                interns={interns}
+                tasks={selectedWeek > 1 ? tasks.filter(t => t.status === 'Done') : tasks}
+                onStatusChange={handleStatusChange}
+                onVerifyChange={handleVerifyChange}
+                activeCommentTaskId={activeCommentTaskId}
+                setActiveCommentTaskId={setActiveCommentTaskId}
+              />
+            ))}
+          </div>
+
+          <div className="w-full h-px bg-teal/10 dark:bg-white/5 my-2"></div>
+
+          {/* BizDev Leadership Team Section */}
+          <div className="w-full">
+            <button
+              onClick={() => setIsBizDevExpanded(!isBizDevExpanded)}
+              className="flex items-center gap-2 mb-4 group/bizdev"
+            >
+              <div className="p-1 rounded hover:bg-teal/5 dark:hover:bg-white/5 transition-colors">
+                <svg 
+                  width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                  className={`text-teal/50 dark:text-cream/50 transition-transform duration-300 ${isBizDevExpanded ? 'rotate-90' : ''}`}
+                >
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </div>
+              <h3 className="text-base font-bold text-teal/70 dark:text-cream/70 group-hover/bizdev:text-teal dark:group-hover/bizdev:text-cream transition-colors">
+                BizDev Leadership Team
+              </h3>
+            </button>
+            
+            {isBizDevExpanded && (
+              <div className="mt-4 flex overflow-x-auto overflow-y-hidden pb-6 gap-4 items-start w-full min-h-[500px]">
+                {DEPARTMENTS.filter(dept => dept === 'BizDev Leadership Team' || (dept as string) === 'BizDev Team').map((dept) => (
+                  <DepartmentPanel
+                    key={dept}
+                    department={dept}
+                    interns={interns}
+                    tasks={selectedWeek > 1 ? tasks.filter(t => t.status === 'Done') : tasks}
+                    onStatusChange={handleStatusChange}
+                    onVerifyChange={handleVerifyChange}
+                    activeCommentTaskId={activeCommentTaskId}
+                    setActiveCommentTaskId={setActiveCommentTaskId}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </section>

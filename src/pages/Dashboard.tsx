@@ -100,11 +100,26 @@ export const Dashboard: React.FC = () => {
   const isLoading = internsLoading || tasksLoading;
 
   // Filter data based on role
+  const currentUser = interns.find(i => i.id === currentInternId);
+  const currentName = (currentUser?.full_name || currentUser?.username || '').toLowerCase();
+  const isPrincessOrWyn = currentName.includes('princess isabel') || /\bwyn\b/i.test(currentName);
+
   const displayInterns = (() => {
     if (role === 'admin') return interns;
     if (role === 'intern' && currentInternId) return interns;
     return []; // intern but not added yet sees nothing
-  })().filter(i => (i.department as string) !== 'Administrator');
+  })().filter(i => {
+    if ((i.department as string) === 'Administrator') return false;
+    
+    // Hide Princess and Wyn from everyone except themselves
+    const name = (i.full_name || i.username || '').toLowerCase();
+    const isTarget = name.includes('princess isabel') || /\bwyn\b/i.test(name);
+    if (isTarget && !isPrincessOrWyn) {
+      return false;
+    }
+    
+    return true;
+  });
 
   const validInternIds = new Set(interns.map(i => i.id));
 

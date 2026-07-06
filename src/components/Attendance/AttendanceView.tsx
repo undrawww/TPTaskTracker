@@ -80,7 +80,7 @@ export const AttendanceView: React.FC<{initialDate?: string}> = ({ initialDate }
   const handleExportToSheets = async () => {
     const webhookUrl = import.meta.env.VITE_MAKE_WEBHOOK_URL;
     if (!webhookUrl || webhookUrl === 'your_make_webhook_url_here') {
-      alert('Please add your Make.com Webhook URL to the .env file first!');
+      showToast('Please add your Webhook URL to the .env file first!', 'error');
       return;
     }
 
@@ -246,7 +246,7 @@ export const AttendanceView: React.FC<{initialDate?: string}> = ({ initialDate }
                 onClick={handleExportToSheets}
                 disabled={isExportingToSheets || displayRecords.length === 0}
                 className="ml-2 flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-xl transition-all duration-200 border bg-teal text-white border-teal hover:bg-teal-light disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Export directly to Google Sheets via Make"
+                title="Export directly to Google Sheets"
               >
                 {isExportingToSheets ? (
                   <svg className="animate-spin h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none">
