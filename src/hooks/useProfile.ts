@@ -123,13 +123,14 @@ export function useProfile(internId?: string) {
         // Fetch profile data for avatar_index and created_at
         const { data: profileData } = await supabase
           .from('profiles')
-          .select('avatar_index, created_at')
+          .select('avatar_index, avatar_url, created_at')
           .eq('email', internData.email)
           .single();
 
         setIntern({
           ...internData,
-          avatar_index: profileData?.avatar_index || 0,
+          avatar_index: profileData?.avatar_index ?? internData.avatar_index ?? 0,
+          avatar_url: profileData?.avatar_url || internData.avatar_url,
           created_at: profileData?.created_at || internData.created_at
         });
 

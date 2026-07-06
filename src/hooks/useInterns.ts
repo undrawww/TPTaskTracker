@@ -65,13 +65,17 @@ export function useInterns() {
         const emails = internsData.map(i => i.email);
         const { data: profilesData } = await supabase
           .from('profiles')
-          .select('email, avatar_index')
+          .select('email, avatar_index, avatar_url')
           .in('email', emails);
           
         if (profilesData) {
-          const avatarMap = new Map(profilesData.map(p => [p.email, p.avatar_index]));
+          const avatarMap = new Map(profilesData.map(p => [p.email, { index: p.avatar_index, url: p.avatar_url }]));
           internsData.forEach(i => {
-            i.avatar_index = avatarMap.get(i.email) ?? undefined;
+            const pData = avatarMap.get(i.email);
+            if (pData) {
+              i.avatar_index = pData.index ?? undefined;
+              if (pData.url) i.avatar_url = pData.url;
+            }
           });
         }
       }

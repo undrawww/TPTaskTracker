@@ -42,6 +42,14 @@ export const InternTaskGroup: React.FC<Props> = ({ internId, internName, internU
     return null;
   });
 
+  const [chosenAvatarUrl, setChosenAvatarUrl] = useState<string | undefined>(() => {
+    const savedName = localStorage.getItem('tp_avatar_name');
+    if (savedName === internName) {
+      return localStorage.getItem('tp_avatar_url') || undefined;
+    }
+    return undefined;
+  });
+
   const firstName = internUsername || internName.split(' ')[0];
 
   useEffect(() => {
@@ -50,8 +58,10 @@ export const InternTaskGroup: React.FC<Props> = ({ internId, internName, internU
       if (savedName === internName) {
         const idx = localStorage.getItem('tp_avatar');
         setChosenAvatarIdx(idx ? parseInt(idx, 10) : null);
+        setChosenAvatarUrl(localStorage.getItem('tp_avatar_url') || undefined);
       } else {
         setChosenAvatarIdx(null);
+        setChosenAvatarUrl(undefined);
       }
     };
     window.addEventListener('avatar-change', handler);
@@ -91,7 +101,7 @@ export const InternTaskGroup: React.FC<Props> = ({ internId, internName, internU
         >
           <div className="w-8 h-8 rounded-full flex items-center justify-center shadow-sm">
             {chosenAvatarIdx !== null 
-              ? renderAvatar(chosenAvatarIdx, avatarUrl) 
+              ? renderAvatar(chosenAvatarIdx, chosenAvatarUrl || avatarUrl) 
               : avatarIndex !== undefined 
                 ? renderAvatar(avatarIndex, avatarUrl) 
                 : getAvatarIcon(internName)}

@@ -194,18 +194,19 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
     if (isSupabaseConfigured && user?.email) {
       await supabase
         .from('profiles')
-        .update({ avatar_index: idx })
+        .update({ avatar_index: idx, avatar_url: null })
         .eq('email', user.email);
         
       if (role === 'intern') {
         await supabase
           .from('interns')
-          .update({ avatar_index: idx })
+          .update({ avatar_index: idx, avatar_url: null })
           .eq('email', user.email);
       }
     }
 
     // Dispatch a storage event so the header and dashboard update live
+    localStorage.removeItem('tp_avatar_url');
     window.dispatchEvent(new Event('avatar-change'));
   };
 
@@ -358,13 +359,13 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
       // Update backend
       await supabase
         .from('profiles')
-        .update({ avatar_url: publicUrl })
+        .update({ avatar_url: publicUrl, avatar_index: -1 })
         .eq('email', user.email);
         
       if (role === 'intern') {
         await supabase
           .from('interns')
-          .update({ avatar_url: publicUrl })
+          .update({ avatar_url: publicUrl, avatar_index: -1 })
           .eq('email', user.email);
       }
 
@@ -374,7 +375,9 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
       });
 
       setAvatarUrl(publicUrl);
+      setAvatarIndex(-1);
       localStorage.setItem('tp_avatar_url', publicUrl);
+      localStorage.setItem('tp_avatar', '-1');
       setCropImageSrc(null);
       setShowAvatarPicker(false);
       setSuccess('Profile photo uploaded successfully!');
