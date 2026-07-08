@@ -111,10 +111,10 @@ export const Dashboard: React.FC = () => {
   })().filter(i => {
     if ((i.department as string) === 'Administrator') return false;
     
-    // Hide Princess and Wyn from everyone except themselves
+    // Hide Princess and Wyn from everyone except themselves and admins
     const name = (i.full_name || i.username || '').toLowerCase();
     const isTarget = name.includes('princess isabel') || /\bwyn\b/i.test(name);
-    if (isTarget && !isPrincessOrWyn) {
+    if (isTarget && !isPrincessOrWyn && role !== 'admin') {
       return false;
     }
     
