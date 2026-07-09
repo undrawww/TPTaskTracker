@@ -211,6 +211,26 @@ export const Dashboard: React.FC = () => {
             </div>
             {/* Header Right */}
             <div className="flex items-center gap-3 pr-2">
+              <a 
+                href="https://us06web.zoom.us/j/5410171152?pwd=v8fBiNgqRfig0jaqJr26LPpf51cxUn.1#success"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative p-2 rounded-xl hover:bg-blue-500/10 dark:hover:bg-blue-500/20 transition-all duration-200 group"
+                title="Join Zoom Meeting"
+              >
+                <svg 
+                  width="22" 
+                  height="22" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="transition-transform group-hover:scale-110"
+                >
+                  <circle cx="12" cy="12" r="12" fill="#2D8CFF" />
+                  <path d="M17.5 9.5V14.5C17.5 15.3 16.6 15.8 15.9 15.4L13 13.8V10.2L15.9 8.6C16.6 8.2 17.5 8.7 17.5 9.5Z" fill="white"/>
+                  <rect x="6.5" y="8" width="7" height="8" rx="1.5" fill="white"/>
+                </svg>
+              </a>
               <NotificationBell 
                 onNotificationClick={(notif) => {
                   const scrollTarget = (targetId: string) => {
