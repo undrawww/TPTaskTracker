@@ -215,12 +215,12 @@ export const Dashboard: React.FC = () => {
                 href="https://us06web.zoom.us/j/5410171152?pwd=v8fBiNgqRfig0jaqJr26LPpf51cxUn.1#success"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="relative p-2 rounded-xl hover:bg-blue-500/10 dark:hover:bg-blue-500/20 transition-all duration-200 group"
+                className="relative flex items-center justify-center w-8 h-8 rounded-xl hover:bg-blue-500/10 dark:hover:bg-blue-500/20 transition-all duration-200 group"
                 title="Join Zoom Meeting"
               >
                 <svg 
-                  width="22" 
-                  height="22" 
+                  width="24" 
+                  height="24" 
                   viewBox="0 0 24 24" 
                   fill="none" 
                   xmlns="http://www.w3.org/2000/svg"
