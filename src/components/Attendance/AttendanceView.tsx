@@ -111,14 +111,6 @@ export const AttendanceView: React.FC<{initialDate?: string}> = ({ initialDate }
         };
       });
 
-      // Add a completely blank record at the end of the payload.
-      // Make.com will process this as an empty row to create a visual spacer!
-      payload.push({
-        date: ' ',
-        name: ' ',
-        department: ' ',
-        daily_records: ' '
-      });
 
       const response = await fetch(webhookUrl, {
         method: 'POST',
@@ -130,6 +122,15 @@ export const AttendanceView: React.FC<{initialDate?: string}> = ({ initialDate }
 
       if (!response.ok) {
         throw new Error('Failed to send data to webhook');
+      }
+
+      // Trigger Google Apps Script to auto-insert blank rows between dates
+      const spacerUrl = import.meta.env.VITE_SHEETS_SPACER_URL;
+      if (spacerUrl) {
+        // Run in the background so it doesn't block the UI from showing success
+        setTimeout(() => {
+          fetch(spacerUrl, { mode: 'no-cors' }).catch(() => {});
+        }, 3000);
       }
 
       showToast('Successfully exported to Google Sheets!', 'success');
