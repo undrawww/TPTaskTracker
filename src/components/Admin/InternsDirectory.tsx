@@ -1,15 +1,26 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useInterns } from '../../hooks/useInterns';
 import { getAvatarIcon, renderAvatar } from '../Dashboard/AvatarIcons';
 import { formatAddress } from '../../utils/formatAddress';
+import { generateSlug } from '../../utils/slugify';
 
 interface Props {
   onViewProfile?: (id: string) => void;
 }
 
 export const InternsDirectory: React.FC<Props> = ({ onViewProfile }) => {
+  const navigate = useNavigate();
   const { interns: allInterns, loading, error } = useInterns();
   const interns = allInterns.filter(i => i.department !== 'BizDev Leadership Team' && (i.department as string) !== 'BizDev Team');
+
+  const handleViewProfile = (id: string, name: string) => {
+    if (onViewProfile) {
+      onViewProfile(id); // Let Dashboard handle the slug resolution if passed via prop
+    } else {
+      navigate(`/profile/${generateSlug(name)}`);
+    }
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">

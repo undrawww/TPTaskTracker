@@ -40,6 +40,14 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/profile/:internId"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
 
             {/* TaskTracker route */}
             <Route
@@ -64,6 +72,24 @@ function App() {
             {/* Interns route */}
             <Route
               path="/interns"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Videos route */}
+            <Route
+              path="/videos"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/videos/:videoId"
               element={
                 <ProtectedRoute>
                   <Dashboard />

@@ -18,7 +18,7 @@ export function formatAddress(locStr?: string | null): string {
       // but we can append it if needed. Standard PH address is usually up to City/Province + Postal.
       return parts.length > 0 ? parts.join(', ') : '—';
     }
-  } catch (e) {
+  } catch {
     // If it's not JSON, it's a legacy plain text string
   }
   

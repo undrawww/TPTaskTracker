@@ -104,9 +104,12 @@ export function useDailyTasks(date?: string) {
             }
           } else if (payload.eventType === 'UPDATE') {
             const updatedTask = payload.new as DailyTask;
-            if (updatedTask.task_date === targetDate) {
-              setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
-            }
+            setTasks((prev) => {
+              if (prev.some(t => t.id === updatedTask.id)) {
+                return prev.map((t) => (t.id === updatedTask.id ? updatedTask : t));
+              }
+              return prev;
+            });
           } else if (payload.eventType === 'DELETE') {
             const deletedId = payload.old?.id;
             if (deletedId) {

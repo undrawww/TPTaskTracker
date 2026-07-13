@@ -251,7 +251,7 @@ export function useTaskComments(taskId: string) {
                   const resP = await supabase.from('profiles').select('email, username, full_name');
                   if (resP.error) throw resP.error;
                   profiles = resP.data || [];
-                } catch (e) {
+                } catch {
                   const fallbackP = await supabase.from('profiles').select('email, full_name');
                   profiles = fallbackP.data || [];
                 }
@@ -260,12 +260,12 @@ export function useTaskComments(taskId: string) {
                   const resI = await supabase.from('interns').select('email, username, full_name');
                   if (resI.error) throw resI.error;
                   internsList = resI.data || [];
-                } catch (e) {
+                } catch {
                   const fallbackI = await supabase.from('interns').select('email, full_name');
                   internsList = fallbackI.data || [];
                 }
                 
-                const mentionCheck = (u: any) => {
+                const mentionCheck = (u: { email?: string; username?: string; full_name?: string }) => {
                   if (!u.email) return;
                   const isMatch = 
                     (u.username && mentionedNames.includes(u.username.toLowerCase())) ||
@@ -384,7 +384,7 @@ export function useTaskComments(taskId: string) {
         console.error('Error deleting comment:', err);
       }
     },
-    []
+    [taskId]
   );
 
   const editComment = useCallback(

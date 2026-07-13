@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { AnalyticsDashboard } from '../components/Analytics/AnalyticsDashboard';
@@ -15,6 +15,7 @@ import { NotificationBell } from '../components/Header/NotificationBell';
 import { Sidebar } from '../components/Layout/Sidebar';
 import { AttendanceView } from '../components/Attendance/AttendanceView';
 import { InternsDirectory } from '../components/Admin/InternsDirectory';
+import { TrainingVideos } from '../components/Training/TrainingVideos';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useInterns } from '../hooks/useInterns';
 import { useDailyTasks } from '../hooks/useDailyTasks';
@@ -23,8 +24,9 @@ import { TaskComments } from '../components/Dashboard/TaskComments';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { ProfilePage } from '../components/Profile/ProfilePage';
 import { isPoolId, type TaskStatus } from '../types';
+import { generateSlug } from '../utils/slugify';
 
-type ActiveView = 'tracker' | 'attendance' | 'interns' | 'profile';
+type ActiveView = 'tracker' | 'attendance' | 'interns' | 'profile' | 'videos';
 
 export const Dashboard: React.FC = () => {
   const { role, currentInternId } = useAuth();
@@ -38,6 +40,7 @@ export const Dashboard: React.FC = () => {
     attendance: '/attendance',
     interns: '/interns',
     profile: '/profile',
+    videos: '/videos',
   };
 
   const pathToView: Record<string, ActiveView> = {
@@ -46,40 +49,65 @@ export const Dashboard: React.FC = () => {
     '/attendance': 'attendance',
     '/interns': 'interns',
     '/profile': 'profile',
+    '/videos': 'videos',
   };
+
+  const { internId } = useParams<{ internId?: string; videoId?: string }>();
+
+  // Data hooks (moved up because they are used in routing state logic)
+  const { interns, loading: internsLoading, addIntern, removeIntern, reorderInterns } = useInterns();
 
   // View & sidebar state
   const [activeView, setActiveView] = useState<ActiveView>(() => {
-    return pathToView[location.pathname] || 'tracker';
+    const basePath = '/' + location.pathname.split('/')[1];
+    return pathToView[basePath] || 'tracker';
   });
-  const [viewingProfileId, setViewingProfileId] = useState<string | null>(() => {
-    return localStorage.getItem('tp_viewing_profile_id') || null;
-  });
+  
+  const [viewingProfileId, setViewingProfileId] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleViewChange = (view: ActiveView) => {
     setActiveView(view);
     navigate(viewToPath[view] || '/tasktracker');
-    // Always clear viewingProfileId on manual navigation (sidebar/header)
     setViewingProfileId(null);
-    localStorage.removeItem('tp_viewing_profile_id');
   };
 
   const handleViewProfile = (id: string) => {
-    setViewingProfileId(id);
-    localStorage.setItem('tp_viewing_profile_id', id);
-    setActiveView('profile');
-    navigate('/profile');
+    const intern = interns.find(i => i.id === id);
+    if (intern) {
+      const slug = generateSlug(intern.full_name);
+      setActiveView('profile');
+      navigate(`/profile/${slug || id}`);
+    } else {
+      setActiveView('profile');
+      navigate(`/profile/${id}`);
+    }
   };
 
   // Sync state if URL changes directly (e.g. back button or header menu)
   useEffect(() => {
-    const currentView = pathToView[location.pathname] || 'tracker';
+    const basePath = '/' + location.pathname.split('/')[1];
+    const currentView = pathToView[basePath] || 'tracker';
     if (activeView !== currentView) {
       setActiveView(currentView);
     }
-  }, [location.pathname]);
+    
+    // Sync profile ID from URL parameter (resolve slug to UUID)
+    if (currentView === 'profile') {
+      if (!internId) {
+        setViewingProfileId(null);
+      } else {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(internId);
+        if (isUuid) {
+          setViewingProfileId(internId);
+        } else if (interns.length > 0) {
+          const matched = interns.find(i => generateSlug(i.full_name) === internId);
+          if (matched) setViewingProfileId(matched.id);
+        }
+      }
+    }
+  }, [location.pathname, internId, interns]);
 
   // Modal state
 
@@ -94,7 +122,6 @@ export const Dashboard: React.FC = () => {
   const [attendanceInitialDate, setAttendanceInitialDate] = useState<string | undefined>(undefined);
 
   // Data hooks
-  const { interns, loading: internsLoading, addIntern, removeIntern, reorderInterns } = useInterns();
   const { tasks: dailyTasks, loading: tasksLoading, addTask: addDailyTask, updateStatus: updateDailyStatus, toggleVerify: toggleDailyVerify, editTask: editDailyTask, removeTask: removeDailyTask, reorderTasks } = useDailyTasks();
 
   const isLoading = internsLoading || tasksLoading;
@@ -369,6 +396,10 @@ export const Dashboard: React.FC = () => {
 
                 {activeView === 'profile' && (
                   <ProfilePage internId={viewingProfileId || undefined} />
+                )}
+
+                {activeView === 'videos' && (
+                  <TrainingVideos />
                 )}
               </>
             )}

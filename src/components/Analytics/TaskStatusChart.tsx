@@ -7,6 +7,7 @@ import {
   ResponsiveContainer,
   Tooltip,
   Legend,
+  LabelList,
 } from 'recharts';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -19,6 +20,25 @@ const STATUS_COLOR_MAP: Record<string, string> = {
   'In Progress': '#ffa06d',
   'On Hold': '#e06666',
   Acknowledge: '#387886', // Update acknowledge color to be more visible in light mode
+};
+
+// Custom label renderer: only show value if > 0
+const renderLabel = (props: any) => {
+  const { x, y, width, height, value } = props;
+  if (!value || value === 0 || height < 14) return null;
+  return (
+    <text
+      x={x + width / 2}
+      y={y + height / 2}
+      fill="#003946"
+      textAnchor="middle"
+      dominantBaseline="middle"
+      fontSize={11}
+      fontWeight="bold"
+    >
+      {value}
+    </text>
+  );
 };
 
 export const TaskStatusChart: React.FC<Props> = ({ data }) => {
@@ -67,10 +87,18 @@ export const TaskStatusChart: React.FC<Props> = ({ data }) => {
                 itemStyle={{ color: textColor, fontWeight: 'bold' }}
               />
               <Legend verticalAlign="bottom" align="center" wrapperStyle={{ fontSize: 11, color: textColor, fontWeight: 'bold', paddingTop: '10px' }} iconType="square" iconSize={10} />
-              <Bar dataKey="On Hold" stackId="a" fill={getStatusColor('On Hold')} />
-              <Bar dataKey="In Progress" stackId="a" fill={getStatusColor('In Progress')} />
-              <Bar dataKey="Acknowledge" stackId="a" fill={getStatusColor('Acknowledge')} />
-              <Bar dataKey="Pending" stackId="a" fill={getStatusColor('Pending')} />
+              <Bar dataKey="On Hold" stackId="a" fill={getStatusColor('On Hold')}>
+                <LabelList dataKey="On Hold" content={renderLabel} />
+              </Bar>
+              <Bar dataKey="In Progress" stackId="a" fill={getStatusColor('In Progress')}>
+                <LabelList dataKey="In Progress" content={renderLabel} />
+              </Bar>
+              <Bar dataKey="Acknowledge" stackId="a" fill={getStatusColor('Acknowledge')}>
+                <LabelList dataKey="Acknowledge" content={renderLabel} />
+              </Bar>
+              <Bar dataKey="Pending" stackId="a" fill={getStatusColor('Pending')}>
+                <LabelList dataKey="Pending" content={renderLabel} />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         )}
@@ -78,3 +106,4 @@ export const TaskStatusChart: React.FC<Props> = ({ data }) => {
     </div>
   );
 };
+

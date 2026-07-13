@@ -91,6 +91,7 @@ export function useWeeklyTasks(weekNumber: number) {
   }, [weekNumber]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchTasks();
 
     if (!isSupabaseConfigured) return;
@@ -111,9 +112,12 @@ export function useWeeklyTasks(weekNumber: number) {
             }
           } else if (payload.eventType === 'UPDATE') {
             const updatedTask = payload.new as WeeklyTask;
-            if (updatedTask.week_number === weekNumber) {
-              setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? { ...updatedTask, type: 'weekly' } as UnifiedTask : t)));
-            }
+            setTasks((prev) => {
+              if (prev.some((t) => t.id === updatedTask.id)) {
+                return prev.map((t) => (t.id === updatedTask.id ? { ...updatedTask, type: 'weekly' } as UnifiedTask : t));
+              }
+              return prev;
+            });
           } else if (payload.eventType === 'DELETE') {
             setTasks((prev) => prev.filter((t) => t.id !== payload.old.id));
           }
@@ -135,7 +139,7 @@ export function useWeeklyTasks(weekNumber: number) {
         const next = prev.map((t) => (t.id === taskId ? { ...t, is_verified: isVerified } : t));
         const storageKey = task.type === 'daily' ? 'padua_daily_tasks' : 'padua_weekly_tasks';
         const allStored = JSON.parse(localStorage.getItem(storageKey) || '[]');
-        const updatedStored = allStored.map((t: any) => t.id === taskId ? { ...t, is_verified: isVerified } : t);
+        const updatedStored = allStored.map((t: { id: string }) => t.id === taskId ? { ...t, is_verified: isVerified } : t);
         localStorage.setItem(storageKey, JSON.stringify(updatedStored));
         return next;
       });

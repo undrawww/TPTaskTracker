@@ -13,9 +13,9 @@ interface ProfileHeaderProps {
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, weeklyTasks = [], onEditClick, isOwnProfile = true }) => {
   const [isGcashOpen, setIsGcashOpen] = useState(false);
-  // Tasks marked as 'is_verified' are considered verified completed by the admin
-  const completedDaily = tasks.filter(t => t.is_verified).length;
-  const completedWeekly = weeklyTasks.filter(t => t.is_verified).length;
+  // Count all tasks marked as 'Done' across both daily and weekly tasks
+  const completedDaily = tasks.filter(t => t.status === 'Done').length;
+  const completedWeekly = weeklyTasks.filter(t => t.status === 'Done').length;
   const completedTasks = completedDaily + completedWeekly;
   const formattedStartDate = intern.created_at 
     ? new Date(intern.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
@@ -142,7 +142,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, wee
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-gold">
                   <path d="M20 6L9 17l-5-5" />
                 </svg>
-                Verified Tasks
+                Completed Tasks
               </p>
               <p className="text-4xl font-bold text-teal dark:text-cream">{completedTasks}</p>
             </div>

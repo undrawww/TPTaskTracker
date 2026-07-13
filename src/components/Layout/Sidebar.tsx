@@ -1,8 +1,8 @@
 import React from 'react';
 
 interface SidebarProps {
-  activeView: 'tracker' | 'attendance' | 'interns' | 'profile';
-  onViewChange: (view: 'tracker' | 'attendance' | 'interns' | 'profile') => void;
+  activeView: 'tracker' | 'attendance' | 'interns' | 'profile' | 'videos';
+  onViewChange: (view: 'tracker' | 'attendance' | 'interns' | 'profile' | 'videos') => void;
   collapsed: boolean;
   onToggle: () => void;
   isMobileMenuOpen?: boolean;
@@ -11,7 +11,7 @@ interface SidebarProps {
   completedTotal?: number;
 }
 
-const NAV_ITEMS: { key: 'tracker' | 'attendance' | 'interns'; label: string; icon: React.ReactNode }[] = [
+const NAV_ITEMS: { key: 'tracker' | 'attendance' | 'interns' | 'videos'; label: string; icon: React.ReactNode }[] = [
   {
     key: 'tracker',
     label: 'Task Tracker',
@@ -42,6 +42,16 @@ const NAV_ITEMS: { key: 'tracker' | 'attendance' | 'interns'; label: string; ico
         <circle cx="9" cy="7" r="4" />
         <path d="M23 21v-2a4 4 0 00-3-3.87" />
         <path d="M16 3.13a4 4 0 010 7.75" />
+      </svg>
+    ),
+  },
+  {
+    key: 'videos',
+    label: 'Videos',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="23 7 16 12 23 17 23 7" />
+        <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
       </svg>
     ),
   },
