@@ -3,7 +3,6 @@ import { useTrainingVideos } from '../../hooks/useTrainingVideos';
 import { useAuth } from '../../contexts/AuthContext';
 import { useInterns } from '../../hooks/useInterns';
 import { avatarURLs } from '../Dashboard/AvatarIcons';
-import type { TrainingVideo } from '../../hooks/useTrainingVideos';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { generateSlug } from '../../utils/slugify';
@@ -13,7 +12,6 @@ export const TrainingVideos: React.FC = () => {
   const navigate = useNavigate();
   const { videos, loading, hasCompleted, getVideoCompletions, markAsWatched, unmarkAsWatched, addVideo, deleteVideo } = useTrainingVideos();
   const { role } = useAuth();
-  const { interns } = useInterns();
   const [showAddModal, setShowAddModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newUrl, setNewUrl] = useState('');

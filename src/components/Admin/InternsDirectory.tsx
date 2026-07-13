@@ -78,7 +78,7 @@ export const InternsDirectory: React.FC<Props> = ({ onViewProfile }) => {
                 <tr 
                   key={intern.id} 
                   className="hover:bg-teal/5 dark:hover:bg-white/5 transition-colors duration-200 cursor-pointer"
-                  onClick={() => onViewProfile?.(intern.id)}
+                  onClick={() => handleViewProfile(intern.id, intern.full_name)}
                 >
                   <td className="px-5 py-4 align-middle">
                     <div className="flex items-center gap-3">
