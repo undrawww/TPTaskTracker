@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useTrainingVideos } from '../../hooks/useTrainingVideos';
 import { useAuth } from '../../contexts/AuthContext';
-import { useInterns } from '../../hooks/useInterns';
 import { avatarURLs } from '../Dashboard/AvatarIcons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
