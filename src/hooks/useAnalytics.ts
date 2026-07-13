@@ -64,9 +64,15 @@ export function useAnalytics(interns: Intern[], dailyTasks: DailyTask[]): Analyt
       count: validTasks.filter((t) => t.status === status).length,
     }));
 
+    // Group interns by department for ordered display
+    const groupedInterns: Intern[] = [];
+    DEPARTMENTS.forEach(dept => {
+      if (dept === 'BizDev Leadership Team' || (dept as string) === 'BizDev Team') return;
+      groupedInterns.push(...interns.filter(i => i.department === dept));
+    });
+
     // Status distribution per intern (for stacked chart)
-    const internStatusDistribution = interns
-      .filter((intern) => intern.department !== 'BizDev Leadership Team' && (intern.department as string) !== 'BizDev Team')
+    const internStatusDistribution = groupedInterns
       .map((intern) => {
       const internTasks = validTasks.filter((t) => t.intern_id === intern.id);
       const counts: { name: string; [key: string]: string | number } = {
