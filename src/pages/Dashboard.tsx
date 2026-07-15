@@ -258,6 +258,25 @@ export const Dashboard: React.FC = () => {
                   <rect x="6.5" y="8" width="7" height="8" rx="1.5" fill="white"/>
                 </svg>
               </a>
+              <a 
+                href="https://meet.google.com/htr-ryrn-tkp"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative flex items-center justify-center w-8 h-8 rounded-xl hover:bg-green-500/10 dark:hover:bg-green-500/20 transition-all duration-200 group"
+                title="Join Google Meet"
+              >
+                <svg 
+                  width="24" 
+                  height="24" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="transition-transform group-hover:scale-110"
+                >
+                  <rect width="24" height="24" rx="12" fill="#00897B"/>
+                  <path d="M16 10.5V8.5C16 7.67157 15.3284 7 14.5 7H7.5C6.67157 7 6 7.67157 6 8.5V15.5C6 16.3284 6.67157 17 7.5 17H14.5C15.3284 17 16 16.3284 16 15.5V13.5L19 16.5V7.5L16 10.5Z" fill="white"/>
+                </svg>
+              </a>
               <NotificationBell 
                 onNotificationClick={(notif) => {
                   const scrollTarget = (targetId: string) => {
