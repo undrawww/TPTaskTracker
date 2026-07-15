@@ -266,15 +266,17 @@ export const Dashboard: React.FC = () => {
                 title="Join Google Meet"
               >
                 <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  viewBox="0 0 24 24" 
                   width="24" 
                   height="24" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  xmlns="http://www.w3.org/2000/svg"
                   className="transition-transform group-hover:scale-110"
                 >
-                  <rect width="24" height="24" rx="12" fill="#00897B"/>
-                  <path d="M16 10.5V8.5C16 7.67157 15.3284 7 14.5 7H7.5C6.67157 7 6 7.67157 6 8.5V15.5C6 16.3284 6.67157 17 7.5 17H14.5C15.3284 17 16 16.3284 16 15.5V13.5L19 16.5V7.5L16 10.5Z" fill="white"/>
+                  <path fill="#00832d" d="M17.15,16.29,21.84,21c.54.54,1.47.16,1.47-.6V3.62c0-.77-.93-1.15-1.47-.61L17.15,7.71Z"/>
+                  <path fill="#0066da" d="M9.25,16.29h4.3v6H6.1A3.1,3.1,0,0,1,3,19.19V16.29Z"/>
+                  <path fill="#e94235" d="M9.25,7.71h4.3V1.71H6.1A3.1,3.1,0,0,0,3,4.81V7.71Z"/>
+                  <path fill="#2684fc" d="M3,7.71v8.58H9.25V7.71Z"/>
+                  <path fill="#fbbd04" d="M17.15,16.29H13.55V7.71h3.6Z"/>
                 </svg>
               </a>
               <NotificationBell 
