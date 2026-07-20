@@ -67,6 +67,13 @@ export const Dashboard: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Chart visibility settings (not persisted, always false by default)
+  const [showCharts, setShowCharts] = useState(false);
+
+  const toggleCharts = () => {
+    setShowCharts(prev => !prev);
+  };
+
   const handleViewChange = (view: ActiveView) => {
     setActiveView(view);
     navigate(viewToPath[view] || '/tasktracker');
@@ -118,6 +125,10 @@ export const Dashboard: React.FC = () => {
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showWeekly, setShowWeekly] = useState(false);
+
+  const toggleWeeklyArchive = () => {
+    setShowWeekly(prev => !prev);
+  };
   const [activeCommentTaskId, setActiveCommentTaskId] = useState<string | null>(null);
   const [attendanceInitialDate, setAttendanceInitialDate] = useState<string | undefined>(undefined);
 
@@ -327,6 +338,10 @@ export const Dashboard: React.FC = () => {
                 onLogout={handleLogout} 
                 onViewMyProfile={() => handleViewChange('profile')}
                 currentUser={currentUser}
+                showCharts={showCharts}
+                onToggleCharts={toggleCharts}
+                showWeeklyArchive={showWeekly}
+                onToggleWeeklyArchive={toggleWeeklyArchive}
               />
             </div>
           </div>
@@ -346,7 +361,7 @@ export const Dashboard: React.FC = () => {
               <>
                 {activeView === 'tracker' && (
                   <>
-                    <AnalyticsDashboard analytics={analytics} />
+                    <AnalyticsDashboard analytics={analytics} showCharts={showCharts} />
 
                 {/* Admin action buttons */}
                 {role === 'admin' && (
@@ -384,24 +399,7 @@ export const Dashboard: React.FC = () => {
                   setActiveCommentTaskId={setActiveCommentTaskId}
                 />
 
-                <div className="flex items-center gap-5 mt-12 mb-2">
-                  <div className="flex-1 h-px bg-gradient-to-r from-transparent via-teal/15 to-transparent" />
-                  <button
-                    onClick={() => setShowWeekly(!showWeekly)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full border border-teal/10 dark:border-white/10 hover:bg-teal/5 dark:hover:bg-white/5 transition-colors group"
-                  >
-                    <span className="text-[11px] text-teal/50 dark:text-cream/50 font-bold uppercase tracking-[0.2em] group-hover:text-teal dark:group-hover:text-cream transition-colors">
-                      {showWeekly ? 'Hide' : 'Show'} Weekly Archive
-                    </span>
-                    <svg 
-                      width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                      className={`text-teal/50 dark:text-cream/50 group-hover:text-teal dark:group-hover:text-cream transition-transform duration-300 ${showWeekly ? 'rotate-180' : ''}`}
-                    >
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </button>
-                  <div className="flex-1 h-px bg-gradient-to-r from-transparent via-teal/15 to-transparent" />
-                </div>
+
                     {showWeekly && (
                       <WeeklyArchive 
                         interns={displayInterns} 
