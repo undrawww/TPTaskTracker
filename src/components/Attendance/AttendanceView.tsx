@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useAttendance } from '../../hooks/useAttendance';
 import { AttendanceInternCard } from './AttendanceInternCard';
 import { DashboardSkeleton } from '../Skeleton/DashboardSkeleton';
+import { CustomDropdown } from '../common/CustomDropdown';
 
 export type SortOption = 'department' | 'name' | 'time_in';
 
@@ -264,16 +265,16 @@ export const AttendanceView: React.FC<{initialDate?: string}> = ({ initialDate }
                 {isExportingToSheets ? 'Exporting...' : 'Export to Sheets'}
               </button>
 
-              <select
+              <CustomDropdown
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="ml-2 px-3 py-2 text-xs font-bold rounded-xl transition-all duration-200 border bg-white dark:bg-[#001a22] text-teal dark:text-cream border-teal/10 dark:border-white/10 hover:border-teal/20 dark:hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-gold/30 cursor-pointer"
-                title="Sort records"
-              >
-                <option value="department">Sort by Dept</option>
-                <option value="name">Sort by Name</option>
-                <option value="time_in">Sort by Time In</option>
-              </select>
+                onChange={(val) => setSortBy(val as SortOption)}
+                options={[
+                  { label: 'Sort by Dept', value: 'department' },
+                  { label: 'Sort by Name', value: 'name' },
+                  { label: 'Sort by Time In', value: 'time_in' }
+                ]}
+                className="ml-2 px-3 py-2 text-xs font-bold rounded-xl transition-all duration-200 border bg-white dark:bg-[#001a22] text-teal dark:text-cream border-teal/10 dark:border-white/10 hover:border-teal/20 dark:hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-gold/30"
+              />
             </div>
           </div>
 

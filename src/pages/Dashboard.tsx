@@ -129,6 +129,13 @@ export const Dashboard: React.FC = () => {
   const toggleWeeklyArchive = () => {
     setShowWeekly(prev => !prev);
   };
+
+  // Reset visibility toggles when navigating to a different view
+  useEffect(() => {
+    setShowCharts(false);
+    setShowWeekly(false);
+  }, [activeView, location.pathname]);
+
   const [activeCommentTaskId, setActiveCommentTaskId] = useState<string | null>(null);
   const [attendanceInitialDate, setAttendanceInitialDate] = useState<string | undefined>(undefined);
 
@@ -403,8 +410,6 @@ export const Dashboard: React.FC = () => {
                     {showWeekly && (
                       <WeeklyArchive 
                         interns={displayInterns} 
-                        activeCommentTaskId={activeCommentTaskId}
-                        setActiveCommentTaskId={setActiveCommentTaskId}
                       />
                     )}
                   </>

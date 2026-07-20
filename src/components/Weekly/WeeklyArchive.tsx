@@ -1,51 +1,55 @@
 import React, { useState } from 'react';
-import { DepartmentPanel } from '../Dashboard/DepartmentPanel';
-import { useWeeklyTasks } from '../../hooks/useWeeklyTasks';
-import { DEPARTMENTS, type Intern, type TaskStatus } from '../../types';
+import { useTaskHistory } from '../../hooks/useTaskHistory';
+import { type Intern } from '../../types';
+import { CustomDropdown } from '../common/CustomDropdown';
 
 interface Props {
   interns: Intern[];
-  activeCommentTaskId?: string | null;
-  setActiveCommentTaskId?: (id: string | null) => void;
 }
 
-export const WeeklyArchive: React.FC<Props> = ({ interns, activeCommentTaskId, setActiveCommentTaskId }) => {
-  const [selectedWeek, setSelectedWeek] = useState(1);
-  const [isBizDevExpanded, setIsBizDevExpanded] = useState(false);
-  const { tasks, loading, updateStatus, toggleVerify } = useWeeklyTasks(selectedWeek);
+export const WeeklyArchive: React.FC<Props> = ({ interns }) => {
+  const [selectedInternId, setSelectedInternId] = useState<string | null>(interns.length > 0 ? interns[0].id : null);
+  const [selectedWeek, setSelectedWeek] = useState<number | 'all'>('all');
+  
+  const { tasks, loading } = useTaskHistory(selectedInternId, selectedWeek);
 
-  const handleStatusChange = async (taskId: string, status: TaskStatus) => {
-    await updateStatus(taskId, status);
-  };
+  const sortedInterns = [...interns].sort((a, b) => a.full_name.localeCompare(b.full_name));
 
-  const handleVerifyChange = async (taskId: string, isVerified: boolean) => {
-    await toggleVerify(taskId, isVerified);
-  };
+  const studentOptions = sortedInterns.map(i => ({ label: i.full_name, value: i.id }));
+  const weekOptions = [
+    { label: 'All Weeks', value: 'all' },
+    ...Array.from({ length: 16 }, (_, i) => ({ label: `Week ${i + 1}`, value: i + 1 }))
+  ];
 
   return (
-    <section id="weekly-archive">
-      {/* Section header */}
-      <div className="flex items-center gap-3 mb-4 flex-wrap">
-          <h2 className="text-lg font-bold text-teal dark:text-cream">Weekly Assigned Tasks</h2>
-          <div className="flex-1 h-px bg-teal/10 hidden sm:block" />
+    <section id="weekly-archive" className="bg-white/50 dark:bg-[#002b36]/50 rounded-2xl p-6 border border-teal/10 dark:border-white/5 shadow-sm">
+      {/* Section header & filters */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-teal dark:text-cream">Task History</h2>
+          <p className="text-sm text-teal/60 dark:text-cream/50 mt-1">Centralized archive of all completed tasks</p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          {/* Student selector */}
+          <div className="flex items-center gap-2">
+            <CustomDropdown
+              value={selectedInternId}
+              onChange={setSelectedInternId}
+              options={studentOptions}
+              placeholder="Select Member"
+            />
+          </div>
 
           {/* Week selector */}
           <div className="flex items-center gap-2">
-            <label htmlFor="week-select" className="text-xs font-semibold text-teal/50 dark:text-cream/50 uppercase tracking-wider">
-              Select Week
-            </label>
-            <select
-              id="week-select"
+            <CustomDropdown
               value={selectedWeek}
-              onChange={(e) => setSelectedWeek(Number(e.target.value))}
-              className="px-3 py-1.5 rounded-xl border border-cream-dark dark:border-teal-light bg-white dark:bg-[#003946] text-teal dark:text-cream text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent transition-all appearance-none cursor-pointer"
-            >
-              {Array.from({ length: 16 }, (_, i) => i + 1).map((w) => (
-                <option key={w} value={w}>
-                  Week {w}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedWeek}
+              options={weekOptions}
+              placeholder="Select Week"
+            />
+          </div>
         </div>
       </div>
 
@@ -57,65 +61,52 @@ export const WeeklyArchive: React.FC<Props> = ({ interns, activeCommentTaskId, s
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
-            <span className="text-sm font-medium">Loading week {selectedWeek} tasks…</span>
+            <span className="text-sm font-medium">Loading history...</span>
           </div>
         </div>
+      ) : !selectedInternId ? (
+        <div className="text-center py-12 text-teal/50 dark:text-cream/50">
+          <p>Please select a student to view their task history.</p>
+        </div>
+      ) : tasks.length === 0 ? (
+        <div className="text-center py-12 text-teal/50 dark:text-cream/50">
+          <p>No completed tasks found for this selection.</p>
+        </div>
       ) : (
-        <div className="flex flex-col gap-6">
-          {/* Regular Departments */}
-          <div className="flex overflow-x-auto overflow-y-hidden pb-6 gap-4 items-start w-full min-h-[500px]">
-            {DEPARTMENTS.filter(dept => dept !== 'BizDev Leadership Team' && (dept as string) !== 'BizDev Team').map((dept) => (
-              <DepartmentPanel
-                key={dept}
-                department={dept}
-                interns={interns}
-                tasks={selectedWeek > 1 ? tasks.filter(t => t.status === 'Done') : tasks}
-                onStatusChange={handleStatusChange}
-                onVerifyChange={handleVerifyChange}
-                activeCommentTaskId={activeCommentTaskId}
-                setActiveCommentTaskId={setActiveCommentTaskId}
-              />
-            ))}
-          </div>
-
-          <div className="w-full h-px bg-teal/10 dark:bg-white/5 my-2"></div>
-
-          {/* BizDev Leadership Team Section */}
-          <div className="w-full">
-            <button
-              onClick={() => setIsBizDevExpanded(!isBizDevExpanded)}
-              className="flex items-center gap-2 mb-4 group/bizdev"
-            >
-              <div className="p-1 rounded hover:bg-teal/5 dark:hover:bg-white/5 transition-colors">
-                <svg 
-                  width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                  className={`text-teal/50 dark:text-cream/50 transition-transform duration-300 ${isBizDevExpanded ? 'rotate-90' : ''}`}
-                >
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </div>
-              <h3 className="text-base font-bold text-teal/70 dark:text-cream/70 group-hover/bizdev:text-teal dark:group-hover/bizdev:text-cream transition-colors">
-                BizDev Leadership Team
-              </h3>
-            </button>
-            
-            {isBizDevExpanded && (
-              <div className="mt-4 flex overflow-x-auto overflow-y-hidden pb-6 gap-4 items-start w-full min-h-[500px]">
-                {DEPARTMENTS.filter(dept => dept === 'BizDev Leadership Team' || (dept as string) === 'BizDev Team').map((dept) => (
-                  <DepartmentPanel
-                    key={dept}
-                    department={dept}
-                    interns={interns}
-                    tasks={selectedWeek > 1 ? tasks.filter(t => t.status === 'Done') : tasks}
-                    onStatusChange={handleStatusChange}
-                    onVerifyChange={handleVerifyChange}
-                    activeCommentTaskId={activeCommentTaskId}
-                    setActiveCommentTaskId={setActiveCommentTaskId}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+        <div className="overflow-x-auto rounded-xl border border-cream-dark/50 dark:border-teal-light/30">
+          <table className="w-full text-left border-collapse min-w-[700px]">
+            <thead>
+              <tr className="bg-cream-dark/20 dark:bg-[#003946]/50 text-teal dark:text-cream/80 text-sm border-b border-cream-dark/50 dark:border-teal-light/30">
+                <th className="py-3 px-4 font-semibold w-1/3">Task Name</th>
+                <th className="py-3 px-4 font-semibold w-1/5">Week</th>
+                <th className="py-3 px-4 font-semibold w-1/5">Date Assigned</th>
+                <th className="py-3 px-4 font-semibold w-1/5">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-cream-dark/30 dark:divide-teal-light/20">
+              {tasks.map((task) => (
+                <tr key={task.id} className="hover:bg-teal/5 dark:hover:bg-white/5 transition-colors">
+                  <td className="py-3 px-4 text-sm font-medium text-teal dark:text-white">
+                    {task.task_name}
+                  </td>
+                  <td className="py-3 px-4 text-sm text-teal/70 dark:text-cream/70">
+                    {task.week_number ? `Week ${task.week_number}` : '-'}
+                  </td>
+                  <td className="py-3 px-4 text-sm text-teal/70 dark:text-cream/70">
+                    {task.task_date 
+                      ? new Date(task.task_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                      : '-'}
+                  </td>
+                  <td className="py-3 px-4 text-sm">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#dcfce7] text-[#166534] dark:bg-[#064e3b] dark:text-[#34d399] border border-[#bbf7d0] dark:border-[#059669]">
+                      <div className="w-1.5 h-1.5 rounded-full bg-current" />
+                      <span className="font-semibold text-xs tracking-wide">Done</span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </section>
