@@ -124,7 +124,10 @@ export const HeaderProfileMenu: React.FC<Props> = ({ onLogout, onViewMyProfile, 
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-teal-darkest rounded-2xl shadow-xl border border-cream-dark dark:border-teal-light py-2 z-50 animate-slide-up overflow-hidden">
+        <div 
+          className="absolute right-0 top-full mt-2 w-64 rounded-2xl shadow-xl border border-cream-dark dark:border-teal-light py-2 z-50 animate-slide-up overflow-hidden"
+          style={{ backgroundColor: theme === 'dark' ? '#082026' : '#ffffff' }}
+        >
           
           {/* Settings Sub-panel */}
           {showSettings ? (
