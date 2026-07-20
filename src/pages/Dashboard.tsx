@@ -67,11 +67,18 @@ export const Dashboard: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Chart visibility settings (not persisted, always false by default)
-  const [showCharts, setShowCharts] = useState(false);
+  // Chart visibility settings (persisted, but false by default)
+  const [showCharts, setShowCharts] = useState(() => {
+    const saved = localStorage.getItem('padua_show_charts');
+    return saved !== null ? saved === 'true' : false;
+  });
 
   const toggleCharts = () => {
-    setShowCharts(prev => !prev);
+    setShowCharts(prev => {
+      const next = !prev;
+      localStorage.setItem('padua_show_charts', String(next));
+      return next;
+    });
   };
 
   const handleViewChange = (view: ActiveView) => {
@@ -117,24 +124,22 @@ export const Dashboard: React.FC = () => {
   }, [location.pathname, internId, interns]);
 
   // Modal state
-
-
-
-  // Modal state
   const [showAddIntern, setShowAddIntern] = useState(false);
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [showWeekly, setShowWeekly] = useState(false);
+
+  const [showWeekly, setShowWeekly] = useState(() => {
+    const saved = localStorage.getItem('padua_show_weekly');
+    return saved !== null ? saved === 'true' : false;
+  });
 
   const toggleWeeklyArchive = () => {
-    setShowWeekly(prev => !prev);
+    setShowWeekly(prev => {
+      const next = !prev;
+      localStorage.setItem('padua_show_weekly', String(next));
+      return next;
+    });
   };
-
-  // Reset visibility toggles when navigating to a different view
-  useEffect(() => {
-    setShowCharts(false);
-    setShowWeekly(false);
-  }, [activeView, location.pathname]);
 
   const [activeCommentTaskId, setActiveCommentTaskId] = useState<string | null>(null);
   const [attendanceInitialDate, setAttendanceInitialDate] = useState<string | undefined>(undefined);
