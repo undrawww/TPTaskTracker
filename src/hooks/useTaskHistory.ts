@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import type { WeeklyTask, DailyTask } from '../types';
-import { getWeekDateRange } from '../utils/dateUtils';
+import { getWeekDateRange, getWeekNumberFromDate } from '../utils/dateUtils';
 import type { UnifiedTask } from './useWeeklyTasks';
 
 export function useTaskHistory(internId: string | null, weekNumber: number | 'all') {
@@ -43,14 +43,14 @@ export function useTaskHistory(internId: string | null, weekNumber: number | 'al
       const mappedDaily = parsedDaily.map(t => ({
         ...t,
         type: 'daily',
-        week_number: weekNumber === 'all' ? undefined : weekNumber, // If 'all', we might not easily know the exact week without complex logic, but we can leave it undefined
+        week_number: weekNumber === 'all' ? (t.task_date ? getWeekNumberFromDate(t.task_date) : undefined) : weekNumber,
       } as unknown as UnifiedTask));
 
       const combined = [...mappedWeekly, ...mappedDaily].sort((a, b) => {
         // Sort by date completed if possible, otherwise alphabetically
         const dateA = a.task_date || (a as any).updated_at || '';
         const dateB = b.task_date || (b as any).updated_at || '';
-        if (dateA && dateB) return dateB.localeCompare(dateA); // Descending
+        if (dateA && dateB) return dateA.localeCompare(dateB); // Ascending order
         return a.task_name.localeCompare(b.task_name);
       });
 
@@ -88,13 +88,13 @@ export function useTaskHistory(internId: string | null, weekNumber: number | 'al
       const mappedDaily = (dailyRes.data ?? []).map((t) => ({
         ...t,
         type: 'daily',
-        week_number: weekNumber === 'all' ? undefined : weekNumber,
+        week_number: weekNumber === 'all' ? (t.task_date ? getWeekNumberFromDate(t.task_date) : undefined) : weekNumber,
       } as unknown as UnifiedTask));
 
       const combined = [...mappedWeekly, ...mappedDaily].sort((a, b) => {
         const dateA = a.task_date || (a as any).updated_at || (a as any).created_at || '';
         const dateB = b.task_date || (b as any).updated_at || (b as any).created_at || '';
-        if (dateA && dateB) return dateB.localeCompare(dateA);
+        if (dateA && dateB) return dateA.localeCompare(dateB); // Ascending order
         return a.task_name.localeCompare(b.task_name);
       });
 

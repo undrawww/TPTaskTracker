@@ -45,3 +45,16 @@ export function isDateInWeek(dateStr: string, weekNumber: number): boolean {
   const { startDate, endDate } = getWeekDateRange(weekNumber);
   return dateStr >= startDate && dateStr <= endDate;
 }
+
+/**
+ * Gets the calculated week number for a specific date.
+ * @param dateStr Date string in YYYY-MM-DD
+ * @returns {number} The week number (1-indexed)
+ */
+export function getWeekNumberFromDate(dateStr: string): number {
+  const start = new Date(INTERNSHIP_START_DATE + 'T00:00:00');
+  const target = new Date(dateStr.split('T')[0] + 'T00:00:00'); // ensure YYYY-MM-DD
+  const diffTime = target.getTime() - start.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  return Math.max(1, Math.floor(diffDays / 7) + 1);
+}
