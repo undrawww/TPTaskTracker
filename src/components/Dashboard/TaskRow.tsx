@@ -20,9 +20,10 @@ interface Props {
   internId?: string;
   activeCommentTaskId?: string | null;
   setActiveCommentTaskId?: (id: string | null) => void;
+  createdByName?: string;
 }
 
-export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onStatusChange, onVerifyChange, onEditTask, onDeleteTask, internId, activeCommentTaskId, setActiveCommentTaskId }) => {
+export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onStatusChange, onVerifyChange, onEditTask, onDeleteTask, internId, activeCommentTaskId, setActiveCommentTaskId, createdByName }) => {
   const getCleanText = (text: string) => {
     if (!text) return text;
     return text.replace(/https:\/\/[^\s]+supabase\.co\/storage[^\s]+/g, '[Uploaded a photo]');
@@ -218,7 +219,7 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
 
         {/* Task Name (Draggable handle area) */}
         <div
-          className="flex-1 min-w-0 py-1.5 cursor-grab active:cursor-grabbing pl-1 pr-6 flex items-start mt-[1px]"
+          className="flex-1 min-w-0 py-1.5 cursor-grab active:cursor-grabbing pl-1 pr-2 flex items-center mt-[1px] gap-2"
           {...attributes}
           {...listeners}
           onClick={() => {
@@ -228,15 +229,24 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
           }}
         >
           <span 
-            className={`text-[13.5px] tracking-[0.02em] [word-spacing:0.1em] transition-all duration-300 select-none ${isChecked ? 'text-teal/40 dark:text-cream/40 line-through' : 'text-teal dark:text-cream'} ${hovered ? 'block break-words whitespace-pre-wrap' : 'block truncate'}`}
+            className={`text-[13.5px] tracking-[0.02em] [word-spacing:0.1em] transition-all duration-300 select-none ${isChecked ? 'text-teal/40 dark:text-cream/40 line-through' : 'text-teal dark:text-cream'} ${hovered ? 'break-words whitespace-pre-wrap' : 'truncate'}`}
           >
             {taskName}
           </span>
         </div>
 
-        {/* Actions (Right side, space reserved) */}
-        <div className="w-[60px] flex-shrink-0 flex items-start justify-end pt-1.5 pr-2">
-          <div className={`flex items-center gap-1 transition-opacity duration-200 ${(hovered || activeCommentTaskId === id || commentCount > 0) ? 'opacity-100' : 'opacity-0'}`}>
+        {/* Actions (Right side) */}
+        <div className="flex-shrink-0 flex items-start justify-end pt-1.5 pr-2 gap-2">
+          {createdByName && (
+            <span className="text-[10px] text-teal/40 dark:text-cream/40 font-bold tracking-wider mt-0.5 whitespace-nowrap">
+              {createdByName.toUpperCase()}
+            </span>
+          )}
+          <div 
+            className={`flex items-center gap-1 transition-all duration-300 ease-in-out ${
+              (hovered || activeCommentTaskId === id || commentCount > 0) ? 'opacity-100 max-w-[100px] overflow-visible' : 'opacity-0 max-w-0 overflow-hidden'
+            }`}
+          >
             {!isBlank && (
               <>
               {/* Comment Button with Tooltip */}

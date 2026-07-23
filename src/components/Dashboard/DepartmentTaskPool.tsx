@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { TaskRow } from './TaskRow';
+import { getAvatarIcon, renderAvatar } from './AvatarIcons';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import type { DailyTask, TaskStatus } from '../../types';
+import type { DailyTask, TaskStatus, Intern } from '../../types';
 
 interface Props {
-  poolId: string; // e.g. "__pool__Advisor Support Associate"
+  poolId: string; // e.g. "11111111-1111-1111-1111-111111111111"
   departmentLabel: string; // e.g. "ASA"
   tasks: DailyTask[];
+  interns?: Intern[]; // For avatar lookup by creator name
   onStatusChange: (taskId: string, status: TaskStatus) => void;
   onVerifyChange?: (taskId: string, isVerified: boolean) => void;
   onEditTask?: (taskId: string, newName: string) => void;
@@ -21,6 +23,7 @@ export const DepartmentTaskPool: React.FC<Props> = ({
   poolId,
   departmentLabel,
   tasks,
+  interns,
   onStatusChange,
   onVerifyChange,
   onEditTask,
@@ -43,6 +46,24 @@ export const DepartmentTaskPool: React.FC<Props> = ({
 
   const validTasks = tasks.filter(t => t.task_name.trim() !== '');
 
+  // Look up an intern by name to get their avatar
+  const getCreatorAvatar = (name: string) => {
+    if (!interns || !name) return null;
+    const intern = interns.find(i => i.full_name === name);
+    if (intern) {
+      return renderAvatar(intern.avatar_index, intern.avatar_url);
+    }
+    // Fallback: use name-based deterministic avatar
+    return getAvatarIcon(name);
+  };
+
+  // Look up an intern's username from their full name
+  const getCreatorUsername = (name: string) => {
+    if (!interns || !name) return name;
+    const intern = interns.find(i => i.full_name === name);
+    return intern?.username || name.split(' ')[0];
+  };
+
   return (
     <div className="w-full mb-2 relative z-20">
       <div
@@ -52,14 +73,13 @@ export const DepartmentTaskPool: React.FC<Props> = ({
         {/* Header row */}
         <div className="flex items-center gap-2 mb-1">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal/30 dark:text-cream/30 flex-shrink-0">
-            <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-            <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
           </svg>
           <span className="text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.15em]">
-            {departmentLabel} Task Pool
+            {departmentLabel} Requests
           </span>
           <span className="text-[10px] text-teal/30 dark:text-cream/20 tabular-nums">
-            {validTasks.length > 0 ? `${validTasks.length} unassigned` : ''}
+            {validTasks.length > 0 ? `${validTasks.length} pending` : ''}
           </span>
         </div>
 
@@ -80,6 +100,11 @@ export const DepartmentTaskPool: React.FC<Props> = ({
                 onDeleteTask={onDeleteTask}
                 activeCommentTaskId={activeCommentTaskId}
                 setActiveCommentTaskId={setActiveCommentTaskId}
+                createdByName={
+                  departmentLabel === 'BLT' && task.created_by_name 
+                    ? getCreatorUsername(task.created_by_name) 
+                    : undefined
+                }
               />
             ))}
           </div>
@@ -102,7 +127,7 @@ export const DepartmentTaskPool: React.FC<Props> = ({
               }}
               onBlur={handleAddSubmit}
               className="flex-1 px-2 py-1 text-sm bg-transparent border-b border-teal/30 dark:border-cream/30 focus:outline-none focus:border-teal dark:focus:border-cream text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30"
-              placeholder="Enter task for department pool..."
+              placeholder="Add a request..."
             />
           </div>
         ) : (
@@ -114,7 +139,7 @@ export const DepartmentTaskPool: React.FC<Props> = ({
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            <span className="text-[11px] font-medium">Add department task</span>
+            <span className="text-[11px] font-medium">Add request</span>
           </button>
         )}
       </div>

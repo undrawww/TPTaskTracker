@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { sendNotification, removeNotificationByMetadata } from './useNotifications';
-import type { DailyTask, TaskStatus } from '../types';
+import { isPoolId, type DailyTask, type TaskStatus } from '../types';
 
 /** Helper to get local date in YYYY-MM-DD format */
 const getLocalToday = () => {
@@ -177,6 +177,10 @@ export function useDailyTasks(date?: string) {
       const maxOrder = internTasks.length > 0 ? Math.max(...internTasks.map(t => Number(t.order_index) || 0)) : 0;
       let currentOrderIndex = maxOrder + 1;
 
+      // Get current user's name for pool tasks
+      const isPool = isPoolId(internId);
+      const creatorName = isPool ? (localStorage.getItem('tp_avatar_name') || 'Unknown') : undefined;
+
       const newTasksToInsert: Partial<DailyTask>[] = [];
       const tempIds: string[] = [];
 
@@ -188,6 +192,7 @@ export function useDailyTasks(date?: string) {
           status: 'Pending',
           task_date: targetDate,
           order_index: currentOrderIndex++,
+          ...(isPool && creatorName ? { created_by_name: creatorName } : {}),
         });
       }
 
@@ -198,6 +203,7 @@ export function useDailyTasks(date?: string) {
         status: 'Pending',
         task_date: targetDate,
         order_index: currentOrderIndex++,
+        ...(isPool && creatorName ? { created_by_name: creatorName } : {}),
       });
 
       if (!isSupabaseConfigured) {
@@ -220,15 +226,41 @@ export function useDailyTasks(date?: string) {
       try {
         const { data: userData } = await supabase.auth.getUser();
         
+        // For pool tasks, resolve creator name from profile
+        let resolvedCreatorName = creatorName;
+        if (isPool && userData.user?.email) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('email', userData.user.email)
+            .single();
+          if (profile?.full_name) resolvedCreatorName = profile.full_name;
+        }
+
         const tasksWithAdmin = newTasksToInsert.map(t => ({
           ...t,
-          admin_id: userData.user?.id
+          admin_id: userData.user?.id,
+          ...(isPool && resolvedCreatorName ? { created_by_name: resolvedCreatorName } : {}),
         }));
 
-        const { data, error: insertError } = await supabase
+        let { data, error: insertError } = await supabase
           .from('daily_tasks')
           .insert(tasksWithAdmin)
           .select();
+
+        // Fallback: if insert fails (e.g. created_by_name column missing), retry without it
+        if (insertError && isPool) {
+          const tasksWithoutCreator = newTasksToInsert.map(t => ({
+            ...t,
+            admin_id: userData.user?.id,
+          }));
+          const retryResult = await supabase
+            .from('daily_tasks')
+            .insert(tasksWithoutCreator)
+            .select();
+          data = retryResult.data;
+          insertError = retryResult.error;
+        }
 
         if (insertError) throw insertError;
         if (data) {

@@ -85,6 +85,7 @@ export interface DailyTask {
   task_date: string; // ISO date string YYYY-MM-DD
   is_verified?: boolean;
   order_index?: number;
+  created_by_name?: string;
 }
 
 export interface WeeklyTask {
