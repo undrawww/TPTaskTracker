@@ -149,6 +149,8 @@ export const Dashboard: React.FC = () => {
 
   const isLoading = internsLoading || tasksLoading;
 
+  const currentUser = interns.find(i => i.id === currentInternId);
+
   // Filter data based on role
   const displayInterns = (() => {
     if (role === 'admin') return interns;
