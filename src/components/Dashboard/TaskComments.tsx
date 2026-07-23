@@ -432,12 +432,6 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
                 setMentionQuery(null);
               }
             }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSubmit(e);
-              }
-            }}
             onPaste={handlePaste}
             placeholder="Write a comment…"
             className="w-full resize-none text-sm px-4 py-3 rounded-xl border border-teal/20 dark:border-white/10 bg-transparent text-teal dark:text-cream placeholder:text-teal/40 dark:placeholder:text-cream/30 focus:outline-none focus:border-teal dark:focus:border-cream transition-all max-h-[120px] scrollbar-thin"
