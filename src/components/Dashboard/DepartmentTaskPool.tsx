@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { TaskRow } from './TaskRow';
-import { getAvatarIcon, renderAvatar } from './AvatarIcons';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import type { DailyTask, TaskStatus, Intern } from '../../types';
@@ -46,16 +45,7 @@ export const DepartmentTaskPool: React.FC<Props> = ({
 
   const validTasks = tasks.filter(t => t.task_name.trim() !== '');
 
-  // Look up an intern by name to get their avatar
-  const getCreatorAvatar = (name: string) => {
-    if (!interns || !name) return null;
-    const intern = interns.find(i => i.full_name === name);
-    if (intern) {
-      return renderAvatar(intern.avatar_index, intern.avatar_url);
-    }
-    // Fallback: use name-based deterministic avatar
-    return getAvatarIcon(name);
-  };
+
 
   // Look up an intern's username from their full name
   const getCreatorUsername = (name: string) => {
