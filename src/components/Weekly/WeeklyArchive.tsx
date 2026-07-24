@@ -8,12 +8,16 @@ interface Props {
 }
 
 export const WeeklyArchive: React.FC<Props> = ({ interns }) => {
-  const [selectedInternId, setSelectedInternId] = useState<string | null>(interns.length > 0 ? interns[0].id : null);
+  const [selectedInternId, setSelectedInternId] = useState<string | null>(null);
   const [selectedWeek, setSelectedWeek] = useState<number | 'all'>('all');
   
   const { tasks, loading } = useTaskHistory(selectedInternId, selectedWeek);
 
-  const sortedInterns = [...interns].sort((a, b) => a.full_name.localeCompare(b.full_name));
+  // Filter out the admins and sort alphabetically
+  const adminNames = ['Daniel Padua', 'Nerizza', 'Wyn', 'Princess Isabel'];
+  const sortedInterns = [...interns]
+    .filter(i => !adminNames.some(admin => i.full_name.includes(admin)) && !i.email.includes('admin'))
+    .sort((a, b) => a.full_name.localeCompare(b.full_name));
 
   const studentOptions = sortedInterns.map(i => ({ label: i.full_name, value: i.id }));
   const weekOptions = [
@@ -37,7 +41,7 @@ export const WeeklyArchive: React.FC<Props> = ({ interns }) => {
               value={selectedInternId}
               onChange={setSelectedInternId}
               options={studentOptions}
-              placeholder="Select Member"
+              placeholder="Select an intern first"
             />
           </div>
 
