@@ -48,7 +48,13 @@ export const HeaderProfileMenu: React.FC<Props> = ({ onLogout, onViewMyProfile, 
   // Keep synced with currentUser if it updates from the database
   useEffect(() => {
     if (currentUser) {
-      if (currentUser.avatar_index !== undefined) setAvatarIdx(currentUser.avatar_index);
+      if (currentUser.avatar_index !== undefined) {
+        setAvatarIdx(currentUser.avatar_index);
+        if (currentUser.avatar_index !== -1) {
+          setAvatarUrl(undefined);
+          localStorage.removeItem('tp_avatar_url');
+        }
+      }
       if (currentUser.avatar_url) setAvatarUrl(currentUser.avatar_url);
       if (currentUser.full_name) setDisplayName(currentUser.full_name);
     }
@@ -68,14 +74,17 @@ export const HeaderProfileMenu: React.FC<Props> = ({ onLogout, onViewMyProfile, 
   // Update when user loads or metadata changes
   useEffect(() => {
     if (user) {
-      if (user.user_metadata?.avatar_url) {
+      const savedAvatar = localStorage.getItem('tp_avatar');
+      const hasDrawnAvatar = savedAvatar !== null && savedAvatar !== '-1';
+      
+      if (!hasDrawnAvatar && user.user_metadata?.avatar_url) {
         setAvatarUrl(user.user_metadata.avatar_url);
         localStorage.setItem('tp_avatar_url', user.user_metadata.avatar_url);
       } else if (localStorage.getItem('tp_avatar_url')) {
         setAvatarUrl(localStorage.getItem('tp_avatar_url') || undefined);
       }
       
-      if (user.user_metadata?.full_name) {
+      if (user.user_metadata?.full_name && !localStorage.getItem('tp_avatar_name')) {
         setDisplayName(user.user_metadata.full_name);
         localStorage.setItem('tp_avatar_name', user.user_metadata.full_name);
       }

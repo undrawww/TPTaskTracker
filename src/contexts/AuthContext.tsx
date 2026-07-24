@@ -48,18 +48,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Query the profiles table to get the explicit role
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role, avatar_index, full_name')
+        .select('role, avatar_index, full_name, avatar_url')
         .eq('email', currentUser.email)
         .single();
 
       let userRole: 'intern' | 'admin' | null = null;
       let avatarIndex: number | null = null;
       let fullName: string | null = null;
+      let avatarUrl: string | null = null;
 
       if (profile) {
         userRole = profile.role as 'intern' | 'admin';
         avatarIndex = profile.avatar_index;
         fullName = profile.full_name;
+        avatarUrl = profile.avatar_url;
 
         // Auto-repair: If admin2@test.com got stuck as an intern during the previous bugs, fix them!
         if (currentUser.email === 'admin2@test.com' && userRole === 'intern') {
@@ -77,6 +79,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (fullName) {
         localStorage.setItem('tp_avatar_name', fullName);
       }
+      if (avatarUrl) {
+        localStorage.setItem('tp_avatar_url', avatarUrl);
+      } else if (profile && avatarIndex !== -1) {
+        // If they chose a built-in avatar, clear the Google avatar URL
+        localStorage.removeItem('tp_avatar_url');
+      }
+      
       if (profile || userRole) {
         window.dispatchEvent(new Event('avatar-change'));
       }
