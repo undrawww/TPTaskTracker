@@ -106,64 +106,84 @@ export const AddressInput: React.FC<AddressInputProps> = ({ value, onChange }) =
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Region</label>
-          <select
-            value={selectedRegion}
-            onChange={handleRegionChange}
-            className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream focus:outline-none focus:ring-2 focus:ring-gold"
-          >
-            <option value="">Select Region</option>
-            {regions.map(r => (
-              <option key={r.code} value={r.code}>{r.name}</option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              value={selectedRegion}
+              onChange={handleRegionChange}
+              className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream focus:outline-none focus:ring-2 focus:ring-gold appearance-none"
+            >
+              <option value="">Select Region</option>
+              {regions.map(r => (
+                <option key={r.code} value={r.code}>{r.name}</option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-teal/60 dark:text-cream/40">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+          </div>
         </div>
 
         {/* Show Province if not NCR */}
         {selectedRegion && selectedRegion !== '130000000' && (
           <div>
             <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Province</label>
-            <select
-              value={selectedProvince}
-              onChange={handleProvinceChange}
-              disabled={loading || provinces.length === 0}
-              className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream focus:outline-none focus:ring-2 focus:ring-gold disabled:opacity-50"
-            >
-              <option value="">Select Province</option>
-              {provinces.map(p => (
-                <option key={p.code} value={p.code}>{p.name}</option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={selectedProvince}
+                onChange={handleProvinceChange}
+                disabled={loading || provinces.length === 0}
+                className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream focus:outline-none focus:ring-2 focus:ring-gold appearance-none disabled:opacity-50"
+              >
+                <option value="">Select Province</option>
+                {provinces.map(p => (
+                  <option key={p.code} value={p.code}>{p.name}</option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-teal/60 dark:text-cream/40">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+            </div>
           </div>
         )}
 
         <div>
           <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">City / Municipality</label>
-          <select
-            value={selectedCity}
-            onChange={handleCityChange}
-            disabled={loading || cities.length === 0}
-            className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream focus:outline-none focus:ring-2 focus:ring-gold disabled:opacity-50"
-          >
-            <option value="">Select City / Municipality</option>
-            {cities.map(c => (
-              <option key={c.code} value={c.code}>{c.name}</option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              value={selectedCity}
+              onChange={handleCityChange}
+              disabled={loading || cities.length === 0}
+              className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream focus:outline-none focus:ring-2 focus:ring-gold appearance-none disabled:opacity-50"
+            >
+              <option value="">Select City / Municipality</option>
+              {cities.map(c => (
+                <option key={c.code} value={c.code}>{c.name}</option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-teal/60 dark:text-cream/40">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+          </div>
         </div>
 
         <div>
           <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Barangay</label>
-          <select
-            value={selectedBarangay}
-            onChange={handleBarangayChange}
-            disabled={loading || barangays.length === 0}
-            className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream focus:outline-none focus:ring-2 focus:ring-gold disabled:opacity-50"
-          >
-            <option value="">Select Barangay</option>
-            {barangays.map(b => (
-              <option key={b.code} value={b.code}>{b.name}</option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              value={selectedBarangay}
+              onChange={handleBarangayChange}
+              disabled={loading || barangays.length === 0}
+              className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream focus:outline-none focus:ring-2 focus:ring-gold appearance-none disabled:opacity-50"
+            >
+              <option value="">Select Barangay</option>
+              {barangays.map(b => (
+                <option key={b.code} value={b.code}>{b.name}</option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-teal/60 dark:text-cream/40">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+          </div>
         </div>
       </div>
 

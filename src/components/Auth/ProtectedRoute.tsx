@@ -28,5 +28,17 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ childr
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  const { role } = useAuth();
+  
+  // If user is authenticated but has no profile role, force them to complete it
+  if (role === null && location.pathname !== '/complete-profile') {
+    return <Navigate to="/complete-profile" replace />;
+  }
+  
+  // Prevent users WITH a role from accessing the complete-profile page
+  if (role !== null && location.pathname === '/complete-profile') {
+    return <Navigate to="/" replace />;
+  }
+
   return <>{children}</>;
 };

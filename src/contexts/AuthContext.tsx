@@ -8,6 +8,7 @@ interface AuthContextType {
   loading: boolean;
   role: 'admin' | 'intern' | null;
   currentInternId: string | null;
+  refreshRole: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   role: null,
   currentInternId: null,
+  refreshRole: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -28,13 +30,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentInternId, setCurrentInternId] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchRole = async (currentUser: User | null) => {
-      if (!currentUser) {
-        setRole(null);
-        setCurrentInternId(null);
-        setLoading(false);
-        return;
-      }
+  const fetchRole = async (currentUser: User | null) => {
+    if (!currentUser) {
+      setRole(null);
+      setCurrentInternId(null);
+      setLoading(false);
+      return;
+    }
 
       if (!isSupabaseConfigured) {
         // In demo mode, simulate being an admin so we see everything
@@ -66,20 +68,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           userRole = 'admin';
         }
       } else {
-        // Self-heal: recreate missing profile if they somehow lost it (e.g. from an aggressive delete)
-        const newRole = 'intern';
-        const newFullName = currentUser.email?.split('@')[0] || 'User';
-        const { error } = await supabase.from('profiles').insert([{
-          id: currentUser.id,
-          email: currentUser.email,
-          full_name: newFullName,
-          role: newRole
-        }]);
-        
-        if (!error) {
-          userRole = newRole;
-          fullName = newFullName;
-        }
+        // No profile exists yet! Leave role as null so they are redirected to /complete-profile
+        userRole = null;
       }
 
       if (avatarIndex !== null && avatarIndex !== undefined) {
@@ -95,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (userRole === 'admin') {
         setRole('admin');
         setCurrentInternId(null);
-      } else {
+      } else if (userRole === 'intern') {
         setRole('intern');
         // Now find their intern ID for filtering
         const { data: internData } = await supabase
@@ -105,6 +95,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .single();
         
         setCurrentInternId(internData?.id || null);
+      } else {
+        // userRole is null (new Google user with no profile)
+        setRole(null);
+        setCurrentInternId(null);
       }
       setLoading(false);
     };
@@ -146,6 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading,
     role,
     currentInternId,
+    refreshRole: () => fetchRole(user),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

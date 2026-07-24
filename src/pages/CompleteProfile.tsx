@@ -1,0 +1,228 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabaseClient';
+import { useAuth } from '../contexts/AuthContext';
+
+export const CompleteProfile: React.FC = () => {
+  const { user, refreshRole, role: currentRole } = useAuth();
+  const navigate = useNavigate();
+  
+  const [fullName, setFullName] = useState('');
+  const [role, setRole] = useState<'intern' | 'admin'>('intern');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // If they somehow got here but already have a role, send them away
+  useEffect(() => {
+    if (currentRole !== null) {
+      navigate('/');
+    }
+  }, [currentRole, navigate]);
+
+  // Pre-fill the name with their Google name if available, or just the email prefix
+  useEffect(() => {
+    if (user) {
+      const defaultName = user.user_metadata?.full_name || user.email?.split('@')[0] || '';
+      setFullName(defaultName);
+    }
+  }, [user]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!user || !user.email) {
+      setError('You must be logged in to complete your profile.');
+      return;
+    }
+    
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Check if this is the first user (make them admin)
+      const { count: adminCount } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'admin');
+        
+      const finalRole = adminCount === 0 ? 'admin' : role;
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert([{
+          id: user.id,
+          email: user.email,
+          full_name: fullName,
+          role: finalRole
+        }]);
+
+      if (profileError) {
+        throw profileError;
+      }
+      
+      if (finalRole === 'intern') {
+        await supabase.from('interns').update({ full_name: fullName }).eq('email', user.email);
+      }
+
+      // Refresh AuthContext to pick up the new role
+      await refreshRole();
+      
+      // Navigate to dashboard
+      navigate('/');
+      
+    } catch (err: any) {
+      console.error('Error completing profile:', err);
+      setError(`Profile creation failed: ${err.message || 'Unknown error'}`);
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex">
+      {/* Left Brand Panel */}
+      <div className="hidden lg:flex lg:w-[45%] bg-gradient-to-br from-teal via-[#004d5e] to-[#003946] relative overflow-hidden flex-col justify-center items-center p-12">
+        {/* Floating orbs */}
+        <div className="absolute top-20 right-16 w-64 h-64 bg-gold/10 rounded-full blur-[80px] animate-pulse" />
+        <div className="absolute bottom-20 left-12 w-48 h-48 bg-cream/8 rounded-full blur-[60px]" style={{ animation: 'pulse 4s ease-in-out infinite' }} />
+        <div className="absolute top-1/3 right-1/3 w-32 h-32 bg-gold/5 rounded-full blur-[50px]" style={{ animation: 'pulse 6s ease-in-out infinite reverse' }} />
+
+        {/* Grid pattern overlay */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #f5e7c6 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+
+        <div className="relative z-10 max-w-sm text-center">
+          <div className="w-24 h-24 mx-auto flex items-center justify-center mb-8 drop-shadow-xl">
+            <img src="https://res.cloudinary.com/dqmmfgbf1/image/upload/v1782145581/ICOZ_aatvaa.png" alt="Task Tracker Logo" className="w-full h-full object-contain" />
+          </div>
+          <h1 className="font-poppins text-4xl font-bold text-cream tracking-tight leading-tight">
+            Welcome!
+          </h1>
+          <p className="text-cream/40 text-sm font-medium mt-4 leading-relaxed">
+            Please complete your profile to continue to the Dashboard.
+          </p>
+
+          {/* Decorative dots */}
+          <div className="flex justify-center gap-2 mt-10">
+            <div className="w-2 h-2 rounded-full bg-gold/20" />
+            <div className="w-2 h-2 rounded-full bg-gold" />
+            <div className="w-2 h-2 rounded-full bg-gold/20" />
+          </div>
+        </div>
+      </div>
+
+      {/* Right Form Panel */}
+      <div className="flex-1 bg-cream dark:bg-[#001a22] flex flex-col justify-center relative overflow-hidden">
+        {/* Subtle background */}
+        <div className="absolute top-0 left-0 w-80 h-80 bg-gold/5 rounded-full blur-[100px] -translate-y-1/2 -translate-x-1/3 pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-60 h-60 bg-teal/5 rounded-full blur-[80px] translate-y-1/3 translate-x-1/3 pointer-events-none" />
+
+        <div className="w-full max-w-[400px] mx-auto px-6 relative z-10">
+          {/* Mobile logo */}
+          <div className="lg:hidden flex justify-center mb-8">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal to-[#004d5e] flex items-center justify-center shadow-lg">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fbbc04" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                <circle cx="8.5" cy="7" r="4" />
+                <line x1="20" y1="8" x2="20" y2="14" />
+                <line x1="23" y1="11" x2="17" y2="11" />
+              </svg>
+            </div>
+          </div>
+
+          <div className="animate-slide-up">
+            <h2 className="font-poppins text-2xl font-bold text-teal dark:text-cream tracking-tight">
+              Complete Profile
+            </h2>
+            <p className="text-teal/50 dark:text-cream/40 text-sm mt-1.5">
+              Let us know a bit more about you
+            </p>
+          </div>
+
+          <form className="mt-7 space-y-4 animate-slide-up" onSubmit={handleSubmit} style={{ animationDelay: '80ms' }}>
+            {/* Full Name */}
+            <div className="space-y-1.5">
+              <label htmlFor="fullName" className="block text-[11px] font-bold uppercase tracking-[0.1em] text-teal/50 dark:text-cream/40">
+                Full Name
+              </label>
+              <div className="relative">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-teal/25 dark:text-cream/25">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                </div>
+                <input
+                  id="fullName"
+                  name="fullName"
+                  type="text"
+                  required
+                  placeholder="Juan Dela Cruz"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 rounded-xl bg-white dark:bg-white/5 border border-teal/8 dark:border-white/8 text-[#003946] dark:text-cream text-sm placeholder:text-[#003946]/40 dark:placeholder:text-cream/20 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/30 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Role */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-teal/70 dark:text-cream/50 uppercase tracking-widest px-1">Role</label>
+              <div className="grid grid-cols-2 gap-2 p-1 bg-white dark:bg-[#00151a] border border-teal/10 dark:border-white/10 rounded-[14px]">
+                <button
+                  type="button"
+                  onClick={() => setRole('intern')}
+                  className={`
+                    py-2 text-sm font-semibold rounded-xl transition-all duration-200
+                    ${role === 'intern' 
+                      ? 'bg-teal dark:bg-white/10 text-white dark:text-cream shadow-sm' 
+                      : 'text-teal/50 dark:text-cream/50 hover:bg-teal/5 dark:hover:bg-white/5'}
+                  `}
+                >
+                  Intern
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole('admin')}
+                  className={`
+                    py-2 text-sm font-semibold rounded-xl transition-all duration-200
+                    ${role === 'admin' 
+                      ? 'bg-teal dark:bg-white/10 text-white dark:text-cream shadow-sm' 
+                      : 'text-teal/50 dark:text-cream/50 hover:bg-teal/5 dark:hover:bg-white/5'}
+                  `}
+                >
+                  Administrator
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-status-hold/10 border border-status-hold/20">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-status-hold shrink-0">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="15" y1="9" x2="9" y2="15" />
+                  <line x1="9" y1="9" x2="15" y2="15" />
+                </svg>
+                <p className="text-sm text-status-hold font-medium">{error}</p>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading || !fullName.trim()}
+              className="w-full mt-4 py-3.5 rounded-xl bg-gradient-to-r from-gold to-[#f5d44a] text-teal text-sm font-bold shadow-lg shadow-gold/20 hover:shadow-xl hover:shadow-gold/30 hover:translate-y-[-1px] active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-gold/50 focus:ring-offset-2 focus:ring-offset-cream dark:focus:ring-offset-[#001a22] transition-all duration-200 disabled:opacity-50 disabled:hover:translate-y-0"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Saving...
+                </span>
+              ) : 'Complete Profile'}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};

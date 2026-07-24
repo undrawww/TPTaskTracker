@@ -70,77 +70,11 @@ export const AttendanceView: React.FC<{initialDate?: string}> = ({ initialDate }
     return 0;
   });
 
-  const [isExportingToSheets, setIsExportingToSheets] = useState(false);
   const [toastMsg, setToastMsg] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToastMsg({ message, type });
     setTimeout(() => setToastMsg(null), 3000);
-  };
-
-  const handleExportToSheets = async () => {
-    const webhookUrl = import.meta.env.VITE_MAKE_WEBHOOK_URL;
-    if (!webhookUrl || webhookUrl === 'your_make_webhook_url_here') {
-      showToast('Please add your Webhook URL to the .env file first!', 'error');
-      return;
-    }
-
-    try {
-      setIsExportingToSheets(true);
-      
-      // Prepare the payload
-      const payload = displayRecords.map(a => {
-        const name = a.intern?.username || a.intern?.full_name || 'Unknown';
-        const dept = a.intern?.department || 'Unknown';
-
-        let recordsStr = '';
-        if (a.accomplishments) {
-          try {
-            const parsed = JSON.parse(a.accomplishments);
-            if (Array.isArray(parsed)) recordsStr = parsed.join('\n');
-            else recordsStr = String(a.accomplishments);
-          } catch {
-            recordsStr = String(a.accomplishments);
-          }
-        }
-        
-        return {
-          date: selectedDate,
-          name,
-          department: dept,
-          daily_records: recordsStr
-        };
-      });
-
-
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ records: payload })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send data to webhook');
-      }
-
-      // Trigger Google Apps Script to auto-insert blank rows between dates
-      const spacerUrl = import.meta.env.VITE_SHEETS_SPACER_URL;
-      if (spacerUrl) {
-        // Run in the background so it doesn't block the UI from showing success
-        setTimeout(() => {
-          fetch(spacerUrl, { mode: 'no-cors' }).catch(() => {});
-        }, 3000);
-      }
-
-      showToast('Successfully exported to Google Sheets!', 'success');
-    } catch (err) {
-      console.error('Export error:', err);
-      showToast('Failed to export. Please check your scenario.', 'error');
-    } finally {
-      setIsExportingToSheets(false);
-    }
   };
 
   /** Format date for the header display */
@@ -242,27 +176,6 @@ export const AttendanceView: React.FC<{initialDate?: string}> = ({ initialDate }
                 title={showTimeColumns ? "Hide time columns" : "Show time columns"}
               >
                 {showTimeColumns ? 'Hide Times' : 'Show Times'}
-              </button>
-
-              <button
-                onClick={handleExportToSheets}
-                disabled={isExportingToSheets || displayRecords.length === 0}
-                className="ml-2 flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-xl transition-all duration-200 border bg-teal text-white border-teal hover:bg-teal-light disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Export directly to Google Sheets"
-              >
-                {isExportingToSheets ? (
-                  <svg className="animate-spin h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="17 8 12 3 7 8" />
-                    <line x1="12" y1="3" x2="12" y2="15" />
-                  </svg>
-                )}
-                {isExportingToSheets ? 'Exporting...' : 'Export to Sheets'}
               </button>
 
               <CustomDropdown

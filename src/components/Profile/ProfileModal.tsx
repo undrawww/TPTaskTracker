@@ -80,6 +80,15 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
 
   // Fetch current profile name on open
   React.useEffect(() => {
+    if (!isOpen) {
+      // Reset state when closed
+      setIsEditing(false);
+      setActiveTab('profile');
+      setError(null);
+      setSuccess(null);
+      return;
+    }
+
     if (isOpen && user?.email) {
       const draftStr = localStorage.getItem('tp_profile_draft');
       if (draftStr) {
