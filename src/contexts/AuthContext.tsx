@@ -29,7 +29,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [role, setRole] = useState<'admin' | 'intern' | null>(null);
   const [currentInternId, setCurrentInternId] = useState<string | null>(null);
 
-  useEffect(() => {
   const fetchRole = async (currentUser: User | null) => {
     if (!currentUser) {
       setRole(null);
@@ -103,6 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     };
 
+  useEffect(() => {
     if (!isSupabaseConfigured) {
       const mockUser = { id: 'demo-user', email: 'demo@example.com' } as User;
       setUser(mockUser);

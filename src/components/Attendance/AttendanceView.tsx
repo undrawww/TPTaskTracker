@@ -70,12 +70,7 @@ export const AttendanceView: React.FC<{initialDate?: string}> = ({ initialDate }
     return 0;
   });
 
-  const [toastMsg, setToastMsg] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToastMsg({ message, type });
-    setTimeout(() => setToastMsg(null), 3000);
-  };
 
   /** Format date for the header display */
   const displayDate = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
@@ -285,39 +280,7 @@ export const AttendanceView: React.FC<{initialDate?: string}> = ({ initialDate }
         </>
       )}
 
-      {/* Toast Notification */}
-      {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
-          <div className={`px-6 py-4 rounded-xl shadow-lg border flex items-center gap-3 ${
-            toastMsg.type === 'success' 
-              ? 'bg-white dark:bg-[#001a22] border-green-500/30 text-green-700 dark:text-green-400' 
-              : 'bg-white dark:bg-[#001a22] border-red-500/30 text-red-700 dark:text-red-400'
-          }`}>
-            {toastMsg.type === 'success' ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                <polyline points="22 4 12 14.01 9 11.01" />
-              </svg>
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-red-500">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-            )}
-            <span className="font-semibold text-sm">{toastMsg.message}</span>
-            <button 
-              onClick={() => setToastMsg(null)}
-              className="ml-2 text-current opacity-50 hover:opacity-100 transition-opacity"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 };
