@@ -5,6 +5,8 @@ import { getAvatarIcon, renderAvatar } from '../Dashboard/AvatarIcons';
 import { formatAddress } from '../../utils/formatAddress';
 import { generateSlug } from '../../utils/slugify';
 
+import { InternsSkeleton } from '../Skeleton/DashboardSkeleton';
+
 interface Props {
   onViewProfile?: (id: string) => void;
 }
@@ -35,9 +37,7 @@ export const InternsDirectory: React.FC<Props> = ({ onViewProfile }) => {
       </div>
 
       {loading ? (
-        <div className="flex-1 flex items-center justify-center">
-          <div className="w-8 h-8 rounded-full border-2 border-teal/20 border-t-teal dark:border-white/10 dark:border-t-gold animate-spin" />
-        </div>
+        <InternsSkeleton />
       ) : error ? (
         <div className="bg-status-hold-bg border border-status-hold/20 rounded-xl p-4 text-status-hold text-sm">
           {error}

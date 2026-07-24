@@ -135,3 +135,87 @@ export const InternsSkeleton: React.FC = () => (
     </div>
   </div>
 );
+
+/** Skeleton for Profile view */
+export const ProfileSkeleton: React.FC = () => (
+  <div className="space-y-6">
+    <div className="bg-white dark:bg-[#001f26] border border-teal/10 dark:border-white/5 rounded-3xl p-6 shadow-sm flex flex-col sm:flex-row items-center gap-6">
+      <Bone className="w-24 h-24 sm:w-32 sm:h-32 rounded-3xl flex-shrink-0" />
+      <div className="flex-1 space-y-4 w-full text-center sm:text-left">
+        <Bone className="h-8 w-48 mx-auto sm:mx-0" />
+        <Bone className="h-4 w-32 mx-auto sm:mx-0" />
+        <Bone className="h-10 w-full sm:w-64 mx-auto sm:mx-0" />
+      </div>
+    </div>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="col-span-1 lg:col-span-2 space-y-6">
+        <div className="bg-white dark:bg-[#001f26] rounded-3xl p-6 h-64 border border-teal/10 dark:border-white/5 shadow-sm">
+          <Bone className="h-6 w-32 mb-4" />
+          <Bone className="h-4 w-full mb-2" />
+          <Bone className="h-4 w-5/6" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white dark:bg-[#001f26] rounded-3xl p-6 h-48 border border-teal/10 dark:border-white/5 shadow-sm">
+            <Bone className="h-6 w-32 mb-4" />
+            <Bone className="h-4 w-full" />
+          </div>
+          <div className="bg-white dark:bg-[#001f26] rounded-3xl p-6 h-48 border border-teal/10 dark:border-white/5 shadow-sm">
+            <Bone className="h-6 w-32 mb-4" />
+            <Bone className="h-4 w-full" />
+          </div>
+        </div>
+      </div>
+      <div className="col-span-1 bg-white dark:bg-[#001f26] rounded-3xl p-6 h-[500px] border border-teal/10 dark:border-white/5 shadow-sm">
+        <Bone className="h-6 w-32 mb-6" />
+        <div className="space-y-4">
+          {[1,2,3,4].map(i => <Bone key={i} className="h-16 w-full rounded-xl" />)}
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+/** Skeleton for Attendance view */
+export const AttendanceSkeleton: React.FC = () => (
+  <div className="space-y-6">
+    <div className="flex flex-col sm:flex-row justify-between gap-4">
+      <Bone className="h-10 w-48 rounded-xl" />
+      <Bone className="h-10 w-full sm:w-64 rounded-xl" />
+    </div>
+    <div className="bg-white dark:bg-[#001f26] rounded-3xl overflow-hidden border border-teal/10 dark:border-white/5 shadow-sm">
+      <div className="p-4 bg-teal/5 dark:bg-white/5 border-b border-teal/10 dark:border-white/5">
+        <Bone className="h-6 w-32" />
+      </div>
+      <div className="p-0">
+        {[1,2,3,4,5,6].map(i => (
+          <div key={i} className="p-4 border-b border-teal/5 dark:border-white/5 flex gap-4">
+            <Bone className="h-10 w-10 rounded-xl flex-shrink-0" />
+            <div className="flex-1 space-y-2">
+              <Bone className="h-4 w-32" />
+              <Bone className="h-3 w-48" />
+            </div>
+            <Bone className="h-8 w-24 rounded-lg hidden sm:block" />
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+/** Skeleton for Training Videos */
+export const VideosSkeleton: React.FC = () => (
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {[1,2,3,4,5,6].map(i => (
+      <div key={i} className="rounded-2xl overflow-hidden bg-white dark:bg-[#001f26] border border-teal/10 dark:border-white/5 shadow-sm">
+        <Bone className="aspect-video w-full rounded-none" />
+        <div className="p-4 space-y-3">
+          <Bone className="h-5 w-3/4" />
+          <div className="flex items-center gap-2">
+            <Bone className="h-6 w-6 rounded-full flex-shrink-0" />
+            <Bone className="h-4 w-1/3" />
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+);

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAttendance } from '../../hooks/useAttendance';
 import { AttendanceInternCard } from './AttendanceInternCard';
-import { DashboardSkeleton } from '../Skeleton/DashboardSkeleton';
+import { AttendanceSkeleton } from '../Skeleton/DashboardSkeleton';
 import { CustomDropdown } from '../common/CustomDropdown';
 
 export type SortOption = 'department' | 'name' | 'time_in';
@@ -81,7 +81,7 @@ export const AttendanceView: React.FC<{initialDate?: string}> = ({ initialDate }
   });
 
   if (loading) {
-    return <DashboardSkeleton />;
+    return <AttendanceSkeleton />;
   }
 
   return (

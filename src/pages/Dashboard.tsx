@@ -9,7 +9,7 @@ import { CreateTaskModal } from '../components/Admin/CreateTaskModal';
 import { DailyTracker } from '../components/Dashboard/DailyTracker';
 import { WeeklyArchive } from '../components/Weekly/WeeklyArchive';
 import { ProfileModal } from '../components/Profile/ProfileModal';
-import { DashboardSkeleton, InternsSkeleton } from '../components/Skeleton/DashboardSkeleton';
+import { DashboardSkeleton, InternsSkeleton, ProfileSkeleton, AttendanceSkeleton, VideosSkeleton } from '../components/Skeleton/DashboardSkeleton';
 import { HeaderProfileMenu } from '../components/Header/HeaderProfileMenu';
 import { NotificationBell } from '../components/Header/NotificationBell';
 import { Sidebar } from '../components/Layout/Sidebar';
@@ -351,19 +351,25 @@ export const Dashboard: React.FC = () => {
       </header>
 
       <main className="flex-1 w-full mx-auto px-4 sm:px-6 md:px-8 py-6 space-y-8">
-        {activeView === 'attendance' ? (
-          <ErrorBoundary>
-            <AttendanceView initialDate={attendanceInitialDate} />
-          </ErrorBoundary>
+        {isLoading ? (
+          <div className="max-w-[1600px] mx-auto w-full animate-fade-in">
+            {activeView === 'interns' && <InternsSkeleton />}
+            {activeView === 'profile' && <ProfileSkeleton />}
+            {activeView === 'attendance' && <AttendanceSkeleton />}
+            {activeView === 'videos' && <VideosSkeleton />}
+            {activeView === 'tracker' && <DashboardSkeleton />}
+          </div>
         ) : (
           <>
-            {isLoading ? (
-              activeView === 'interns' ? <InternsSkeleton /> : <DashboardSkeleton />
-            ) : (
+            {activeView === 'attendance' && (
+              <ErrorBoundary>
+                <AttendanceView initialDate={attendanceInitialDate} />
+              </ErrorBoundary>
+            )}
+
+            {activeView === 'tracker' && (
               <>
-                {activeView === 'tracker' && (
-                  <>
-                    <AnalyticsDashboard analytics={analytics} showCharts={showCharts} />
+                <AnalyticsDashboard analytics={analytics} showCharts={showCharts} />
 
                 {/* Admin action buttons */}
                 {role === 'admin' && (
@@ -380,7 +386,6 @@ export const Dashboard: React.FC = () => {
                       </svg>
                       Add Member
                     </button>
-
                   </div>
                 )}
 
@@ -401,27 +406,22 @@ export const Dashboard: React.FC = () => {
                   setActiveCommentTaskId={setActiveCommentTaskId}
                 />
 
-
-                    {showWeekly && (
-                      <WeeklyArchive 
-                        interns={displayInterns} 
-                      />
-                    )}
-                  </>
-                )}
-                
-                {activeView === 'interns' && (
-                  <InternsDirectory onViewProfile={handleViewProfile} />
-                )}
-
-                {activeView === 'profile' && (
-                  <ProfilePage internId={viewingProfileId || undefined} />
-                )}
-
-                {activeView === 'videos' && (
-                  <TrainingVideos />
+                {showWeekly && (
+                  <WeeklyArchive interns={displayInterns} />
                 )}
               </>
+            )}
+            
+            {activeView === 'interns' && (
+              <InternsDirectory onViewProfile={handleViewProfile} />
+            )}
+
+            {activeView === 'profile' && (
+              <ProfilePage internId={viewingProfileId || undefined} />
+            )}
+
+            {activeView === 'videos' && (
+              <TrainingVideos />
             )}
           </>
         )}

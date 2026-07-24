@@ -10,6 +10,8 @@ import { ProfileAdminFeedback } from './ProfileAdminFeedback';
 import { ProfileModal } from './ProfileModal';
 import { supabase } from '../../lib/supabaseClient';
 
+import { ProfileSkeleton } from '../Skeleton/DashboardSkeleton';
+
 export const ProfilePage: React.FC<{ internId?: string }> = ({ internId }) => {
   const { intern, role, certifications, tasks, weeklyTasks, attendance, loading, refreshProfile } = useProfile(internId);
   const [isEditingProfile, setIsEditingProfile] = React.useState(false);
@@ -24,13 +26,7 @@ export const ProfilePage: React.FC<{ internId?: string }> = ({ internId }) => {
   return (
     <>
       {loading ? (
-        <div className="w-full h-full flex flex-col gap-6 animate-pulse p-4 md:p-8">
-          <div className="h-40 bg-teal/5 dark:bg-white/5 rounded-3xl w-full"></div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="col-span-1 lg:col-span-2 h-64 bg-teal/5 dark:bg-white/5 rounded-3xl"></div>
-            <div className="col-span-1 h-64 bg-teal/5 dark:bg-white/5 rounded-3xl"></div>
-          </div>
-        </div>
+        <ProfileSkeleton />
       ) : !intern ? (
         <div className="w-full h-full flex items-center justify-center p-8">
           <div className="text-center max-w-md">

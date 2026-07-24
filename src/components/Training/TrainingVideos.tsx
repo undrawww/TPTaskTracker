@@ -5,6 +5,7 @@ import { avatarURLs } from '../Dashboard/AvatarIcons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { generateSlug } from '../../utils/slugify';
+import { VideosSkeleton } from '../Skeleton/DashboardSkeleton';
 
 export const TrainingVideos: React.FC = () => {
   const { videoId } = useParams<{ videoId?: string }>();
@@ -46,17 +47,7 @@ export const TrainingVideos: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="rounded-2xl overflow-hidden animate-pulse bg-[#d9caa8] dark:bg-[#003946]/50">
-            <div className="aspect-video bg-teal/10 dark:bg-white/10" />
-            <div className="p-4 space-y-3">
-              <div className="h-4 bg-teal/10 dark:bg-white/10 rounded w-3/4" />
-              <div className="h-8 bg-teal/10 dark:bg-white/10 rounded w-1/2" />
-            </div>
-          </div>
-        ))}
-      </div>
+      <VideosSkeleton />
     );
   }
 
