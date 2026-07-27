@@ -179,14 +179,19 @@ export function useInterns() {
 
       const { data: userData } = await supabase.auth.getUser();
       
-      // 3. Insert into interns table
+      // 3. Calculate order_index — place at end of department
+      const deptInterns = interns.filter(i => i.department === payload.department);
+      const maxOrder = deptInterns.reduce((max, i) => Math.max(max, i.order_index || 0), 0);
+
+      // 4. Insert into interns table
       const { data, error } = await supabase
         .from('interns')
         .insert([{ 
           full_name: profileData.full_name, 
           department: payload.department,
           email: payload.email,
-          admin_id: userData.user?.id
+          admin_id: userData.user?.id,
+          order_index: maxOrder + 1
         }])
         .select()
         .single();

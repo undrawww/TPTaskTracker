@@ -280,6 +280,7 @@ export const DailyTracker: React.FC<Props> = ({
                   activeCommentTaskId={activeCommentTaskId}
                   setActiveCommentTaskId={setActiveCommentTaskId}
                   hideHeader={true}
+                  singleRow={true}
                 />
               </div>
             )}

@@ -1,7 +1,7 @@
 import { InternTaskGroup } from './InternTaskGroup';
 import { DepartmentTaskPool } from './DepartmentTaskPool';
 import { POOL_UUIDS, type Intern, type DailyTask, type WeeklyTask, type TaskStatus, type Department } from '../../types';
-import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
+import { SortableContext, rectSortingStrategy, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 
 interface Props {
   department: Department;
@@ -17,6 +17,7 @@ interface Props {
   activeCommentTaskId?: string | null;
   setActiveCommentTaskId?: (id: string | null) => void;
   hideHeader?: boolean;
+  singleRow?: boolean;
 }
 
 
@@ -34,7 +35,8 @@ export const DepartmentPanel: React.FC<Props> = ({
   onAddTask,
   activeCommentTaskId,
   setActiveCommentTaskId,
-  hideHeader
+  hideHeader,
+  singleRow
 }) => {
   const deptInterns = interns
     .filter((i) => i.department === department)
@@ -79,15 +81,15 @@ export const DepartmentPanel: React.FC<Props> = ({
       )}
 
       {/* Intern task groups */}
-      <div className="py-4 flex flex-row gap-3">
+      <div className={singleRow ? "py-4 flex flex-row gap-3" : "py-4 grid grid-cols-2 gap-3"}>
         {deptInterns.length === 0 ? (
-          <p className="text-sm text-[#003946] dark:text-[#f5e7c6] italic text-center py-4">
+          <p className={`text-sm text-[#003946] dark:text-[#f5e7c6] italic text-center py-4 ${singleRow ? '' : 'col-span-2'}`}>
             No interns in this department
           </p>
         ) : (
           <SortableContext 
             items={deptInterns.map(i => i.id)}
-            strategy={horizontalListSortingStrategy}
+            strategy={singleRow ? horizontalListSortingStrategy : rectSortingStrategy}
           >
             {deptInterns.map((intern) => {
             const internTasks = tasks
