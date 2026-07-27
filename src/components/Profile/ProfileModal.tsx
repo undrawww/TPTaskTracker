@@ -781,7 +781,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Username (Display)</label>
+                        <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Nickname</label>
                         <input
                           type="text"
                           placeholder="Optional short name"
