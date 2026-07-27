@@ -100,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .from('interns')
           .select('id')
           .eq('email', currentUser.email)
-          .single();
+          .maybeSingle();
         
         setCurrentInternId(internData?.id || null);
       } else {

@@ -30,6 +30,7 @@ type ActiveView = 'tracker' | 'attendance' | 'interns' | 'profile' | 'videos';
 
 export const Dashboard: React.FC = () => {
   const { role, currentInternId } = useAuth();
+  const isAddedToTracker = Boolean(currentInternId) || role === 'admin';
   const navigate = useNavigate();
 
   const location = useLocation();
@@ -361,10 +362,22 @@ export const Dashboard: React.FC = () => {
           </div>
         ) : (
           <>
-            {activeView === 'attendance' && (
+            {activeView === 'attendance' && isAddedToTracker && (
               <ErrorBoundary>
                 <AttendanceView initialDate={attendanceInitialDate} />
               </ErrorBoundary>
+            )}
+            {activeView === 'attendance' && !isAddedToTracker && (
+              <div className="flex flex-col items-center justify-center py-20 bg-teal/5 dark:bg-[#002833]/50 rounded-2xl border border-teal/10 dark:border-white/5 animate-fade-in">
+                <div className="w-16 h-16 rounded-2xl bg-teal/10 dark:bg-white/5 flex items-center justify-center mb-4">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-teal/40 dark:text-cream/30">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                </div>
+                <h3 className="text-base font-semibold text-teal dark:text-cream mb-1">Not added to system</h3>
+                <p className="text-sm text-teal/50 dark:text-cream/40 max-w-md text-center">Your account has not been added to a daily tracker yet. Once an administrator adds your account to the system, you will be able to view and manage attendance records.</p>
+              </div>
             )}
 
             {activeView === 'tracker' && (
@@ -412,8 +425,22 @@ export const Dashboard: React.FC = () => {
               </>
             )}
             
-            {activeView === 'interns' && (
+            {activeView === 'interns' && isAddedToTracker && (
               <InternsDirectory onViewProfile={handleViewProfile} />
+            )}
+            {activeView === 'interns' && !isAddedToTracker && (
+              <div className="flex flex-col items-center justify-center py-20 bg-teal/5 dark:bg-[#002833]/50 rounded-2xl border border-teal/10 dark:border-white/5 animate-fade-in">
+                <div className="w-16 h-16 rounded-2xl bg-teal/10 dark:bg-white/5 flex items-center justify-center mb-4">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-teal/40 dark:text-cream/30">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <line x1="17" y1="8" x2="23" y2="14" />
+                    <line x1="23" y1="8" x2="17" y2="14" />
+                  </svg>
+                </div>
+                <h3 className="text-base font-semibold text-teal dark:text-cream mb-1">Not added to system</h3>
+                <p className="text-sm text-teal/50 dark:text-cream/40 max-w-md text-center">Your account has not been added to a daily tracker yet. Once an administrator adds your account to the system, you will be able to view the Interns directory.</p>
+              </div>
             )}
 
             {activeView === 'profile' && (

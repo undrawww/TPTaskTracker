@@ -17,10 +17,10 @@ export function useProfile(internId?: string) {
 
   useEffect(() => {
     refreshProfile();
-  }, [targetId]);
+  }, [targetId, user?.email]);
 
   const refreshProfile = async () => {
-    if (!targetId && role !== 'admin') {
+    if (!targetId && !user?.email && role !== 'admin') {
       setLoading(false);
       return;
     }
@@ -111,28 +111,91 @@ export function useProfile(internId?: string) {
           return;
         }
 
-        // Fetch Intern
-        const { data: internData, error: internError } = await supabase
-          .from('interns')
-          .select('*')
-          .eq('id', targetId)
-          .single();
+        // Try fetching Intern from interns table first
+        let internData: any = null;
+        if (targetId) {
+          const { data } = await supabase
+            .from('interns')
+            .select('*')
+            .eq('id', targetId)
+            .maybeSingle();
+          internData = data;
+        }
 
-        if (internError) throw internError;
+        if (internData) {
+          // Fetch profile data for avatar_index and created_at
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('avatar_index, avatar_url, created_at')
+            .eq('email', internData.email)
+            .maybeSingle();
 
-        // Fetch profile data for avatar_index and created_at
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('avatar_index, avatar_url, created_at')
-          .eq('email', internData.email)
-          .single();
+          setIntern({
+            ...internData,
+            avatar_index: profileData?.avatar_index ?? internData.avatar_index ?? 0,
+            avatar_url: profileData?.avatar_url || internData.avatar_url,
+            created_at: profileData?.created_at || internData.created_at
+          });
+        } else {
+          // Fallback: If not added into a daily tracker (not in interns table), load from profiles table
+          let profileQuery = supabase.from('profiles').select('*');
+          if (user?.email && (!internId || internId === user.id || internId === currentInternId)) {
+            profileQuery = profileQuery.eq('email', user.email);
+          } else if (targetId) {
+            profileQuery = profileQuery.eq('id', targetId);
+          } else {
+            setLoading(false);
+            return;
+          }
 
-        setIntern({
-          ...internData,
-          avatar_index: profileData?.avatar_index ?? internData.avatar_index ?? 0,
-          avatar_url: profileData?.avatar_url || internData.avatar_url,
-          created_at: profileData?.created_at || internData.created_at
-        });
+          const { data: fallbackProfile, error: fallbackError } = await profileQuery.maybeSingle();
+          if (!fallbackProfile || fallbackError) {
+            setLoading(false);
+            return;
+          }
+
+          const storedBio = localStorage.getItem(`tp_bio_${fallbackProfile.email}`);
+          const storedSkillsRaw = localStorage.getItem(`tp_skills_${fallbackProfile.email}`);
+          let storedSkills: string[] | null = null;
+          try {
+            if (storedSkillsRaw) storedSkills = JSON.parse(storedSkillsRaw);
+          } catch (e) {
+            // ignore parse error
+          }
+
+          setIntern({
+            id: fallbackProfile.id || user?.id || 'unassigned-id',
+            full_name: fallbackProfile.full_name || user?.user_metadata?.full_name || 'Intern',
+            email: fallbackProfile.email || user?.email || '',
+            department: (fallbackProfile.department || 'Unassigned') as Department,
+            status: fallbackProfile.status || 'Active',
+            avatar_index: fallbackProfile.avatar_index ?? 0,
+            avatar_url: fallbackProfile.avatar_url,
+            created_at: fallbackProfile.created_at,
+            location: fallbackProfile.location,
+            pin_location: fallbackProfile.pin_location,
+            pin_location_name: fallbackProfile.pin_location_name,
+            program: fallbackProfile.program,
+            current_year: fallbackProfile.current_year,
+            school: fallbackProfile.school,
+            contact_number: fallbackProfile.contact_number,
+            personal_email: fallbackProfile.personal_email,
+            birthday: fallbackProfile.birthday,
+            expected_graduation_date: fallbackProfile.expected_graduation_date,
+            required_hours: fallbackProfile.required_hours,
+            businesses: fallbackProfile.businesses,
+            username: fallbackProfile.username,
+            gcash_qr_url: fallbackProfile.gcash_qr_url,
+            bio: fallbackProfile.bio || storedBio || 'No bio provided yet.',
+            skills: fallbackProfile.skills || storedSkills || [],
+          });
+          setCertifications([]);
+          setTasks([]);
+          setWeeklyTasks([]);
+          setAttendance([]);
+          setLoading(false);
+          return;
+        }
 
         // Fetch Certifications, Tasks, and Attendance in parallel
         const [certRes, tasksRes, attendanceRes, weeklyRes] = await Promise.all([

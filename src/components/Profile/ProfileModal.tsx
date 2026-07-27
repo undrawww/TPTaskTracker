@@ -163,8 +163,22 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
             if (merged.birthday) setBirthday(merged.birthday);
             if (merged.expected_graduation_date) setExpectedGraduationDate(merged.expected_graduation_date);
             if (merged.required_hours) setRequiredHours(String(merged.required_hours));
-            if (merged.bio) setBio(merged.bio);
-            if (merged.skills && Array.isArray(merged.skills)) setSkills(merged.skills);
+            if (merged.bio) {
+              setBio(merged.bio);
+            } else {
+              const localBio = localStorage.getItem(`tp_bio_${user.email}`);
+              if (localBio) setBio(localBio);
+            }
+            if (merged.skills && Array.isArray(merged.skills)) {
+              setSkills(merged.skills);
+            } else {
+              try {
+                const localSkills = localStorage.getItem(`tp_skills_${user.email}`);
+                if (localSkills) setSkills(JSON.parse(localSkills));
+              } catch (e) {
+                // ignore
+              }
+            }
           }
           setIsFormLoaded(true);
         });
@@ -463,6 +477,9 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
             .eq('email', user.email);
           if (internError) throw internError;
         }
+
+        localStorage.setItem(`tp_bio_${user.email}`, bio);
+        localStorage.setItem(`tp_skills_${user.email}`, JSON.stringify(skills));
         
         setCurrentName(fullName);
       }

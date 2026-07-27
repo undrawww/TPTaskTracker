@@ -11,7 +11,8 @@ export const TrainingVideos: React.FC = () => {
   const { videoId } = useParams<{ videoId?: string }>();
   const navigate = useNavigate();
   const { videos, loading, hasCompleted, getVideoCompletions, markAsWatched, unmarkAsWatched, addVideo, deleteVideo } = useTrainingVideos();
-  const { role } = useAuth();
+  const { role, currentInternId } = useAuth();
+  const isAddedToTracker = Boolean(currentInternId) || role === 'admin';
   const [showAddModal, setShowAddModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newUrl, setNewUrl] = useState('');
@@ -186,46 +187,48 @@ export const TrainingVideos: React.FC = () => {
                     </div>
 
                     {/* Watchers Avatars */}
-                    <div className="mt-1.5 flex flex-wrap gap-[3px]">
-                      <AnimatePresence mode="popLayout">
-                        {watchers.length > 0 ? watchers.map((w, index) => (
-                          <motion.div
-                            key={w.user_id}
-                            initial={{ scale: 0.2, opacity: 0, y: 10, rotate: -20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0, rotate: 0 }}
-                            exit={{ scale: 0, opacity: 0 }}
-                            transition={{
-                              type: "spring",
-                              stiffness: 500,
-                              damping: 20,
-                              delay: index * 0.05
-                            }}
-                            className="relative group/avatar"
-                            title={w.full_name}
-                          >
-                            <div className="w-5 h-5 rounded-full overflow-hidden bg-teal/10 dark:bg-white/10 ring-1 ring-white/10 shadow-[0_2px_8px_rgba(0,0,0,0.15)] group-hover/avatar:ring-emerald-400 group-hover/avatar:ring-2 transition-all duration-300 group-hover/avatar:scale-110 cursor-pointer">
-                              {w.avatar_url ? (
-                                <img src={w.avatar_url} alt={w.full_name} className="w-full h-full object-cover" />
-                              ) : (
-                                <img src={avatarURLs[Math.abs(w.avatar_index ?? 0) % avatarURLs.length]} alt={w.full_name} className="w-full h-full object-cover" />
-                              )}
-                            </div>
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-teal dark:bg-[#001a22] text-white text-[10px] font-bold rounded whitespace-nowrap opacity-0 group-hover/avatar:opacity-100 group-hover/avatar:-translate-y-1 transition-all pointer-events-none shadow-lg z-20">
-                              {w.full_name}
-                            </div>
-                          </motion.div>
-                        )) : (
-                          <motion.span 
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="text-[11px] text-teal/50 dark:text-white/40 font-semibold uppercase tracking-wider"
-                          >
-                            Not watched yet
-                          </motion.span>
-                        )}
-                      </AnimatePresence>
-                    </div>
+                    {isAddedToTracker && (
+                      <div className="mt-1.5 flex flex-wrap gap-[3px]">
+                        <AnimatePresence mode="popLayout">
+                          {watchers.length > 0 ? watchers.map((w, index) => (
+                            <motion.div
+                              key={w.user_id}
+                              initial={{ scale: 0.2, opacity: 0, y: 10, rotate: -20 }}
+                              animate={{ scale: 1, opacity: 1, y: 0, rotate: 0 }}
+                              exit={{ scale: 0, opacity: 0 }}
+                              transition={{
+                                type: "spring",
+                                stiffness: 500,
+                                damping: 20,
+                                delay: index * 0.05
+                              }}
+                              className="relative group/avatar"
+                              title={w.full_name}
+                            >
+                              <div className="w-5 h-5 rounded-full overflow-hidden bg-teal/10 dark:bg-white/10 ring-1 ring-white/10 shadow-[0_2px_8px_rgba(0,0,0,0.15)] group-hover/avatar:ring-emerald-400 group-hover/avatar:ring-2 transition-all duration-300 group-hover/avatar:scale-110 cursor-pointer">
+                                {w.avatar_url ? (
+                                  <img src={w.avatar_url} alt={w.full_name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <img src={avatarURLs[Math.abs(w.avatar_index ?? 0) % avatarURLs.length]} alt={w.full_name} className="w-full h-full object-cover" />
+                                )}
+                              </div>
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-teal dark:bg-[#001a22] text-white text-[10px] font-bold rounded whitespace-nowrap opacity-0 group-hover/avatar:opacity-100 group-hover/avatar:-translate-y-1 transition-all pointer-events-none shadow-lg z-20">
+                                {w.full_name}
+                              </div>
+                            </motion.div>
+                          )) : (
+                            <motion.span 
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              className="text-[11px] text-teal/50 dark:text-white/40 font-semibold uppercase tracking-wider"
+                            >
+                              Not watched yet
+                            </motion.span>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
