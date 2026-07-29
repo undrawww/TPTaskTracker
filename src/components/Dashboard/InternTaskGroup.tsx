@@ -155,7 +155,7 @@ export const InternTaskGroup: React.FC<Props> = ({ internId, internName, internU
 
             if (isThisLineAdding) {
               return (
-                <div key={`adding-${idx}`} className="flex items-center gap-2 px-1 py-1 h-[36px]">
+                <div key={`adding-${idx}`} className="flex items-center gap-2 px-1 py-1 h-[32px] mb-1">
                   <input
                     autoFocus
                     value={newTaskName}
@@ -192,7 +192,7 @@ export const InternTaskGroup: React.FC<Props> = ({ internId, internName, internU
                     setIsAddingTask(true);
                   }
                 }}
-                className={`h-[36px] border-b border-teal/10 dark:border-cream/5 mb-1 ${canAddTask ? 'cursor-text hover:bg-teal/5 dark:hover:bg-cream/5 transition-colors group/emptyline' : ''}`}
+                className={`h-[32px] border-b border-teal/10 dark:border-cream/5 mb-1 ${canAddTask ? 'cursor-text hover:bg-teal/5 dark:hover:bg-cream/5 transition-colors group/emptyline' : ''}`}
               >
                 {canAddTask && (
                   <span className="opacity-0 group-hover/emptyline:opacity-100 text-[10px] text-teal/30 dark:text-cream/30 italic pl-2 h-full flex items-center">Click to add task</span>
