@@ -18,6 +18,7 @@ interface Props {
   setActiveCommentTaskId?: (id: string | null) => void;
   hideHeader?: boolean;
   singleRow?: boolean;
+  maxInternRows?: number;
 }
 
 
@@ -36,7 +37,8 @@ export const DepartmentPanel: React.FC<Props> = ({
   activeCommentTaskId,
   setActiveCommentTaskId,
   hideHeader,
-  singleRow
+  singleRow,
+  maxInternRows
 }) => {
   const deptInterns = interns
     .filter((i) => i.department === department)
@@ -51,7 +53,15 @@ export const DepartmentPanel: React.FC<Props> = ({
   const poolTasks = (tasks as DailyTask[]).filter(t => t.intern_id === poolId);
 
   return (
-    <div className="bg-transparent border-none flex-shrink-0 min-w-min">
+    <div 
+      className="bg-transparent border-none flex-shrink-0 min-w-min"
+      style={maxInternRows ? {
+        gridRow: `span ${2 + maxInternRows}`,
+        display: 'grid',
+        gridTemplateRows: 'subgrid',
+        alignItems: 'start'
+      } : undefined}
+    >
       {!hideHeader && (
         <div className="flex flex-col items-center justify-center pb-2 mb-4 border-b border-teal/10 dark:border-white/10 text-center">
           <h3 className="font-sans text-xl font-bold text-teal dark:text-cream tracking-wide">
@@ -81,7 +91,17 @@ export const DepartmentPanel: React.FC<Props> = ({
       )}
 
       {/* Intern task groups */}
-      <div className={singleRow ? "py-4 flex flex-row gap-3" : "py-4 grid grid-cols-2 gap-3"}>
+      <div 
+        className={singleRow ? "py-4 flex flex-row gap-3" : (maxInternRows ? "pt-4" : "py-4 grid grid-cols-2 gap-3")}
+        style={!singleRow && maxInternRows ? {
+          gridRow: `span ${maxInternRows}`,
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 16rem)',
+          gridTemplateRows: 'subgrid',
+          gap: '12px',
+          alignItems: 'start'
+        } : undefined}
+      >
         {deptInterns.length === 0 ? (
           <p className={`text-sm text-[#003946] dark:text-[#f5e7c6] italic text-center py-4 ${singleRow ? '' : 'col-span-2'}`}>
             No interns in this department

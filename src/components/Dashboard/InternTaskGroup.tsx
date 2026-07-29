@@ -201,16 +201,22 @@ export const InternTaskGroup: React.FC<Props> = ({ internId, internName, internU
             );
           })}
           
-          {/* Explicit Add Task button, only shows if 5 or more tasks exist */}
-          {!isAddingTask && tasks.length >= 5 && canAddTask && onAddTask && (
+          {/* Explicit Add Task button, always rendered so card height is consistent across all interns */}
+          {canAddTask && onAddTask && (
             <div 
               onClick={() => {
-                setAddingIndex(0);
-                setIsAddingTask(true);
+                if (!isAddingTask) {
+                  setAddingIndex(0);
+                  setIsAddingTask(true);
+                }
               }}
-              className="opacity-0 group-hover/list:opacity-100 transition-opacity mt-2 flex items-center gap-2 px-2 py-1.5 cursor-pointer text-teal/50 hover:text-teal dark:text-cream/50 dark:hover:text-cream"
+              className={`h-[28px] mt-1 flex items-center gap-1.5 px-2 select-none ${
+                isAddingTask 
+                  ? 'opacity-0 pointer-events-none' 
+                  : 'opacity-0 group-hover/list:opacity-100 transition-opacity cursor-pointer text-teal/50 hover:text-teal dark:text-cream/50 dark:hover:text-cream'
+              }`}
             >
-               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="12" y1="5" x2="12" y2="19" />
                   <line x1="5" y1="12" x2="19" y2="12" />
                </svg>

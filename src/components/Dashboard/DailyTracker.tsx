@@ -183,6 +183,13 @@ export const DailyTracker: React.FC<Props> = ({
   // Find the active task for drag overlay
   const activeDragTask = activeDragId ? tasks.find(t => t.id === activeDragId) : null;
 
+  // Calculate max intern rows across regular departments for synchronized grid alignment
+  const regularDepts = DEPARTMENTS.filter((dept: Department) => dept !== 'BizDev Leadership Team' && (dept as string) !== 'BizDev Team');
+  const maxInternRows = Math.max(1, ...regularDepts.map((dept: Department) => {
+    const count = interns.filter(i => i.department === dept).length;
+    return Math.ceil(count / 2);
+  }));
+
   return (
     <section id="daily-tracker">
       <DndContext 
@@ -219,8 +226,14 @@ export const DailyTracker: React.FC<Props> = ({
       ) : (
         <div className="flex flex-col gap-6">
           {/* Regular Departments */}
-          <div className="flex overflow-x-auto overflow-y-hidden pb-6 gap-4 items-start w-full min-h-[500px]">
-            {DEPARTMENTS.filter(dept => dept !== 'BizDev Leadership Team' && (dept as string) !== 'BizDev Team').map((dept) => (
+          <div 
+            className="grid overflow-x-auto overflow-y-hidden pb-6 gap-x-4 w-full min-h-[500px]"
+            style={{ 
+              gridTemplateColumns: `repeat(${regularDepts.length}, auto)`,
+              gridTemplateRows: `auto auto repeat(${maxInternRows}, auto)` 
+            }}
+          >
+            {regularDepts.map((dept) => (
               <DepartmentPanel
                 key={dept}
                 department={dept}
@@ -235,6 +248,7 @@ export const DailyTracker: React.FC<Props> = ({
                 onAddTask={onAddTask}
                 activeCommentTaskId={activeCommentTaskId}
                 setActiveCommentTaskId={setActiveCommentTaskId}
+                maxInternRows={maxInternRows}
               />
             ))}
           </div>
