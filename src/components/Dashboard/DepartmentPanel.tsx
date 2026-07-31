@@ -73,7 +73,7 @@ export const DepartmentPanel: React.FC<Props> = ({
         </div>
       )}
 
-      {/* Department Requests */}
+      {/* Department Task Pool / Requests */}
       {onAddTask && (
         <DepartmentTaskPool
           poolId={poolId}

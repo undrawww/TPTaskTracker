@@ -44,6 +44,7 @@ export const DepartmentTaskPool: React.FC<Props> = ({
   };
 
   const validTasks = tasks.filter(t => t.task_name.trim() !== '');
+  const isBLT = departmentLabel === 'BLT' || poolId === '55555555-5555-5555-5555-555555555555';
 
 
 
@@ -66,7 +67,7 @@ export const DepartmentTaskPool: React.FC<Props> = ({
             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
           </svg>
           <span className="text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.15em]">
-            {departmentLabel} Requests
+            {departmentLabel} {isBLT ? 'Requests' : 'Task Pool'}
           </span>
           <span className="text-[10px] text-teal/30 dark:text-cream/20 tabular-nums">
             {validTasks.length > 0 ? `${validTasks.length} pending` : ''}
@@ -91,7 +92,7 @@ export const DepartmentTaskPool: React.FC<Props> = ({
                 activeCommentTaskId={activeCommentTaskId}
                 setActiveCommentTaskId={setActiveCommentTaskId}
                 createdByName={
-                  departmentLabel === 'BLT' && task.created_by_name 
+                  isBLT && task.created_by_name 
                     ? getCreatorUsername(task.created_by_name) 
                     : undefined
                 }
@@ -117,7 +118,7 @@ export const DepartmentTaskPool: React.FC<Props> = ({
               }}
               onBlur={handleAddSubmit}
               className="flex-1 px-2 py-1 text-sm bg-transparent border-b border-teal/30 dark:border-cream/30 focus:outline-none focus:border-teal dark:focus:border-cream text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30"
-              placeholder="Add a request..."
+              placeholder={isBLT ? "Add a request..." : "Add a task..."}
             />
           </div>
         ) : (
@@ -129,7 +130,7 @@ export const DepartmentTaskPool: React.FC<Props> = ({
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            <span className="text-[11px] font-medium">Add request</span>
+            <span className="text-[11px] font-medium">{isBLT ? "Add request" : "Add task"}</span>
           </button>
         )}
       </div>
