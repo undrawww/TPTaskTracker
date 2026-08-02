@@ -21,9 +21,10 @@ interface Props {
   activeCommentTaskId?: string | null;
   setActiveCommentTaskId?: (id: string | null) => void;
   createdByName?: string;
+  noExpand?: boolean;
 }
 
-export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onStatusChange, onVerifyChange, onEditTask, onDeleteTask, internId, activeCommentTaskId, setActiveCommentTaskId, createdByName }) => {
+export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onStatusChange, onVerifyChange, onEditTask, onDeleteTask, internId, activeCommentTaskId, setActiveCommentTaskId, createdByName, noExpand }) => {
   const getCleanText = (text: string) => {
     if (!text) return text;
     return text.replace(/https:\/\/[^\s]+supabase\.co\/storage[^\s]+/g, '[Uploaded a photo]');
@@ -219,7 +220,7 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
 
         {/* Task Name (Draggable handle area) */}
         <div
-          className="flex-1 min-w-0 py-1.5 cursor-grab active:cursor-grabbing pl-1 pr-2 flex items-center mt-[1px] gap-2"
+          className="flex-1 min-w-0 overflow-x-hidden py-1.5 cursor-grab active:cursor-grabbing pl-1 pr-2 flex items-center mt-[1px] gap-2"
           {...attributes}
           {...listeners}
           onClick={() => {
@@ -229,7 +230,8 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
           }}
         >
           <span 
-            className={`text-[13.5px] tracking-[0.02em] [word-spacing:0.1em] transition-all duration-300 select-none ${isChecked ? 'text-teal/40 dark:text-cream/40 line-through' : 'text-teal dark:text-cream'} ${hovered ? 'break-words whitespace-pre-wrap' : 'truncate'}`}
+            title={noExpand ? taskName : undefined}
+            className={`text-[13.5px] tracking-[0.02em] [word-spacing:0.1em] transition-all duration-300 select-none ${isChecked ? 'text-teal/40 dark:text-cream/40 line-through' : 'text-teal dark:text-cream'} ${hovered && !noExpand ? 'break-words whitespace-pre-wrap' : 'truncate'}`}
           >
             {taskName}
           </span>

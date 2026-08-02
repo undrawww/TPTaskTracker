@@ -56,10 +56,10 @@ export const DepartmentTaskPool: React.FC<Props> = ({
   };
 
   return (
-    <div className="w-full mb-2 relative z-20">
+    <div className="w-[33rem] mb-2 relative z-20 overflow-x-hidden">
       <div
         ref={setNodeRef}
-        className="relative bg-teal/[0.03] dark:bg-white/[0.02] border border-dashed border-teal/15 dark:border-white/10 rounded-xl px-4 py-3 min-h-[48px] transition-colors"
+        className="relative bg-teal/[0.03] dark:bg-white/[0.02] border border-dashed border-teal/15 dark:border-white/10 rounded-xl px-4 py-3 w-[33rem] min-h-[48px] overflow-x-hidden transition-colors"
       >
         {/* Header row */}
         <div className="flex items-center gap-2 mb-1">
