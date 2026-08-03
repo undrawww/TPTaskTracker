@@ -51,6 +51,7 @@ export const InternTaskGroup: React.FC<Props> = ({ internId, internName, internU
   });
 
   const firstName = internUsername || internName.split(' ')[0];
+  const validTasks = tasks.filter(t => t.task_name && t.task_name.replace(/[\s\uFEFF\xA0\u200B\-\.\_\,\;\:\!\?\*\#\@\$\%\^\&\=\+\~\`\'\"\|\<\>\\\/\(\)\[\]\{\}]+/g, '') !== '');
 
   useEffect(() => {
     const handler = () => {
@@ -111,7 +112,7 @@ export const InternTaskGroup: React.FC<Props> = ({ internId, internName, internU
           </h4>
         </div>
         <span className="text-[13px] text-teal/40 dark:text-cream/40 font-bold tabular-nums">
-          {tasks.filter(t => t.task_name.trim() !== '').length} {tasks.filter(t => t.task_name.trim() !== '').length === 1 ? 'task' : 'tasks'}
+          {validTasks.length} {validTasks.length === 1 ? 'task' : 'tasks'}
         </span>
         {onDeleteIntern && (
           <button
@@ -130,9 +131,9 @@ export const InternTaskGroup: React.FC<Props> = ({ internId, internName, internU
           </button>
         )}
       </div>
-      <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+      <SortableContext items={validTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
         <div ref={setDroppableRef} className="space-y-0.5 pl-6 min-h-[40px] pb-4 group/list">
-          {tasks.map((task) => (
+          {validTasks.map((task) => (
             <TaskRow
               key={task.id}
               id={task.id}

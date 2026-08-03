@@ -146,7 +146,22 @@ export const Dashboard: React.FC = () => {
   const [attendanceInitialDate, setAttendanceInitialDate] = useState<string | undefined>(undefined);
 
   // Data hooks
-  const { tasks: dailyTasks, loading: tasksLoading, addTask: addDailyTask, updateStatus: updateDailyStatus, toggleVerify: toggleDailyVerify, editTask: editDailyTask, removeTask: removeDailyTask, reorderTasks } = useDailyTasks();
+  const { tasks: dailyTasks, loading: tasksLoading, addTask: addDailyTask, updateStatus: updateDailyStatus, toggleVerify: toggleDailyVerify, editTask: editDailyTask, removeTask: removeDailyTask, reorderTasks, undoLastTask } = useDailyTasks();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+        const target = e.target as HTMLElement;
+        const isTextInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+        if (!isTextInput) {
+          e.preventDefault();
+          undoLastTask();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undoLastTask]);
 
   const isLoading = internsLoading || tasksLoading;
 

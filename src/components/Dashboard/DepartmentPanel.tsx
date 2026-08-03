@@ -50,7 +50,9 @@ export const DepartmentPanel: React.FC<Props> = ({
 
   // Pool tasks for this department
   const poolId = POOL_UUIDS[department];
-  const poolTasks = (tasks as DailyTask[]).filter(t => t.intern_id === poolId);
+  const poolTasks = (tasks as DailyTask[])
+    .filter(t => t.intern_id === poolId)
+    .sort((a, b) => (Number(a.order_index) || 0) - (Number(b.order_index) || 0));
 
   return (
     <div 
@@ -75,19 +77,21 @@ export const DepartmentPanel: React.FC<Props> = ({
 
       {/* Department Task Pool / Requests */}
       {onAddTask && (
-        <DepartmentTaskPool
-          poolId={poolId}
-          departmentLabel={getInitials(department)}
-          tasks={poolTasks}
-          interns={interns}
-          onStatusChange={onStatusChange}
-          onVerifyChange={onVerifyChange}
-          onEditTask={onEditTask}
-          onDeleteTask={onDeleteTask}
-          onAddTask={onAddTask}
-          activeCommentTaskId={activeCommentTaskId}
-          setActiveCommentTaskId={setActiveCommentTaskId}
-        />
+        <div style={{ alignSelf: 'start', height: 'fit-content' }} className="w-full">
+          <DepartmentTaskPool
+            poolId={poolId}
+            departmentLabel={getInitials(department)}
+            tasks={poolTasks}
+            interns={interns}
+            onStatusChange={onStatusChange}
+            onVerifyChange={onVerifyChange}
+            onEditTask={onEditTask}
+            onDeleteTask={onDeleteTask}
+            onAddTask={onAddTask}
+            activeCommentTaskId={activeCommentTaskId}
+            setActiveCommentTaskId={setActiveCommentTaskId}
+          />
+        </div>
       )}
 
       {/* Intern task groups */}

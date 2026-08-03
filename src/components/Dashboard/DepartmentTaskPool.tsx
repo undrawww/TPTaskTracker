@@ -43,7 +43,9 @@ export const DepartmentTaskPool: React.FC<Props> = ({
     setIsAdding(false);
   };
 
-  const validTasks = tasks.filter(t => t.task_name.trim() !== '');
+  const validTasks = tasks
+    .filter(t => t.task_name && t.task_name.replace(/[\s\uFEFF\xA0\u200B\-\.\_\,\;\:\!\?\*\#\@\$\%\^\&\=\+\~\`\'\"\|\<\>\\\/\(\)\[\]\{\}]+/g, '') !== '')
+    .sort((a, b) => (Number(a.order_index) || 0) - (Number(b.order_index) || 0));
   const isBLT = departmentLabel === 'BLT' || poolId === '55555555-5555-5555-5555-555555555555';
 
 
@@ -56,10 +58,10 @@ export const DepartmentTaskPool: React.FC<Props> = ({
   };
 
   return (
-    <div className="w-[33rem] mb-2 relative z-20 overflow-x-hidden">
+    <div style={{ height: 'fit-content' }} className="w-[33rem] mb-2 relative z-20">
       <div
-        ref={setNodeRef}
-        className="relative bg-teal/[0.03] dark:bg-white/[0.02] border border-dashed border-teal/15 dark:border-white/10 rounded-xl px-4 py-3 w-[33rem] min-h-[48px] overflow-x-hidden transition-colors"
+        style={{ height: 'fit-content' }}
+        className="relative bg-teal/[0.03] dark:bg-white/[0.02] border border-dashed border-teal/15 dark:border-white/10 rounded-xl px-4 py-2.5 w-[33rem] transition-colors"
       >
         {/* Header row */}
         <div className="flex items-center gap-2 mb-1">
@@ -75,8 +77,16 @@ export const DepartmentTaskPool: React.FC<Props> = ({
         </div>
 
         {/* Pool tasks */}
-        <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-0.5">
+        <SortableContext items={validTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+          <div
+            ref={setNodeRef}
+            style={
+              validTasks.length >= 5
+                ? { maxHeight: '200px', overflowY: 'auto' }
+                : { maxHeight: 'none', overflowY: 'visible' }
+            }
+            className="space-y-0.5 pr-1 min-h-[32px] pb-1"
+          >
             {validTasks.map(task => (
               <TaskRow
                 key={task.id}

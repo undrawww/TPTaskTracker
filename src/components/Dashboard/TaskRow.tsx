@@ -195,7 +195,7 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
         containerRef.current = node;
       }}
       style={style}
-      className={`group flex flex-col mb-1 ${isDragging ? 'shadow-lg bg-white/50 dark:bg-black/20 rounded-md ring-1 ring-teal/20 dark:ring-white/20' : ''}`}
+      className={`group flex flex-col ${isDragging ? 'shadow-lg bg-white/50 dark:bg-black/20 rounded-md ring-1 ring-teal/20 dark:ring-white/20' : ''}`}
     >
       <div
         className="relative flex items-start min-h-[32px] border-b border-teal/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors group/row"

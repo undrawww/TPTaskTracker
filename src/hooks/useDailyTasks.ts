@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { sendNotification, removeNotificationByMetadata } from './useNotifications';
 import { isPoolId, type DailyTask, type TaskStatus } from '../types';
@@ -29,6 +29,7 @@ export function useDailyTasks(date?: string) {
   const [tasks, setTasks] = useState<DailyTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const lastAddedTaskIdsRef = useRef<string[][]>([]);
 
   const today = getLocalToday();
   const targetDate = date ?? today;
@@ -207,6 +208,7 @@ export function useDailyTasks(date?: string) {
       });
 
       if (!isSupabaseConfigured) {
+        const addedIds: string[] = [];
         setTasks((prev) => {
           const next = [...prev];
           const allStored = JSON.parse(localStorage.getItem('padua_daily_tasks') || '[]');
@@ -215,11 +217,13 @@ export function useDailyTasks(date?: string) {
             const newTask = { ...t, id: i === newTasksToInsert.length - 1 ? actualTaskId : tempIds[i] } as DailyTask;
             next.push(newTask);
             allStored.push(newTask);
+            addedIds.push(newTask.id);
           });
           
           localStorage.setItem('padua_daily_tasks', JSON.stringify(allStored));
           return next;
         });
+        lastAddedTaskIdsRef.current.push(addedIds);
         return { success: true };
       }
 
@@ -264,6 +268,8 @@ export function useDailyTasks(date?: string) {
 
         if (insertError) throw insertError;
         if (data) {
+          const addedIds = data.map((t) => t.id);
+          lastAddedTaskIdsRef.current.push(addedIds);
           setTasks((prev) => {
             const next = [...prev, ...data];
             return next.sort((a, b) => (Number(a.order_index) || 0) - (Number(b.order_index) || 0));
@@ -513,5 +519,15 @@ export function useDailyTasks(date?: string) {
     }
   };
 
-  return { tasks, loading, error, refetch: fetchTasks, addTask, updateStatus, toggleVerify, editTask, removeTask, reorderTasks };
+  const undoLastTask = useCallback(async () => {
+    if (lastAddedTaskIdsRef.current.length === 0) return;
+    const lastGroup = lastAddedTaskIdsRef.current.pop();
+    if (lastGroup) {
+      lastGroup.forEach((id: string) => {
+        removeTask(id);
+      });
+    }
+  }, [removeTask]);
+
+  return { tasks, loading, error, refetch: fetchTasks, addTask, updateStatus, toggleVerify, editTask, removeTask, reorderTasks, undoLastTask };
 }

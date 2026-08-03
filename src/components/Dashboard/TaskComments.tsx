@@ -273,9 +273,9 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
               </div>
               {/* Content */}
               {/* Content */}
-              <div className="flex-1 min-w-0 flex flex-col items-start">
+              <div className="flex-1 min-w-0 flex flex-col w-full">
                 {/* Comment Bubble */}
-                <div className="bg-[#003946]/5 dark:bg-white/5 rounded-2xl px-4 py-2.5 w-fit max-w-full">
+                <div className="bg-[#003946]/5 dark:bg-white/5 rounded-2xl px-4 py-2.5 w-full">
                   <div className="flex items-baseline gap-1.5 mb-1">
                     <span
                       className={`text-[13px] font-bold ${c.author_role === 'admin'
@@ -292,11 +292,21 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
                     )}
                   </div>
                   {editingCommentId === c.id ? (
-                    <div className="mt-1.5 space-y-2 min-w-[250px]">
+                    <div className="mt-1.5 space-y-2 w-full">
                       <textarea
+                        ref={(el) => {
+                          if (el) {
+                            el.style.height = 'auto';
+                            el.style.height = `${el.scrollHeight}px`;
+                          }
+                        }}
                         autoFocus
                         value={editContent}
-                        onChange={(e) => setEditContent(e.target.value)}
+                        onChange={(e) => {
+                          setEditContent(e.target.value);
+                          e.target.style.height = 'auto';
+                          e.target.style.height = `${e.target.scrollHeight}px`;
+                        }}
                         onKeyDown={(e) => {
                           if (e.key === 'Escape') cancelEdit();
                           if (e.key === 'Enter' && !e.shiftKey) {
@@ -304,8 +314,8 @@ export const TaskComments: React.FC<Props> = ({ taskId }) => {
                             handleEditSubmit(c.id);
                           }
                         }}
-                        className="w-full text-xs px-2 py-1.5 rounded bg-white/50 dark:bg-black/20 border border-[#003946]/20 dark:border-white/10 focus:outline-none focus:ring-1 focus:ring-gold text-[#003946] dark:text-cream resize-none"
-                        rows={2}
+                        className="w-full text-sm px-3 py-2.5 rounded-xl bg-white/80 dark:bg-black/30 border border-teal/20 dark:border-white/10 focus:outline-none focus:ring-1 focus:ring-gold text-teal dark:text-cream resize-none leading-relaxed overflow-hidden"
+                        rows={1}
                       />
                       <div className="flex items-center gap-2">
                         <button 
