@@ -60,6 +60,7 @@ export const DepartmentTaskPool: React.FC<Props> = ({
   return (
     <div style={{ height: 'fit-content' }} className="w-[33rem] mb-2 relative z-20">
       <div
+        ref={setNodeRef}
         style={{ height: 'fit-content' }}
         className="relative bg-teal/[0.03] dark:bg-white/[0.02] border border-dashed border-teal/15 dark:border-white/10 rounded-xl px-4 py-2.5 w-[33rem] transition-colors"
       >
@@ -79,13 +80,12 @@ export const DepartmentTaskPool: React.FC<Props> = ({
         {/* Pool tasks */}
         <SortableContext items={validTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           <div
-            ref={setNodeRef}
             style={
               validTasks.length >= 5
                 ? { maxHeight: '200px', overflowY: 'auto' }
                 : { maxHeight: 'none', overflowY: 'visible' }
             }
-            className="space-y-0.5 pr-1 min-h-[32px] pb-1"
+            className="space-y-0.5 pr-1 pb-1"
           >
             {validTasks.map(task => (
               <TaskRow
