@@ -376,7 +376,7 @@ export const TaskUpdates: React.FC<Props> = ({ taskId, taskName: _taskName, read
     if (!acc[parentId]) acc[parentId] = [];
     acc[parentId].push(c);
     return acc;
-  }, {} as Record<string, TaskComment[]>);
+  }, {} as Record<string, any[]>);
 
   return (
     <div className="flex flex-col h-full bg-transparent border-none shadow-none">

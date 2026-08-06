@@ -3,7 +3,6 @@ import { useTaskHistory } from '../../hooks/useTaskHistory';
 import { type Intern, type AttendanceRecord } from '../../types';
 import { CustomDropdown } from '../common/CustomDropdown';
 import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
-import { renderAvatar } from '../Dashboard/AvatarIcons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TaskUpdates } from '../Dashboard/TaskUpdates';
 
@@ -169,10 +168,6 @@ export const InternActivity: React.FC<Props> = ({ interns }) => {
 
 
 
-  const getCleanText = (text: string) => {
-    if (!text) return text;
-    return text.replace(/https:\/\/[^\s]+supabase\.co\/storage[^\s]+/g, '[Uploaded a photo]');
-  };
 
   return (
     <section id="intern-activity" className="bg-white/50 dark:bg-[#002b36]/50 rounded-2xl p-6 border border-teal/10 dark:border-white/5 shadow-sm">

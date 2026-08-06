@@ -3,7 +3,6 @@ import type { AttendanceWithIntern, AttendanceAction } from '../../types';
 import { TimeStampButton } from './TimeStampButton';
 import { useAuth } from '../../contexts/AuthContext';
 import { getAvatarIcon, renderAvatar } from '../Dashboard/AvatarIcons';
-import { AdminFeedbackModal } from './AdminFeedbackModal';
 import { EditTimeModal } from './EditTimeModal';
 import { useState } from 'react';
 
@@ -68,25 +67,14 @@ function formatHours(hours: number | null): string {
   return `${h}h ${m}m`;
 }
 
-function getItemCount(text: string | null): number {
-  if (!text || text.trim() === '' || text.trim() === '[]') return 0;
-  try {
-    const parsed = JSON.parse(text);
-    if (Array.isArray(parsed)) return parsed.length;
-  } catch {}
-  return text.split('\n').filter((r) => r.trim() !== '').length;
-}
 
 export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
   record,
   onStamp,
   onUndoStamp,
-  onTextChange,
-  isAdmin,
   showTimeColumns = true,
   onEditTime,
 }) => {
-  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [editTimeConfig, setEditTimeConfig] = useState<{isOpen: boolean; action: AttendanceAction; currentValue: string | null}>({ isOpen: false, action: 'time_in', currentValue: null });
   const { currentInternId, role } = useAuth();
   const { intern_name, time_in, break_out, break_in, time_out, total_hours } = record;
