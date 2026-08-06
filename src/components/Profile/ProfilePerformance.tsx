@@ -65,6 +65,7 @@ export const ProfilePerformance: React.FC<ProfilePerformanceProps> = ({ tasks, a
               dataKey="name" 
               axisLine={false} 
               tickLine={false} 
+              interval={0}
               tick={{ fontSize: 11, fill: 'currentColor' }} 
               className="text-teal/50 dark:text-cream/40"
               dy={10}

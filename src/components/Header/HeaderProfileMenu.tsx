@@ -15,11 +15,11 @@ interface Props {
   currentUser?: Intern;
   showCharts?: boolean;
   onToggleCharts?: () => void;
-  showWeeklyArchive?: boolean;
-  onToggleWeeklyArchive?: () => void;
+  showInternActivity?: boolean;
+  onToggleInternActivity?: () => void;
 }
 
-export const HeaderProfileMenu: React.FC<Props> = ({ onLogout, onViewMyProfile, currentUser, showCharts, onToggleCharts, showWeeklyArchive, onToggleWeeklyArchive }) => {
+export const HeaderProfileMenu: React.FC<Props> = ({ onLogout, onViewMyProfile, currentUser, showCharts, onToggleCharts, showInternActivity, onToggleInternActivity }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -177,10 +177,12 @@ export const HeaderProfileMenu: React.FC<Props> = ({ onLogout, onViewMyProfile, 
                   </div>
                 )}
 
-                {onToggleWeeklyArchive && (
-                  <div
-                    className="w-full px-4 py-2 text-sm font-medium text-teal dark:text-cream/90 hover:bg-cream/50 dark:hover:bg-[#003946] transition-colors flex items-center justify-between gap-3 cursor-pointer"
-                    onClick={onToggleWeeklyArchive}
+                {/* Intern Activity Toggle */}
+                {onToggleInternActivity && (
+                  <button
+                    type="button"
+                    onClick={onToggleInternActivity}
+                    className="w-full flex items-center justify-between px-4 py-2 text-sm text-teal dark:text-cream/90 hover:bg-cream/50 dark:hover:bg-[#003946] transition-colors cursor-pointer"
                   >
                     <span className="flex items-center gap-3">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50">
@@ -191,8 +193,8 @@ export const HeaderProfileMenu: React.FC<Props> = ({ onLogout, onViewMyProfile, 
                       </svg>
                       Weekly Archive
                     </span>
-                    <Toggle enabled={!!showWeeklyArchive} />
-                  </div>
+                    <Toggle enabled={!!showInternActivity} />
+                  </button>
                 )}
               </div>
             </>

@@ -3,7 +3,6 @@ import type { AttendanceWithIntern, AttendanceAction } from '../../types';
 import { TimeStampButton } from './TimeStampButton';
 import { useAuth } from '../../contexts/AuthContext';
 import { getAvatarIcon, renderAvatar } from '../Dashboard/AvatarIcons';
-import { DailyRecordModal } from './DailyRecordModal';
 import { AdminFeedbackModal } from './AdminFeedbackModal';
 import { EditTimeModal } from './EditTimeModal';
 import { useState } from 'react';
@@ -87,7 +86,6 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
   showTimeColumns = true,
   onEditTime,
 }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [editTimeConfig, setEditTimeConfig] = useState<{isOpen: boolean; action: AttendanceAction; currentValue: string | null}>({ isOpen: false, action: 'time_in', currentValue: null });
   const { currentInternId, role } = useAuth();
@@ -111,12 +109,13 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
   const isPastDate = record.attendance_date !== getLocalDateString();
 
   return (
-    <tr 
+    <>
+      <tr 
       id={`attendance-${intern_name.replace(/\s+/g, '-')}`}
       className="hover:bg-teal/5 dark:hover:bg-white/5 transition-colors duration-200 group"
     >
       {/* Intern Info */}
-      <td className="px-5 py-4 align-middle">
+      <td className="px-5 py-4 align-middle w-full">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm shrink-0">
             {record.intern?.avatar_index !== undefined 
@@ -210,97 +209,22 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
           </div>
         </td>
       )}
+      </tr>
 
-      {/* Daily Records */}
-      <td className="px-5 py-4 align-middle min-w-[250px]">
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className={`
-            w-full text-left px-4 py-3 text-[13px] rounded-xl min-h-[42px]
-            bg-white dark:bg-[#00151a] border border-teal/10 dark:border-white/5
-            text-teal dark:text-cream
-            hover:border-teal/30 dark:hover:border-gold/30 hover:bg-teal/5 dark:hover:bg-white/5
-            transition-all duration-200 group flex items-center justify-between
-          `}
-        >
-          <span className="truncate opacity-80 group-hover:opacity-100">
-            {getItemCount(record.accomplishments) > 0 
-              ? `${getItemCount(record.accomplishments)} record(s) added` 
-              : isOwner ? 'Add a daily record...' : 'No records yet'}
-          </span>
-          {isOwner ? (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-teal/40 dark:text-cream/30 group-hover:text-teal dark:group-hover:text-gold transition-colors ml-2 flex-shrink-0">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <line x1="12" y1="5" x2="12" y2="19" />
-            </svg>
-          ) : (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-teal/40 dark:text-cream/30 group-hover:text-teal dark:group-hover:text-gold transition-colors ml-2 flex-shrink-0">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          )}
-        </button>
-
-        <DailyRecordModal
-          record={record}
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSave={(value) => onTextChange(intern_name, 'accomplishments', value)}
-          isOwner={isOwner}
+      {editTimeConfig.isOpen && onEditTime && (
+        <EditTimeModal
+          isOpen={editTimeConfig.isOpen}
+          onClose={() => setEditTimeConfig(prev => ({ ...prev, isOpen: false }))}
+          onSave={(isoString) => {
+            onEditTime(intern_name, editTimeConfig.action, isoString);
+            setEditTimeConfig(prev => ({ ...prev, isOpen: false }));
+          }}
+          action={editTimeConfig.action}
+          date={record.attendance_date}
+          currentValue={editTimeConfig.currentValue}
+          internName={intern_name}
         />
-      </td>
-
-      {/* Admin Feedback */}
-      <td className="px-5 py-4 align-middle min-w-[250px]">
-        <button
-          onClick={() => setIsFeedbackModalOpen(true)}
-          className={`
-            w-full text-left px-4 py-3 text-[13px] rounded-xl min-h-[42px]
-            bg-white dark:bg-[#00151a] border border-teal/10 dark:border-white/5
-            text-teal dark:text-cream
-            hover:border-teal/30 dark:hover:border-gold/30 hover:bg-teal/5 dark:hover:bg-white/5
-            transition-all duration-200 group flex items-center justify-between
-          `}
-        >
-          <span className="truncate opacity-80 group-hover:opacity-100">
-            {getItemCount(record.admin_feedback) > 0 
-              ? `${getItemCount(record.admin_feedback)} feedback(s)` 
-              : isAdmin ? 'Add feedback...' : 'No feedback yet'}
-          </span>
-          {isAdmin ? (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-teal/40 dark:text-cream/30 group-hover:text-teal dark:group-hover:text-gold transition-colors ml-2 flex-shrink-0">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <line x1="12" y1="5" x2="12" y2="19" />
-            </svg>
-          ) : (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-teal/40 dark:text-cream/30 group-hover:text-teal dark:group-hover:text-gold transition-colors ml-2 flex-shrink-0">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          )}
-        </button>
-
-        <AdminFeedbackModal
-          record={record}
-          isOpen={isFeedbackModalOpen}
-          onClose={() => setIsFeedbackModalOpen(false)}
-          onSave={(value) => onTextChange(intern_name, 'admin_feedback', value)}
-          isAdmin={isAdmin}
-        />
-
-        {editTimeConfig.isOpen && onEditTime && (
-          <EditTimeModal
-            isOpen={editTimeConfig.isOpen}
-            onClose={() => setEditTimeConfig(prev => ({ ...prev, isOpen: false }))}
-            onSave={(isoString) => {
-              onEditTime(intern_name, editTimeConfig.action, isoString);
-              setEditTimeConfig(prev => ({ ...prev, isOpen: false }));
-            }}
-            action={editTimeConfig.action}
-            date={record.attendance_date}
-            currentValue={editTimeConfig.currentValue}
-            internName={intern_name}
-          />
-        )}
-      </td>
-    </tr>
+      )}
+    </>
   );
 };

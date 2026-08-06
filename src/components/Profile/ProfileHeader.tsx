@@ -39,7 +39,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, wee
   };
 
   return (
-    <div className="bg-white dark:bg-[#001a22] rounded-3xl border border-teal/10 dark:border-white/5 shadow-sm p-6 sm:p-8 flex flex-col md:flex-row gap-6 sm:gap-8 items-start relative animate-fade-in">
+    <div className="bg-white dark:bg-[#001a22] rounded-3xl border border-teal/10 dark:border-white/5 shadow-sm p-6 sm:p-8 flex flex-col lg:flex-row gap-6 sm:gap-8 items-start relative animate-fade-in">
       
       {/* Left side: Avatar & Info */}
       <div className="flex items-start gap-4 sm:gap-6 flex-1 min-w-0">
@@ -135,7 +135,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, wee
 
       {/* Right side: Stats */}
       {(intern.department as string) !== 'Administrator' && (
-        <div className="flex flex-col gap-6 md:w-[350px] shrink-0 border-t md:border-t-0 md:border-l border-teal/10 dark:border-white/5 pt-6 md:pt-0 md:pl-8 justify-center">
+        <div className="flex flex-col gap-6 lg:w-[350px] shrink-0 border-t lg:border-t-0 lg:border-l border-teal/10 dark:border-white/5 pt-6 lg:pt-0 lg:pl-8 justify-center">
           <div className="grid grid-cols-2 gap-y-6 gap-x-4">
             <div>
               <p className="text-[11px] font-bold text-teal/50 dark:text-cream/50 uppercase tracking-wider mb-1 flex items-center gap-1.5">

@@ -139,7 +139,7 @@ export const ProfileCertifications: React.FC<ProfileCertificationsProps> = ({ ce
         {isOwnProfile && (
           <button 
             onClick={() => setIsAdding(true)}
-            className="text-xs font-bold text-teal/60 dark:text-gold hover:text-teal dark:hover:text-gold-light transition-colors flex items-center gap-1 bg-teal/5 dark:bg-gold/10 px-3 py-1.5 rounded-lg"
+            className="text-xs font-bold text-teal/60 dark:text-gold hover:text-teal dark:hover:text-gold-light transition-colors flex items-center gap-1 bg-teal/5 dark:bg-gold/10 px-3 py-1.5 rounded-lg whitespace-nowrap shrink-0"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19"></line>

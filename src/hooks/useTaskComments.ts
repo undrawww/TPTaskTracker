@@ -11,6 +11,8 @@ export interface TaskComment {
   created_at: string;
   avatar_index?: number;
   avatar_url?: string;
+  likes?: string[];
+  parent_id?: string;
 }
 
 /** Optional metadata to send notifications when comments are posted */
@@ -43,7 +45,17 @@ export function useTaskComments(taskId: string) {
 
     if (!isSupabaseConfigured) {
       const all = getStoredComments();
-      setComments(all.filter((c) => c.task_id === taskId));
+      const mapped = all.filter((c) => c.task_id === taskId).map(c => {
+        let parsedContent = c.content;
+        let parent_id = c.parent_id;
+        const match = parsedContent.match(/^\[reply:([a-zA-Z0-9-]+)\]\s*(.*)$/s);
+        if (match) {
+          parent_id = match[1];
+          parsedContent = match[2];
+        }
+        return { ...c, content: parsedContent, parent_id };
+      });
+      setComments(mapped);
       setLoading(false);
       return;
     }
@@ -91,15 +103,25 @@ export function useTaskComments(taskId: string) {
         }
 
         commentsData = commentsData.map(c => {
+          let parsedContent = c.content;
+          let parent_id = c.parent_id;
+          const match = parsedContent.match(/^\[reply:([a-zA-Z0-9-]+)\]\s*(.*)$/s);
+          if (match) {
+            parent_id = match[1];
+            parsedContent = match[2];
+          }
+
           const avatarData = avatarMap.get(c.author_name);
           if (avatarData && (avatarData.index !== null && avatarData.index !== undefined)) {
             return {
               ...c,
+              content: parsedContent,
+              parent_id,
               avatar_index: avatarData.index,
               avatar_url: avatarData.url ?? undefined
             };
           }
-          return { ...c, avatar_index: undefined, avatar_url: undefined };
+          return { ...c, content: parsedContent, parent_id, avatar_index: undefined, avatar_url: undefined };
         });
       }
       
@@ -123,6 +145,16 @@ export function useTaskComments(taskId: string) {
           if (payload.eventType === 'INSERT') {
             const newComment = payload.new as TaskComment;
             
+            let parsedContent = newComment.content;
+            let parent_id = newComment.parent_id;
+            const match = parsedContent.match(/^\[reply:([a-zA-Z0-9-]+)\]\s*(.*)$/s);
+            if (match) {
+              parent_id = match[1];
+              parsedContent = match[2];
+            }
+            newComment.content = parsedContent;
+            newComment.parent_id = parent_id;
+
             // For real-time inserts, we can try to find the avatar from existing comments
             setComments((prev) => {
               if (prev.some((c) => c.id === newComment.id)) return prev;
@@ -137,8 +169,24 @@ export function useTaskComments(taskId: string) {
             setComments((prev) => prev.filter((c) => c.id !== payload.old.id));
           } else if (payload.eventType === 'UPDATE') {
             const updatedComment = payload.new as TaskComment;
+            
+            let parsedContent = updatedComment.content;
+            let parent_id = updatedComment.parent_id;
+            const match = parsedContent.match(/^\[reply:([a-zA-Z0-9-]+)\]\s*(.*)$/s);
+            if (match) {
+              parent_id = match[1];
+              parsedContent = match[2];
+            }
+            updatedComment.content = parsedContent;
+            updatedComment.parent_id = parent_id;
+            
+            let updatedLikes = updatedComment.likes || [];
+            if (typeof updatedComment.likes === 'string') {
+               try { updatedLikes = JSON.parse(updatedComment.likes); } catch { updatedLikes = []; }
+            }
+            
             setComments((prev) =>
-              prev.map((c) => (c.id === updatedComment.id ? { ...c, content: updatedComment.content } : c))
+              prev.map((c) => (c.id === updatedComment.id ? { ...c, content: updatedComment.content, likes: updatedLikes } : c))
             );
           }
         }
@@ -151,8 +199,10 @@ export function useTaskComments(taskId: string) {
   }, [taskId]);
 
   const addComment = useCallback(
-    async (content: string, authorName: string, authorRole: 'admin' | 'intern', notifyOptions?: CommentNotifyOptions) => {
+    async (content: string, authorName: string, authorRole: 'admin' | 'intern', notifyOptions?: CommentNotifyOptions, parentId?: string) => {
       if (!content.trim()) return;
+
+      const finalContent = parentId ? `[reply:${parentId}] ${content.trim()}` : content.trim();
 
       const getSnippet = (text: string) => {
         const cleaned = text.trim().replace(/https:\/\/[^\s]+supabase\.co\/storage[^\s]+/g, '[Uploaded a photo]');
@@ -169,12 +219,14 @@ export function useTaskComments(taskId: string) {
           author_name: authorName,
           author_role: authorRole,
           content: content.trim(),
+          parent_id: parentId,
           created_at: new Date().toISOString(),
           avatar_index: localAvatar ? parseInt(localAvatar, 10) : undefined,
           avatar_url: localAvatarUrl || undefined
         };
+        const localCommentToStore = { ...newComment, content: finalContent, parent_id: undefined };
         const all = getStoredComments();
-        all.push(newComment);
+        all.push(localCommentToStore);
         saveStoredComments(all);
         setComments((prev) => [...prev, newComment]);
         window.dispatchEvent(new CustomEvent('task-comments-changed', { detail: { taskId } }));
@@ -203,7 +255,7 @@ export function useTaskComments(taskId: string) {
               task_id: taskId,
               author_name: authorName,
               author_role: authorRole,
-              content: content.trim(),
+              content: finalContent,
             },
           ])
           .select()
@@ -217,6 +269,8 @@ export function useTaskComments(taskId: string) {
           
           const commentWithAvatar: TaskComment = {
             ...data,
+            content: content.trim(),
+            parent_id: parentId,
             avatar_index: localAvatar ? parseInt(localAvatar, 10) : undefined,
             avatar_url: localAvatarUrl || undefined
           };
@@ -418,5 +472,52 @@ export function useTaskComments(taskId: string) {
     []
   );
 
-  return { comments, loading, fetchComments, addComment, deleteComment, editComment };
+  const toggleLike = useCallback(
+    async (commentId: string, currentUser: string) => {
+      // Find comment first to calculate next state
+      const comment = comments.find((c) => c.id === commentId);
+      if (!comment) return { isLiked: false, nextLikes: [], authorName: '' };
+
+      const authorName = comment.author_name;
+      let currentLikes: string[] = [];
+      if (Array.isArray(comment.likes)) currentLikes = comment.likes;
+      else if (typeof comment.likes === 'string') {
+        try { currentLikes = JSON.parse(comment.likes); } catch { currentLikes = []; }
+      }
+
+      const isLiked = currentLikes.includes(currentUser);
+      const nextLikes = isLiked
+        ? currentLikes.filter((u) => u !== currentUser)
+        : [...currentLikes, currentUser];
+
+      // Optimistic update
+      setComments((prev) =>
+        prev.map((c) => (c.id === commentId ? { ...c, likes: nextLikes } : c))
+      );
+
+      if (!isSupabaseConfigured) {
+        const all = getStoredComments();
+        const updatedAll = all.map((c) =>
+          c.id === commentId ? { ...c, likes: nextLikes } : c
+        );
+        saveStoredComments(updatedAll);
+      } else {
+        try {
+          const { error } = await supabase
+            .from('task_comments')
+            .update({ likes: nextLikes })
+            .eq('id', commentId);
+
+          if (error) throw error;
+        } catch (err) {
+          console.error('Error toggling like:', err);
+        }
+      }
+
+      return { isLiked: !isLiked, nextLikes, authorName };
+    },
+    [comments]
+  );
+
+  return { comments, loading, fetchComments, addComment, deleteComment, editComment, toggleLike };
 }

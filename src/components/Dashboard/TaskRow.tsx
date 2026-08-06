@@ -32,8 +32,8 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
   const { role, currentInternId } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(taskName);
-  const [commentCount, setCommentCount] = useState(0);
-  const [latestComment, setLatestComment] = useState<{ author_name: string; content: string; created_at: string; avatar_index?: number; avatar_url?: string } | null>(null);
+  const [updateCount, setUpdateCount] = useState(0);
+  const [latestUpdate, setLatestUpdate] = useState<{ author_name: string; content: string; created_at: string; avatar_index?: number; avatar_url?: string } | null>(null);
   const [hovered, setHovered] = useState(false);
   const [isStatusExpanded, setIsStatusExpanded] = useState(false);
 
@@ -73,45 +73,33 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
       try {
         const all = JSON.parse(localStorage.getItem('padua_task_comments') || '[]');
         const taskComments = all.filter((c: any) => c.task_id === id);
-        setCommentCount(taskComments.length);
+        setUpdateCount(taskComments.length);
       } catch { /* ignore */ }
       return;
     }
 
     try {
-      const { data, count } = await supabase
+      const { data: latestData, count, error: countError } = await supabase
         .from('task_comments')
-        .select('*', { count: 'exact' })
+        .select('author_name, content, created_at, profiles(avatar_index, avatar_url), interns(avatar_index, avatar_url)', { count: 'exact' })
         .eq('task_id', id)
         .order('created_at', { ascending: false })
         .limit(1);
+        
+      if (countError) throw countError;
+      setUpdateCount(count || 0);
 
-      setCommentCount(count || 0);
-
-      if (count && count > 0 && data && data.length > 0) {
-        const comment = data[0];
-        let avatar_index: number | undefined;
-        let avatar_url: string | undefined;
-
-        try {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('avatar_index, avatar_url')
-            .eq('full_name', comment.author_name)
-            .single();
-          if (profileData) {
-            avatar_index = profileData.avatar_index;
-            avatar_url = profileData.avatar_url;
-          }
-        } catch { /* ignore */ }
-
-        setLatestComment({
-          author_name: comment.author_name,
-          content: comment.content,
-          created_at: comment.created_at,
-          avatar_index,
-          avatar_url
+      if (latestData && latestData.length > 0) {
+        const authorData = (latestData[0] as any).profiles || (latestData[0] as any).interns;
+        setLatestUpdate({
+          author_name: latestData[0].author_name,
+          content: latestData[0].content,
+          created_at: latestData[0].created_at,
+          avatar_index: authorData?.avatar_index,
+          avatar_url: authorData?.avatar_url
         });
+      } else {
+        setLatestUpdate(null);
       }
     } catch { /* ignore */ }
   }, [id]);
@@ -202,8 +190,6 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        {/* Checkbox (Left side, only on hover or if checked) */}
-        {/* Checkbox (Left side, space always reserved) */}
         <div className="w-[32px] flex-shrink-0 flex items-start justify-center pt-2">
           {!isBlank && (
             <div className={`transition-opacity duration-200 ${hovered || isChecked || isStatusExpanded ? 'opacity-100' : 'opacity-0'}`}>
@@ -218,13 +204,11 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
           )}
         </div>
 
-        {/* Task Name (Draggable handle area) */}
         <div
           className="flex-1 min-w-0 overflow-x-hidden py-1.5 cursor-grab active:cursor-grabbing pl-1 pr-2 flex items-center mt-[1px] gap-2"
           {...attributes}
           {...listeners}
           onClick={() => {
-            // Everyone: single click to edit
             setEditName(taskName);
             setIsEditing(true);
           }}
@@ -237,7 +221,6 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
           </span>
         </div>
 
-        {/* Actions (Right side) */}
         <div className="flex-shrink-0 flex items-start justify-end pt-1.5 pr-2 gap-2">
           {createdByName && (
             <span className="text-[10px] text-teal/40 dark:text-cream/40 font-bold tracking-wider mt-0.5 whitespace-nowrap">
@@ -246,51 +229,52 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
           )}
           <div 
             className={`flex items-center gap-1 transition-all duration-300 ease-in-out ${
-              (hovered || activeCommentTaskId === id || commentCount > 0) ? 'opacity-100 max-w-[100px] overflow-visible' : 'opacity-0 max-w-0 overflow-hidden'
+              (hovered || activeCommentTaskId === id || updateCount > 0) ? 'opacity-100 max-w-[100px] overflow-visible' : 'opacity-0 max-w-0 overflow-hidden'
             }`}
           >
             {!isBlank && (
               <>
-              {/* Comment Button with Tooltip */}
               <div className="relative group/commentbtn flex items-center justify-center">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setActiveCommentTaskId && setActiveCommentTaskId(activeCommentTaskId === id ? null : id);
                   }}
-                  className={`relative p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors ${activeCommentTaskId === id || commentCount > 0 ? 'text-teal dark:text-cream' : 'text-teal/40 dark:text-cream/40'}`}
+                  className={`relative p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors ${activeCommentTaskId === id || updateCount > 0 ? 'text-teal dark:text-cream' : 'text-teal/40 dark:text-cream/40'}`}
+                  title="Write a new update"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
                   </svg>
-                  {commentCount > 0 && (
+                  {updateCount > 0 && (
                     <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-teal text-white dark:bg-cream dark:text-teal text-[9px] font-bold flex items-center justify-center leading-none">
-                      {commentCount}
+                      {updateCount}
                     </span>
                   )}
                 </button>
 
-                {/* Latest Comment Tooltip */}
-                {latestComment && (
+                {/* Latest Update Tooltip */}
+                {latestUpdate && (
                   <div className="absolute top-full right-0 mt-2 w-64 bg-slate-50 dark:bg-slate-800 shadow-xl border border-teal/10 dark:border-white/10 rounded-xl p-3 z-50 opacity-0 invisible group-hover/commentbtn:opacity-100 group-hover/commentbtn:visible transition-all duration-200 pointer-events-none text-left">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-teal/5 dark:bg-white/5 flex items-center justify-center">
-                        {renderAvatar(latestComment.avatar_index, latestComment.avatar_url)}
+                        {renderAvatar(latestUpdate.avatar_index, latestUpdate.avatar_url)}
                       </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-semibold text-teal dark:text-cream leading-tight">{latestComment.author_name}</span>
-                        <span className="text-xs text-teal/60 dark:text-cream/60 leading-tight">
-                          {new Date(latestComment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                      <div className="min-w-0">
+                        <div className="text-[11px] font-bold text-teal dark:text-cream truncate">
+                          {latestUpdate.author_name}
+                        </div>
+                        <div className="text-[9px] font-medium text-teal/40 dark:text-cream/40">
+                          {new Date(latestUpdate.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                        </div>
                       </div>
                     </div>
-                    <p className="text-sm text-teal/90 dark:text-cream/90 break-words whitespace-pre-wrap">
-                      {getCleanText(latestComment.content)}
-                    </p>
+                    <div className="text-xs text-[#003946]/90 dark:text-cream/80 leading-relaxed line-clamp-3">
+                      {getCleanText(latestUpdate.content)}
+                    </div>
                   </div>
                 )}
               </div>
-              {/* Status Button (Available to all) */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();

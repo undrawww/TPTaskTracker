@@ -7,7 +7,7 @@ import { AnalyticsDashboard } from '../components/Analytics/AnalyticsDashboard';
 import { AddInternModal } from '../components/Admin/AddInternModal';
 import { CreateTaskModal } from '../components/Admin/CreateTaskModal';
 import { DailyTracker } from '../components/Dashboard/DailyTracker';
-import { WeeklyArchive } from '../components/Weekly/WeeklyArchive';
+import { InternActivity } from '../components/Weekly/InternActivity';
 import { ProfileModal } from '../components/Profile/ProfileModal';
 import { DashboardSkeleton, InternsSkeleton, ProfileSkeleton, AttendanceSkeleton, VideosSkeleton } from '../components/Skeleton/DashboardSkeleton';
 import { HeaderProfileMenu } from '../components/Header/HeaderProfileMenu';
@@ -19,7 +19,8 @@ import { TrainingVideos } from '../components/Training/TrainingVideos';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useInterns } from '../hooks/useInterns';
 import { useDailyTasks } from '../hooks/useDailyTasks';
-import { TaskComments } from '../components/Dashboard/TaskComments';
+import { TaskUpdates } from '../components/Dashboard/TaskUpdates';
+import { DailyRecordTab } from '../components/Dashboard/DailyRecordTab';
 
 import { useAnalytics } from '../hooks/useAnalytics';
 import { ProfilePage } from '../components/Profile/ProfilePage';
@@ -129,20 +130,28 @@ export const Dashboard: React.FC = () => {
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
 
-  const [showWeekly, setShowWeekly] = useState(() => {
-    const saved = localStorage.getItem('padua_show_weekly');
+  const [showInternActivity, setShowInternActivity] = useState(() => {
+    const saved = localStorage.getItem('padua_show_intern_activity');
     return saved !== null ? saved === 'true' : false;
   });
 
-  const toggleWeeklyArchive = () => {
-    setShowWeekly(prev => {
+  const toggleInternActivity = () => {
+    setShowInternActivity(prev => {
       const next = !prev;
-      localStorage.setItem('padua_show_weekly', String(next));
+      localStorage.setItem('padua_show_intern_activity', String(next));
       return next;
     });
   };
 
   const [activeCommentTaskId, setActiveCommentTaskId] = useState<string | null>(null);
+  const [activeCommentTab, setActiveCommentTab] = useState<'comments' | 'daily_record'>('comments');
+
+  useEffect(() => {
+    if (activeCommentTaskId) {
+      setActiveCommentTab('comments');
+    }
+  }, [activeCommentTaskId]);
+
   const [attendanceInitialDate, setAttendanceInitialDate] = useState<string | undefined>(undefined);
 
   // Data hooks
@@ -358,8 +367,8 @@ export const Dashboard: React.FC = () => {
                 currentUser={currentUser}
                 showCharts={showCharts}
                 onToggleCharts={toggleCharts}
-                showWeeklyArchive={showWeekly}
-                onToggleWeeklyArchive={toggleWeeklyArchive}
+                showInternActivity={showInternActivity}
+                onToggleInternActivity={toggleInternActivity}
               />
             </div>
           </div>
@@ -434,8 +443,8 @@ export const Dashboard: React.FC = () => {
                   setActiveCommentTaskId={setActiveCommentTaskId}
                 />
 
-                {showWeekly && (
-                  <WeeklyArchive interns={displayInterns} />
+                {showInternActivity && (
+                  <InternActivity interns={displayInterns} />
                 )}
               </>
             )}
@@ -517,7 +526,11 @@ export const Dashboard: React.FC = () => {
               className="relative w-full max-w-3xl h-[80vh] max-h-[800px] bg-white dark:bg-[#001f26] rounded-2xl shadow-2xl border border-teal/10 dark:border-white/10 flex flex-col overflow-hidden"
             >
                <div className="px-5 py-4 border-b border-teal/10 dark:border-white/5 flex items-center justify-between bg-teal/5 dark:bg-white/5">
-                  <h3 className="font-bold text-teal dark:text-cream text-lg">Task Comments</h3>
+                  <h3 className="font-bold text-teal dark:text-cream text-lg flex items-center gap-2">
+                    <span className="truncate max-w-[400px]" title={dailyTasks.find(t => t.id === activeCommentTaskId)?.task_name || 'Task'}>
+                      {dailyTasks.find(t => t.id === activeCommentTaskId)?.task_name || 'Task'}
+                    </span>
+                  </h3>
                   <button onClick={() => setActiveCommentTaskId(null)} className="p-1.5 rounded-full hover:bg-teal/10 dark:hover:bg-white/10 text-teal/50 dark:text-cream/50 hover:text-teal dark:hover:text-cream transition-colors">
                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                        <line x1="18" y1="6" x2="6" y2="18" />
@@ -525,8 +538,38 @@ export const Dashboard: React.FC = () => {
                      </svg>
                   </button>
                </div>
+               
+               {/* Tab Header */}
+               <div className="flex border-b border-teal/10 dark:border-white/10 px-5 gap-4">
+                 <button 
+                   onClick={() => setActiveCommentTab('comments')} 
+                   className={`py-3 px-1 border-b-2 font-bold text-sm transition-colors ${activeCommentTab === 'comments' ? 'border-teal dark:border-gold text-teal dark:text-cream' : 'border-transparent text-teal/50 dark:text-cream/50 hover:text-teal dark:hover:text-cream'}`}
+                 >
+                   Updates
+                 </button>
+                 {(role === 'admin' || currentInternId === dailyTasks.find(t => t.id === activeCommentTaskId)?.intern_id) && (
+                   <button 
+                     onClick={() => setActiveCommentTab('daily_record')} 
+                     className={`py-3 px-1 border-b-2 font-bold text-sm transition-colors ${activeCommentTab === 'daily_record' ? 'border-teal dark:border-gold text-teal dark:text-cream' : 'border-transparent text-teal/50 dark:text-cream/50 hover:text-teal dark:hover:text-cream'}`}
+                   >
+                     Daily Record
+                   </button>
+                 )}
+               </div>
+
                <div className="flex-1 overflow-hidden relative">
-                 <TaskComments taskId={activeCommentTaskId} />
+                 {activeCommentTab === 'comments' ? (
+                   <TaskUpdates 
+                     taskId={activeCommentTaskId} 
+                     taskName={dailyTasks.find(t => t.id === activeCommentTaskId)?.task_name}
+                   />
+                 ) : (
+                   <DailyRecordTab
+                     internId={dailyTasks.find(t => t.id === activeCommentTaskId)?.intern_id || ''}
+                     internName={interns.find(i => i.id === dailyTasks.find(t => t.id === activeCommentTaskId)?.intern_id)?.full_name || ''}
+                     date={dailyTasks.find(t => t.id === activeCommentTaskId)?.task_date || new Date().toISOString().split('T')[0]}
+                   />
+                 )}
                </div>
             </motion.div>
           </div>

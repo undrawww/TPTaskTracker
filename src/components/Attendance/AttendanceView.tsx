@@ -252,12 +252,7 @@ export const AttendanceView: React.FC<{initialDate?: string}> = ({ initialDate }
                         </th>
                       </>
                     )}
-                    <th className="px-5 py-4 text-[11px] font-bold text-teal/70 dark:text-cream/60 uppercase tracking-wider min-w-[250px]">
-                      Daily Record
-                    </th>
-                    <th className="px-5 py-4 text-[11px] font-bold text-teal/70 dark:text-cream/60 uppercase tracking-wider min-w-[250px]">
-                      Admin Feedback
-                    </th>
+
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-teal/5 dark:divide-white/5">

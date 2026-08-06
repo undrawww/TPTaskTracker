@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import type { WeeklyTask, DailyTask } from '../types';
-import { getWeekDateRange, getWeekNumberFromDate } from '../utils/dateUtils';
+import { getWeekDateRange, getWeekNumberFromDate, getLocalToday } from '../utils/dateUtils';
 import type { UnifiedTask } from './useWeeklyTasks';
 
 export function useTaskHistory(internId: string | null, weekNumber: number | 'all') {
@@ -28,7 +28,8 @@ export function useTaskHistory(internId: string | null, weekNumber: number | 'al
 
       // Filter for specific intern and Done status
       parsedWeekly = parsedWeekly.filter(t => t.intern_id === internId && t.status === 'Done');
-      parsedDaily = parsedDaily.filter(t => t.intern_id === internId && t.status === 'Done');
+      const today = getLocalToday();
+      parsedDaily = parsedDaily.filter(t => t.intern_id === internId && t.status === 'Done' && t.task_date < today);
 
       if (weekNumber !== 'all') {
         parsedWeekly = parsedWeekly.filter(t => t.week_number === weekNumber);
@@ -70,7 +71,8 @@ export function useTaskHistory(internId: string | null, weekNumber: number | 'al
         .from('daily_tasks')
         .select('*')
         .eq('intern_id', internId)
-        .eq('status', 'Done');
+        .eq('status', 'Done')
+        .lt('task_date', getLocalToday());
 
       if (weekNumber !== 'all') {
         weeklyQuery = weeklyQuery.eq('week_number', weekNumber);

@@ -1,20 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
 import type { AttendanceWithIntern } from '../../types';
 
-interface DailyRecordModalProps {
+interface DailyRecordsModalProps {
   record: AttendanceWithIntern;
   isOpen: boolean;
   onClose: () => void;
   onSave: (value: string) => void;
-  isOwner: boolean;
+  isAdmin: boolean;
 }
 
-export const DailyRecordModal: React.FC<DailyRecordModalProps> = ({
+export const DailyRecordsModal: React.FC<DailyRecordsModalProps> = ({
   record,
   isOpen,
   onClose,
   onSave,
-  isOwner,
+  isAdmin,
 }) => {
   const [newEntry, setNewEntry] = useState('');
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
@@ -124,7 +124,7 @@ export const DailyRecordModal: React.FC<DailyRecordModalProps> = ({
                 ) : (
                   <>
                     <p className="text-sm text-teal-dark dark:text-cream whitespace-pre-wrap pr-16">{entry}</p>
-                    {isOwner && (
+                    {isAdmin && (
                       <div className="absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-teal/5 dark:bg-[#002b36] p-1 rounded-lg">
                         <button
                           onClick={() => { setEditingIdx(idx); setEditValue(entry); }}
@@ -156,7 +156,7 @@ export const DailyRecordModal: React.FC<DailyRecordModalProps> = ({
         </div>
 
         {/* Input Area */}
-        {(isOwner) && (
+        {isAdmin && (
           <div className="p-4 border-t border-teal/10 dark:border-white/10 bg-teal/5 dark:bg-white/5">
             <div className="flex items-start gap-3">
               <textarea
@@ -164,7 +164,7 @@ export const DailyRecordModal: React.FC<DailyRecordModalProps> = ({
                 value={newEntry}
                 onChange={(e) => setNewEntry(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="What did you work on?"
+                placeholder="Write feedback..."
                 className="
                   flex-1 px-4 py-3 text-sm rounded-xl min-h-[44px] max-h-[120px] resize-none
                   bg-white dark:bg-[#00151a] border border-teal/10 dark:border-white/10
@@ -185,7 +185,7 @@ export const DailyRecordModal: React.FC<DailyRecordModalProps> = ({
                   transition-all duration-200
                 "
               >
-                Add
+                Send
               </button>
             </div>
           </div>
