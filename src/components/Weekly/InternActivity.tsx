@@ -5,7 +5,7 @@ import { CustomDropdown } from '../common/CustomDropdown';
 import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TaskUpdates } from '../Dashboard/TaskUpdates';
-import { getLocalToday } from '../../utils/dateUtils';
+import { getLocalToday, getWeekDateRange } from '../../utils/dateUtils';
 
 interface Props {
   interns: Intern[];
@@ -44,12 +44,18 @@ export const InternActivity: React.FC<Props> = ({ interns }) => {
       try {
         if (isSupabaseConfigured) {
           // Fetch attendance
-          const { data: attData } = await supabase
+          let attQuery = supabase
             .from('attendance')
             .select('*')
             .eq('intern_name', selectedIntern.full_name)
-            .lt('attendance_date', getLocalToday())
-            .order('attendance_date', { ascending: false });
+            .lt('attendance_date', getLocalToday());
+
+          if (selectedWeek !== 'all') {
+            const { startDate, endDate } = getWeekDateRange(selectedWeek as number);
+            attQuery = attQuery.gte('attendance_date', startDate).lte('attendance_date', endDate);
+          }
+
+          const { data: attData } = await attQuery.order('attendance_date', { ascending: false });
             
           if (attData) setAttendances(attData);
 
@@ -79,10 +85,17 @@ export const InternActivity: React.FC<Props> = ({ interns }) => {
                 allAtt.push(...stored);
               }
             }
-            const internAtt = allAtt.filter((a: any) => 
-              a.intern_name === selectedIntern.full_name && 
-              a.attendance_date < getLocalToday()
-            );
+            const internAtt = allAtt.filter((a: any) => {
+              if (a.intern_name !== selectedIntern.full_name) return false;
+              if (a.attendance_date >= getLocalToday()) return false;
+              
+              if (selectedWeek !== 'all') {
+                const { startDate, endDate } = getWeekDateRange(selectedWeek as number);
+                if (a.attendance_date < startDate || a.attendance_date > endDate) return false;
+              }
+              
+              return true;
+            });
             setAttendances(internAtt);
 
             if (tasks.length > 0) {
@@ -105,7 +118,7 @@ export const InternActivity: React.FC<Props> = ({ interns }) => {
     };
     
     fetchExtraData();
-  }, [selectedInternId, selectedIntern, tasks]);
+  }, [selectedInternId, selectedIntern, tasks, selectedWeek]);
 
   const loading = tasksLoading || extraLoading;
 
@@ -321,34 +334,32 @@ export const InternActivity: React.FC<Props> = ({ interns }) => {
                       <div className="space-y-3">
                         {day.tasks.map(task => (
                           <div key={task.id} className="bg-teal/5 dark:bg-white/5 rounded-lg border border-teal/10 dark:border-white/5 p-3">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center gap-2 font-medium text-teal dark:text-cream text-sm">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center flex-wrap gap-2 font-medium text-teal dark:text-cream text-sm">
                                 <span className="flex items-center justify-center w-5 h-5 rounded bg-green-500/20 text-green-600 dark:text-green-400">
                                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                 </span>
-                                {task.task_name}
+                                <span>{task.task_name}</span>
+                                {task.updates && task.updates.length > 0 ? (
+                                  <span className="text-[11px] text-[#003946]/80 dark:text-cream/70 italic font-medium">
+                                    {task.updates.length} {task.updates.length === 1 ? 'comment/instruction' : 'comments/instructions'} recorded
+                                  </span>
+                                ) : (
+                                  <span className="text-[11px] text-teal/40 dark:text-cream/30 italic">
+                                    No comments/instructions recorded
+                                  </span>
+                                )}
                               </div>
                               <button 
                                 onClick={() => {
                                   setActiveCommentTaskId(task.id);
                                   setActiveCommentTaskName(task.task_name);
                                 }}
-                                className="text-[10px] uppercase font-bold text-teal dark:text-cream px-3 py-1 rounded-full border border-teal/20 dark:border-white/20 hover:bg-teal/10 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                                className="text-[10px] uppercase font-bold text-teal dark:text-cream px-3 py-1 rounded-full border border-teal/20 dark:border-white/20 hover:bg-teal/10 dark:hover:bg-white/10 transition-colors cursor-pointer whitespace-nowrap ml-4"
                               >
                                 Updates
                               </button>
                             </div>
-                            
-                            {/* Task Updates */}
-                            {task.updates && task.updates.length > 0 ? (
-                              <div className="mt-2 pl-3 ml-2.5 text-[11px] text-[#003946]/80 dark:text-cream/70 italic font-medium">
-                                {task.updates.length} {task.updates.length === 1 ? 'update' : 'updates'} recorded
-                              </div>
-                            ) : (
-                              <div className="mt-2 pl-3 ml-2.5 text-[11px] text-teal/40 dark:text-cream/30 italic">
-                                No updates recorded
-                              </div>
-                            )}
                           </div>
                         ))}
                       </div>
@@ -356,7 +367,7 @@ export const InternActivity: React.FC<Props> = ({ interns }) => {
                   )}
 
                   {/* Admin Feedback */}
-                  {day.attendance?.admin_feedback && (
+                  {day.attendance?.admin_feedback && day.attendance.admin_feedback.replace(/["'{}\[\]\s]/g, '').length > 0 && (
                     <div className="mt-4 pt-4 border-t border-teal/10 dark:border-white/5">
                       <h4 className="text-xs font-bold text-[#8a6d00] dark:text-gold mb-1 flex items-center gap-1.5 uppercase tracking-wider">
                         Admin Feedback
