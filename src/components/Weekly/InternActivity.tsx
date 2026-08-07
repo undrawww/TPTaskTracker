@@ -5,6 +5,7 @@ import { CustomDropdown } from '../common/CustomDropdown';
 import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TaskUpdates } from '../Dashboard/TaskUpdates';
+import { getLocalToday } from '../../utils/dateUtils';
 
 interface Props {
   interns: Intern[];
@@ -47,6 +48,7 @@ export const InternActivity: React.FC<Props> = ({ interns }) => {
             .from('attendance')
             .select('*')
             .eq('intern_name', selectedIntern.full_name)
+            .lt('attendance_date', getLocalToday())
             .order('attendance_date', { ascending: false });
             
           if (attData) setAttendances(attData);
@@ -77,7 +79,10 @@ export const InternActivity: React.FC<Props> = ({ interns }) => {
                 allAtt.push(...stored);
               }
             }
-            const internAtt = allAtt.filter((a: any) => a.intern_name === selectedIntern.full_name);
+            const internAtt = allAtt.filter((a: any) => 
+              a.intern_name === selectedIntern.full_name && 
+              a.attendance_date < getLocalToday()
+            );
             setAttendances(internAtt);
 
             if (tasks.length > 0) {
