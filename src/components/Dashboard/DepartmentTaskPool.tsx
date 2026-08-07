@@ -102,7 +102,7 @@ export const DepartmentTaskPool: React.FC<Props> = ({
                 activeCommentTaskId={activeCommentTaskId}
                 setActiveCommentTaskId={setActiveCommentTaskId}
                 createdByName={
-                  isBLT && task.created_by_name 
+                  task.created_by_name 
                     ? getCreatorUsername(task.created_by_name) 
                     : undefined
                 }
