@@ -6,10 +6,14 @@
 // We assume Week 1 started on June 22, 2026.
 export const INTERNSHIP_START_DATE = '2026-06-22';
 
-/** Helper to get local date in YYYY-MM-DD format */
+/** Helper to get Philippine date in YYYY-MM-DD format regardless of device timezone */
 export const getLocalToday = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return new Intl.DateTimeFormat('en-CA', { 
+    timeZone: 'Asia/Manila', 
+    year: 'numeric', 
+    month: '2-digit', 
+    day: '2-digit' 
+  }).format(new Date());
 };
 
 /**
