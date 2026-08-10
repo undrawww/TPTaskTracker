@@ -11,6 +11,13 @@ interface Props {
   interns: Intern[];
 }
 
+function formatHours(hours: number | null): string {
+  if (hours === null || isNaN(hours)) return '—';
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  return `${h}h ${m}m`;
+}
+
 export const InternActivity: React.FC<Props> = ({ interns }) => {
   const [selectedInternId, setSelectedInternId] = useState<string | null>(null);
   const [selectedWeek, setSelectedWeek] = useState<number | 'all'>('all');
@@ -306,6 +313,11 @@ export const InternActivity: React.FC<Props> = ({ interns }) => {
                   <h3 className="font-bold text-teal dark:text-cream flex items-center gap-2">
                     {new Date(day.dateStr).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                   </h3>
+                  {day.attendance?.total_hours != null && (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#003946]/10 dark:bg-gold/10 text-[#003946] dark:text-gold">
+                      Total Time: {formatHours(day.attendance.total_hours)}
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-5 space-y-5">
