@@ -134,7 +134,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        localStorage.removeItem('tp_weekly_archive_intern_id');
+        localStorage.removeItem('tp_weekly_archive_week');
+      }
       setSession(session);
       setUser(session?.user ?? null);
       fetchRole(session?.user ?? null);

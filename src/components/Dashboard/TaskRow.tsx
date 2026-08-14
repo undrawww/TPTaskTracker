@@ -79,24 +79,45 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
     }
 
     try {
-      const { data: latestData, count, error: countError } = await supabase
+      const { data: allData, error: dataError } = await supabase
         .from('task_comments')
-        .select('author_name, content, created_at, profiles(avatar_index, avatar_url), interns(avatar_index, avatar_url)', { count: 'exact' })
+        .select('*')
         .eq('task_id', id)
-        .order('created_at', { ascending: false })
-        .limit(1);
+        .order('created_at', { ascending: false });
         
-      if (countError) throw countError;
-      setUpdateCount(count || 0);
+      if (dataError) {
+        console.error("Error fetching updates count:", dataError);
+        throw dataError;
+      }
+      
+      setUpdateCount(allData ? allData.length : 0);
 
-      if (latestData && latestData.length > 0) {
-        const authorData = (latestData[0] as any).profiles || (latestData[0] as any).interns;
+      if (allData && allData.length > 0) {
+        const latest = allData[0];
+        
+        // Optionally fetch avatar for tooltip without crashing the main count query
+        let avatar_index = undefined;
+        let avatar_url = undefined;
+        try {
+           const { data: profile } = await supabase.from('profiles').select('avatar_index, avatar_url').eq('full_name', latest.author_name).single();
+           if (profile) {
+              avatar_index = profile.avatar_index;
+              avatar_url = profile.avatar_url;
+           } else {
+              const { data: intern } = await supabase.from('interns').select('avatar_index, avatar_url').eq('full_name', latest.author_name).single();
+              if (intern) {
+                 avatar_index = intern.avatar_index;
+                 avatar_url = intern.avatar_url;
+              }
+           }
+        } catch { /* ignore */ }
+
         setLatestUpdate({
-          author_name: latestData[0].author_name,
-          content: latestData[0].content,
-          created_at: latestData[0].created_at,
-          avatar_index: authorData?.avatar_index,
-          avatar_url: authorData?.avatar_url
+          author_name: latest.author_name,
+          content: latest.content,
+          created_at: latest.created_at,
+          avatar_index,
+          avatar_url
         });
       } else {
         setLatestUpdate(null);

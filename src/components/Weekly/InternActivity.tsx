@@ -19,8 +19,15 @@ function formatHours(hours: number | null): string {
 }
 
 export const InternActivity: React.FC<Props> = ({ interns }) => {
-  const [selectedInternId, setSelectedInternId] = useState<string | null>(null);
-  const [selectedWeek, setSelectedWeek] = useState<number | 'all'>('all');
+  const [selectedInternId, setSelectedInternId] = useState<string | null>(() => {
+    return localStorage.getItem('tp_weekly_archive_intern_id') || null;
+  });
+  const [selectedWeek, setSelectedWeek] = useState<number | 'all'>(() => {
+    const saved = localStorage.getItem('tp_weekly_archive_week');
+    if (saved === 'all') return 'all';
+    if (saved) return parseInt(saved, 10);
+    return 'all';
+  });
   const [activeCommentTaskId, setActiveCommentTaskId] = useState<string | null>(null);
   const [activeCommentTaskName, setActiveCommentTaskName] = useState<string>('');
   
@@ -42,6 +49,18 @@ export const InternActivity: React.FC<Props> = ({ interns }) => {
   ];
 
   const selectedIntern = sortedInterns.find(i => i.id === selectedInternId);
+
+  useEffect(() => {
+    if (selectedInternId) {
+      localStorage.setItem('tp_weekly_archive_intern_id', selectedInternId);
+    } else {
+      localStorage.removeItem('tp_weekly_archive_intern_id');
+    }
+  }, [selectedInternId]);
+
+  useEffect(() => {
+    localStorage.setItem('tp_weekly_archive_week', selectedWeek.toString());
+  }, [selectedWeek]);
 
   useEffect(() => {
     if (!selectedInternId || !selectedIntern) return;
@@ -187,8 +206,8 @@ export const InternActivity: React.FC<Props> = ({ interns }) => {
       });
     });
 
-    // Sort groups by date descending
-    return Object.values(groups).sort((a, b) => b.dateStr.localeCompare(a.dateStr));
+    // Sort groups by date ascending
+    return Object.values(groups).sort((a, b) => a.dateStr.localeCompare(b.dateStr));
   }, [tasks, attendances, updates]);
 
 
