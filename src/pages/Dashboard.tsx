@@ -21,13 +21,14 @@ import { useInterns } from '../hooks/useInterns';
 import { useDailyTasks } from '../hooks/useDailyTasks';
 import { TaskUpdates } from '../components/Dashboard/TaskUpdates';
 import { DailyRecordTab } from '../components/Dashboard/DailyRecordTab';
+import { BizDevAllStars } from '../components/BizDev/BizDevAllStars';
 
 import { useAnalytics } from '../hooks/useAnalytics';
 import { ProfilePage } from '../components/Profile/ProfilePage';
 import { isPoolId, type TaskStatus } from '../types';
 import { generateSlug } from '../utils/slugify';
 
-type ActiveView = 'tracker' | 'attendance' | 'interns' | 'profile' | 'videos';
+type ActiveView = 'tracker' | 'attendance' | 'interns' | 'profile' | 'videos' | 'allstars';
 
 export const Dashboard: React.FC = () => {
   const { role, currentInternId } = useAuth();
@@ -43,6 +44,7 @@ export const Dashboard: React.FC = () => {
     interns: '/interns',
     profile: '/profile',
     videos: '/videos',
+    allstars: '/allstars',
   };
 
   const pathToView: Record<string, ActiveView> = {
@@ -52,6 +54,7 @@ export const Dashboard: React.FC = () => {
     '/interns': 'interns',
     '/profile': 'profile',
     '/videos': 'videos',
+    '/allstars': 'allstars',
   };
 
   const { internId } = useParams<{ internId?: string; videoId?: string }>();
@@ -473,6 +476,10 @@ export const Dashboard: React.FC = () => {
 
             {activeView === 'videos' && (
               <TrainingVideos />
+            )}
+
+            {activeView === 'allstars' && role === 'admin' && (
+              <BizDevAllStars />
             )}
           </>
         )}

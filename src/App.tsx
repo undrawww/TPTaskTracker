@@ -108,6 +108,16 @@ function App() {
               }
             />
 
+            {/* All-Stars route */}
+            <Route
+              path="/allstars"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Catch-all redirect */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

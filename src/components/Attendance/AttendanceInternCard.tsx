@@ -108,11 +108,11 @@ export const AttendanceInternCard: React.FC<AttendanceInternCardProps> = ({
           <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm shrink-0">
             {record.intern?.avatar_index !== undefined 
               ? renderAvatar(record.intern.avatar_index, record.intern.avatar_url) 
-              : getAvatarIcon(intern_name)}
+              : getAvatarIcon(record.intern?.full_name || intern_name)}
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-bold text-teal dark:text-cream leading-tight whitespace-nowrap">
-              {intern_name}
+              {record.intern?.full_name || intern_name}
             </span>
             {record.intern?.department && (
               <span className="text-[11px] text-teal/60 dark:text-cream/50 font-medium mt-0.5 whitespace-nowrap">

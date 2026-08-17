@@ -57,10 +57,10 @@ export const TrainingVideos: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-poppins font-bold text-teal dark:text-white">
+          <h2 className="text-xl font-bold text-teal dark:text-cream leading-tight">
             Videos
           </h2>
-          <p className="text-sm text-teal/50 dark:text-white/40 mt-1">
+          <p className="text-sm text-teal/50 dark:text-cream/40 mt-1">
             Watch and track your progress on training videos
           </p>
         </div>

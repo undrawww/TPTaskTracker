@@ -1,8 +1,9 @@
 import React from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface SidebarProps {
-  activeView: 'tracker' | 'attendance' | 'interns' | 'profile' | 'videos';
-  onViewChange: (view: 'tracker' | 'attendance' | 'interns' | 'profile' | 'videos') => void;
+  activeView: 'tracker' | 'attendance' | 'interns' | 'profile' | 'videos' | 'allstars';
+  onViewChange: (view: 'tracker' | 'attendance' | 'interns' | 'profile' | 'videos' | 'allstars') => void;
   collapsed: boolean;
   onToggle: () => void;
   isMobileMenuOpen?: boolean;
@@ -11,7 +12,7 @@ interface SidebarProps {
   completedTotal?: number;
 }
 
-const NAV_ITEMS: { key: 'tracker' | 'attendance' | 'interns' | 'videos'; label: string; icon: React.ReactNode }[] = [
+const NAV_ITEMS: { key: 'tracker' | 'attendance' | 'interns' | 'videos' | 'allstars'; label: string; icon: React.ReactNode; adminOnly?: boolean }[] = [
   {
     key: 'tracker',
     label: 'Task Tracker',
@@ -55,9 +56,20 @@ const NAV_ITEMS: { key: 'tracker' | 'attendance' | 'interns' | 'videos'; label: 
       </svg>
     ),
   },
+  {
+    key: 'allstars',
+    label: 'All-Stars',
+    adminOnly: true,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+      </svg>
+    ),
+  },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, collapsed, onToggle, isMobileMenuOpen = false, onMobileClose, todayTotal = 0, completedTotal = 0 }) => {
+  const { role: userRole } = useAuth();
   return (
     <>
       {/* Mobile Overlay */}
@@ -144,7 +156,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, coll
 
       {/* Navigation */}
       <nav className="flex-1 flex flex-col gap-1 px-2 mt-4">
-        {NAV_ITEMS.map((item) => {
+        {NAV_ITEMS.filter(item => !item.adminOnly || userRole === 'admin').map((item) => {
           const isActive = activeView === item.key;
           return (
             <button
