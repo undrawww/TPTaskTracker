@@ -194,7 +194,7 @@ export function createDefaultInternMastery(internId: string, internName: string,
 /* ──────────────────────────────────────────────
    Utility: check if a role is TBD (ASA)
    ────────────────────────────────────────────── */
-export function isRoleTBD(role: BizDevRole): boolean {
+export function isRoleTBD(_role: BizDevRole): boolean {
   return false;
 }
 

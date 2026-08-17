@@ -279,6 +279,7 @@ export function useRoleMastery() {
 
   return {
     masteryData,
+    isLoading: loading,
     initializeIntern,
     removeIntern,
     updatePrimaryRole,

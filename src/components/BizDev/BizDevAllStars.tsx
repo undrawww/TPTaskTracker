@@ -26,8 +26,7 @@ export const BizDevAllStars: React.FC = () => {
   const { interns } = useInterns();
   const {
     masteryData,
-    initializeIntern,
-    updatePrimaryRole,
+    isLoading,
     updateMilestoneProgress,
     toggleRequirementVerification,
     updateBackupStatus,
