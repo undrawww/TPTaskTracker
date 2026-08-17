@@ -37,7 +37,7 @@ export interface MasterySummary {
 }
 
 export function useRoleMastery() {
-  const [masteryData, setMasteryData] = useState<InternMastery[]>([]);
+  const [masteryData, setMasteryData] = useState<InternMastery[]>(loadMasteryDataFallback());
   const [loading, setLoading] = useState(true);
 
   // Load from Supabase on mount
