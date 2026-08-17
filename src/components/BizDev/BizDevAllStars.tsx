@@ -134,6 +134,35 @@ export const BizDevAllStars: React.FC = () => {
     </svg>
   );
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col h-full bg-slate-50 dark:bg-[#00141a] p-6 lg:p-8 space-y-6">
+        <div className="flex justify-between items-end">
+          <div>
+            <div className="h-8 w-48 bg-teal/10 dark:bg-white/5 rounded-lg animate-pulse mb-2" />
+            <div className="h-4 w-96 bg-teal/10 dark:bg-white/5 rounded-lg animate-pulse" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-28 bg-teal/5 dark:bg-white/5 rounded-2xl animate-pulse" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="h-32 bg-teal/5 dark:bg-white/5 rounded-2xl animate-pulse" />
+          ))}
+        </div>
+        <div className="flex-1 bg-white dark:bg-[#001f26] rounded-2xl border border-teal/10 dark:border-white/10 p-4 flex flex-col gap-3">
+          <div className="h-10 w-full bg-teal/5 dark:bg-white/5 rounded-lg animate-pulse" />
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="h-16 w-full bg-teal/5 dark:bg-white/5 rounded-lg animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
