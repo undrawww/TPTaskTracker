@@ -52,7 +52,7 @@ export function useRoleMastery() {
         const { data, error } = await supabase.from('role_mastery').select('*');
         if (error) throw error;
         
-        if (data) {
+        if (data && data.length > 0) {
           const parsed = data.map(row => ({
             internId: row.intern_id,
             internName: row.intern_name,
@@ -60,10 +60,17 @@ export function useRoleMastery() {
             roles: row.roles_data,
           }));
           setMasteryData(parsed);
+        } else if (data && data.length === 0) {
+          // If Supabase is empty but we have local data, don't wipe local data
+          // Instead, we should probably try to sync local data up to Supabase.
+          const local = loadMasteryDataFallback();
+          if (local.length > 0) {
+            setMasteryData(local);
+            local.forEach(saveToDb);
+          }
         }
       } catch (err) {
         console.error('Failed to load role mastery from Supabase:', err);
-        setMasteryData(loadMasteryDataFallback());
       } finally {
         setLoading(false);
       }
@@ -72,18 +79,20 @@ export function useRoleMastery() {
   }, []);
 
   const saveToDb = async (intern: InternMastery) => {
-    if (!isSupabaseConfigured) {
-      // Fallback
-      return;
-    }
+    if (!isSupabaseConfigured) return;
     try {
-      await supabase.from('role_mastery').upsert({
+      const { error } = await supabase.from('role_mastery').upsert({
         intern_id: intern.internId,
         intern_name: intern.internName,
         primary_role: intern.primaryRole,
         roles_data: intern.roles,
         updated_at: new Date().toISOString()
       }, { onConflict: 'intern_id' });
+      
+      if (error) {
+        console.error('Supabase UPSERT Error:', error);
+        alert(`Failed to save to Supabase. Error: ${error.message}`);
+      }
     } catch (err) {
       console.error('Failed to save role mastery to DB:', err);
     }
