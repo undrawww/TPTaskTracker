@@ -37,7 +37,7 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({ value, options, 
       </button>
       
       {isOpen && (
-        <div className="absolute z-50 mt-2 min-w-full w-max max-w-[250px] right-0 sm:left-0 sm:right-auto rounded-xl bg-white dark:bg-[#003946] shadow-lg border border-teal/10 dark:border-teal-light py-1 overflow-hidden max-h-60 overflow-y-auto">
+        <div className="absolute z-50 mt-2 min-w-full w-max max-w-[250px] right-0 sm:left-0 sm:right-auto rounded-xl bg-white dark:bg-[#003946] shadow-lg border border-teal/10 dark:border-teal-light py-1 overflow-hidden max-h-[320px] overflow-y-auto">
           {options.map((option) => (
             <button
               key={String(option.value)}

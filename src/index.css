@@ -76,13 +76,20 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-teal);
+  background: rgba(0, 57, 70, 0.2); /* teal with opacity */
   border-radius: 9999px;
-  opacity: 0.2;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(245, 231, 198, 0.2); /* cream with opacity */
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-gold);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gold-light);
 }
 
 /* Animations */

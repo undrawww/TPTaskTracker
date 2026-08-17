@@ -42,6 +42,8 @@ export const InternActivity: React.FC<Props> = ({ interns }) => {
     .filter(i => !adminNames.some(admin => i.full_name.includes(admin)) && !i.email.includes('admin'))
     .sort((a, b) => a.full_name.localeCompare(b.full_name));
 
+  const [dateSortDir, setDateSortDir] = useState<'asc' | 'desc'>('desc');
+
   const studentOptions = sortedInterns.map(i => ({ label: i.full_name, value: i.id }));
   const weekOptions = [
     { label: 'All Time', value: 'all' },
@@ -206,9 +208,12 @@ export const InternActivity: React.FC<Props> = ({ interns }) => {
       });
     });
 
-    // Sort groups by date ascending
-    return Object.values(groups).sort((a, b) => a.dateStr.localeCompare(b.dateStr));
-  }, [tasks, attendances, updates]);
+    // Sort groups by date
+    return Object.values(groups).sort((a, b) => {
+      const cmp = a.dateStr.localeCompare(b.dateStr);
+      return dateSortDir === 'asc' ? cmp : -cmp;
+    });
+  }, [tasks, attendances, updates, dateSortDir]);
 
 
 
@@ -238,6 +243,15 @@ export const InternActivity: React.FC<Props> = ({ interns }) => {
               onChange={setSelectedWeek}
               options={weekOptions}
               placeholder="Date Range"
+            />
+            <CustomDropdown
+              value={dateSortDir}
+              onChange={setDateSortDir}
+              options={[
+                { label: 'Descending', value: 'desc' },
+                { label: 'Ascending', value: 'asc' }
+              ]}
+              placeholder="Sort Order"
             />
           </div>
         </div>
