@@ -18,14 +18,10 @@ export const AttendanceView: React.FC<{initialDate?: string}> = ({ initialDate }
     updateText,
   } = useAttendance(initialDate);
 
-  const [showTimeColumns, setShowTimeColumns] = useState<boolean>(() => {
+  const [showTimeColumns] = useState(() => {
     const saved = localStorage.getItem('padua_attendance_show_times');
     return saved !== null ? saved === 'true' : true;
   });
-
-  React.useEffect(() => {
-    localStorage.setItem('padua_attendance_show_times', String(showTimeColumns));
-  }, [showTimeColumns]);
 
   const isAdmin = role === 'admin';
 

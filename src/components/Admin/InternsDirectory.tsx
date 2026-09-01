@@ -41,14 +41,6 @@ export const InternsDirectory: React.FC<Props> = ({ onViewProfile }) => {
     });
   }, [allInterns, sortField, sortDirection]);
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
-  };
 
   const handleViewProfile = (id: string, name: string) => {
     if (onViewProfile) {
