@@ -2,6 +2,7 @@ import { InternTaskGroup } from './InternTaskGroup';
 import { DepartmentTaskPool } from './DepartmentTaskPool';
 import { POOL_UUIDS, type Intern, type DailyTask, type WeeklyTask, type TaskStatus, type Department } from '../../types';
 import { SortableContext, rectSortingStrategy, horizontalListSortingStrategy } from '@dnd-kit/sortable';
+import { useDroppable, useDndContext } from '@dnd-kit/core';
 
 interface Props {
   department: Department;
@@ -54,9 +55,17 @@ export const DepartmentPanel: React.FC<Props> = ({
     .filter(t => t.intern_id === poolId)
     .sort((a, b) => (Number(a.order_index) || 0) - (Number(b.order_index) || 0));
 
+  const { setNodeRef, isOver } = useDroppable({
+    id: `dept-container-${department}`,
+    data: { type: 'Department', department }
+  });
+  const { active } = useDndContext();
+  const isDraggingIntern = active?.data.current?.type === 'Intern';
+
   return (
     <div 
-      className="bg-transparent border-none flex-shrink-0 min-w-min"
+      ref={setNodeRef}
+      className={`bg-transparent border-none flex-shrink-0 min-w-min rounded-xl transition-colors duration-200 ${isOver && isDraggingIntern ? 'bg-teal/5 dark:bg-white/5 ring-2 ring-teal/20 dark:ring-gold/30' : ''}`}
       style={maxInternRows ? {
         gridRow: `span ${2 + maxInternRows}`,
         display: 'grid',

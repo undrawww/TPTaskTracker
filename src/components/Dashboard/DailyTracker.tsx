@@ -85,7 +85,13 @@ export const DailyTracker: React.FC<Props> = ({
       if (!activeIntern) return;
       
       let targetDept = activeIntern.department;
-      if (overIntern) targetDept = overIntern.department;
+      if (overIntern) {
+        targetDept = overIntern.department;
+      } else if (overInternId.startsWith('dept-container-')) {
+        targetDept = overInternId.replace('dept-container-', '') as Department;
+      } else {
+        return;
+      }
       
       const internsInDept = interns.filter(i => i.department === targetDept).sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
       const oldIndex = internsInDept.findIndex(i => i.id === activeInternId);
