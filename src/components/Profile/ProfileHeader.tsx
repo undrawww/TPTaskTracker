@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import type { Intern, DailyTask } from '../../types';
 import { renderAvatar } from '../Dashboard/AvatarIcons';
 import { formatAddress } from '../../utils/formatAddress';
+import { useAuth } from '../../contexts/AuthContext';
+import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
 
 interface ProfileHeaderProps {
   intern: Intern;
@@ -9,10 +11,67 @@ interface ProfileHeaderProps {
   weeklyTasks?: any[];
   onEditClick: () => void;
   isOwnProfile?: boolean;
+  onStatusChange?: (status: string) => void;
 }
 
-export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, weeklyTasks = [], onEditClick, isOwnProfile = true }) => {
+export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, weeklyTasks = [], onEditClick, isOwnProfile = true, onStatusChange }) => {
+  const { role } = useAuth();
+  const isAdmin = role === 'admin';
   const [isGcashOpen, setIsGcashOpen] = useState(false);
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState(intern.status || 'Active');
+  const [savingStatus, setSavingStatus] = useState(false);
+  const statusRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setCurrentStatus(intern.status || 'Active');
+  }, [intern.status]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!statusDropdownOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (statusRef.current && !statusRef.current.contains(e.target as Node)) {
+        setStatusDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [statusDropdownOpen]);
+
+  const handleStatusSelect = async (newStatus: string) => {
+    if (newStatus === currentStatus) { setStatusDropdownOpen(false); return; }
+    setSavingStatus(true);
+    setStatusDropdownOpen(false);
+    setCurrentStatus(newStatus);
+    try {
+      if (isSupabaseConfigured) {
+        const { data, error: internError } = await supabase
+          .from('interns')
+          .update({ status: newStatus })
+          .eq('email', intern.email)
+          .select();
+          
+        console.log("Status update result:", { data, error: internError });
+        if (internError) console.error("Error updating intern status:", internError);
+      }
+      onStatusChange?.(newStatus);
+    } finally {
+      setSavingStatus(false);
+    }
+  };
+
+  const STATUS_OPTIONS = ['Active', 'Graduated', 'Cancelled'] as const;
+  const STATUS_STYLES: Record<string, string> = {
+    Active: 'bg-status-done-bg text-status-done border-status-done/20',
+    Graduated: 'bg-gold/10 text-gold border-gold/20',
+    Cancelled: 'bg-status-hold-bg text-status-hold border-status-hold/20',
+  };
+  const DOT_STYLES: Record<string, string> = {
+    Active: 'bg-status-done',
+    Graduated: 'bg-gold',
+    Cancelled: 'bg-status-hold',
+  };
   // Count all tasks marked as 'Done' across both daily and weekly tasks
   const completedDaily = tasks.filter(t => t.status === 'Done').length;
   const completedWeekly = weeklyTasks.filter(t => t.status === 'Done').length;
@@ -92,16 +151,47 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ intern, tasks, wee
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-2 sm:gap-4">
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-              intern.status === 'Active' 
-                ? 'bg-status-done-bg text-status-done border border-status-done/20' 
-                : intern.status === 'Completed'
-                ? 'bg-gold/10 text-gold border border-gold/20'
-                : 'bg-status-hold-bg text-status-hold border border-status-hold/20'
-            }`}>
-              <div className={`w-1.5 h-1.5 rounded-full ${intern.status === 'Active' ? 'bg-status-done' : intern.status === 'Completed' ? 'bg-gold' : 'bg-status-hold'}`} />
-              {intern.status || 'Active'}
-            </span>
+            {/* Status badge - clickable for admins */}
+            <div ref={statusRef} className="relative">
+              <button
+                onClick={() => isAdmin && setStatusDropdownOpen(o => !o)}
+                disabled={savingStatus}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all duration-200 ${
+                  STATUS_STYLES[currentStatus] || STATUS_STYLES.Active
+                } ${isAdmin ? 'cursor-pointer hover:opacity-80 active:scale-95' : 'cursor-default'}`}
+              >
+                <div className={`w-1.5 h-1.5 rounded-full ${DOT_STYLES[currentStatus] || DOT_STYLES.Active} ${savingStatus ? 'animate-pulse' : ''}`} />
+                {currentStatus}
+                {isAdmin && (
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                )}
+              </button>
+
+              {/* Dropdown */}
+              {statusDropdownOpen && isAdmin && (
+                <div className="absolute top-full left-0 mt-1.5 z-50 bg-white dark:bg-[#001f2a] rounded-xl border border-teal/10 dark:border-white/10 shadow-2xl overflow-hidden min-w-[130px] animate-fade-in">
+                  {STATUS_OPTIONS.map(opt => (
+                    <button
+                      key={opt}
+                      onClick={() => handleStatusSelect(opt)}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold text-left transition-colors hover:bg-teal/5 dark:hover:bg-white/5 ${
+                        currentStatus === opt ? 'text-teal dark:text-cream bg-teal/5 dark:bg-white/5' : 'text-teal/70 dark:text-cream/60'
+                      }`}
+                    >
+                      <div className={`w-2 h-2 rounded-full ${DOT_STYLES[opt]}`} />
+                      {opt}
+                      {currentStatus === opt && (
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="ml-auto">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {isOwnProfile && (
               <button

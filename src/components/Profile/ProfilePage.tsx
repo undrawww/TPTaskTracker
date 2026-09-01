@@ -46,6 +46,7 @@ export const ProfilePage: React.FC<{ internId?: string }> = ({ internId }) => {
             weeklyTasks={weeklyTasks}
             onEditClick={() => setIsEditingProfile(true)}
             isOwnProfile={isOwnProfile}
+            onStatusChange={() => refreshProfile()}
           />
 
           {/* 2. Main Content Grid */}

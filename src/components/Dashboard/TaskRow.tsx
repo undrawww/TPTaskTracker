@@ -49,10 +49,10 @@ export const TaskRow: React.FC<Props> = ({ id, taskName, status, isVerified, onS
   } = useSortable({ id, data: { type: 'Task' } });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Translate.toString(transform),
     transition,
     zIndex: isDragging ? 10 : 1,
-    opacity: isDragging ? 0.8 : 1,
+    opacity: isDragging ? 0.3 : 1,
   };
 
   // Close status dropdown if clicked outside

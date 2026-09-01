@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInterns } from '../../hooks/useInterns';
 import { getAvatarIcon, renderAvatar } from '../Dashboard/AvatarIcons';
 import { formatAddress } from '../../utils/formatAddress';
 import { generateSlug } from '../../utils/slugify';
+import { CustomDropdown } from '../common/CustomDropdown';
 
 import { InternsSkeleton } from '../Skeleton/DashboardSkeleton';
+
+type SortField = 'name' | 'status' | 'department';
+type SortDirection = 'asc' | 'desc';
 
 interface Props {
   onViewProfile?: (id: string) => void;
@@ -14,7 +18,37 @@ interface Props {
 export const InternsDirectory: React.FC<Props> = ({ onViewProfile }) => {
   const navigate = useNavigate();
   const { interns: allInterns, loading, error } = useInterns();
-  const interns = allInterns.filter(i => i.department !== 'BizDev Leadership Team' && (i.department as string) !== 'BizDev Team');
+  const [sortField, setSortField] = useState<SortField>('department');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  const interns = useMemo(() => {
+    const filtered = allInterns.filter(i => i.department !== 'BizDev Leadership Team' && (i.department as string) !== 'BizDev Team');
+    
+    return filtered.sort((a, b) => {
+      let comparison = 0;
+      if (sortField === 'name') {
+        comparison = a.full_name.localeCompare(b.full_name);
+      } else if (sortField === 'status') {
+        const statusA = a.status || 'Active';
+        const statusB = b.status || 'Active';
+        comparison = statusA.localeCompare(statusB);
+      } else if (sortField === 'department') {
+        const deptA = (a.department as string) || '';
+        const deptB = (b.department as string) || '';
+        comparison = deptA.localeCompare(deptB);
+      }
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [allInterns, sortField, sortDirection]);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
 
   const handleViewProfile = (id: string, name: string) => {
     if (onViewProfile) {
@@ -33,6 +67,34 @@ export const InternsDirectory: React.FC<Props> = ({ onViewProfile }) => {
           <p className="text-sm text-teal/50 dark:text-cream/40 mt-0.5">
             Manage and view detailed profiles for all your interns.
           </p>
+        </div>
+        
+        <div className="flex items-center gap-2 self-start sm:self-auto bg-teal/5 dark:bg-white/5 rounded-xl p-1 border border-teal/10 dark:border-white/10">
+          <span className="text-xs font-semibold text-teal/50 dark:text-cream/50 pl-2">Sort by:</span>
+          <CustomDropdown
+            value={sortField}
+            onChange={(val) => {
+              setSortField(val as SortField);
+              setSortDirection('asc');
+            }}
+            options={[
+              { label: 'Department', value: 'department' },
+              { label: 'Name', value: 'name' },
+              { label: 'Status', value: 'status' }
+            ]}
+            className="bg-transparent text-sm font-semibold text-teal dark:text-cream px-2 py-1.5 focus:outline-none cursor-pointer border-none shadow-none"
+            alignRight
+          />
+          <button
+            onClick={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
+            className="p-1.5 rounded-lg hover:bg-teal/10 dark:hover:bg-white/10 text-teal dark:text-cream transition-colors"
+            title={`Sort ${sortDirection === 'asc' ? 'Descending' : 'Ascending'}`}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${sortDirection === 'desc' ? 'rotate-180' : ''}`}>
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <polyline points="19 12 12 19 5 12"></polyline>
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -60,7 +122,12 @@ export const InternsDirectory: React.FC<Props> = ({ onViewProfile }) => {
           <table className="w-full text-left border-collapse whitespace-nowrap min-w-[1000px]">
             <thead>
               <tr className="bg-teal/5 dark:bg-white/5 border-b border-teal/10 dark:border-white/5">
-                <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em] w-[250px]">Intern</th>
+                <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em] w-[250px]">
+                  Intern
+                </th>
+                <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">
+                  Status
+                </th>
                 <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">Team Email</th>
                 <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">Personal Email</th>
                 <th className="px-5 py-4 text-[10px] font-bold text-teal/40 dark:text-cream/30 uppercase tracking-[0.2em]">Contact Number</th>
@@ -91,6 +158,11 @@ export const InternsDirectory: React.FC<Props> = ({ onViewProfile }) => {
                         <span className="text-[11px] text-teal/60 dark:text-cream/50 mt-0.5">{intern.department}</span>
                       </div>
                     </div>
+                  </td>
+                  <td className="px-5 py-4 align-middle">
+                    <span className="text-[13px] text-teal/80 dark:text-cream/80 capitalize">
+                      {intern.status || 'Active'}
+                    </span>
                   </td>
                   <td className="px-5 py-4 align-middle">
                     <span className="text-[13px] text-teal/80 dark:text-cream/80">{intern.email || '—'}</span>

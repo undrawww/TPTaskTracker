@@ -103,6 +103,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .maybeSingle();
         
         setCurrentInternId(internData?.id || null);
+
+        // Dev override: allow forcing admin role via localStorage
+        // Toggle with: localStorage.setItem('tp_admin_override', 'true') then refresh
+        // Disable with: localStorage.removeItem('tp_admin_override') then refresh
+        if (localStorage.getItem('tp_admin_override') === 'true') {
+          setRole('admin');
+        }
       } else {
         // userRole is null (new Google user with no profile)
         setRole(null);

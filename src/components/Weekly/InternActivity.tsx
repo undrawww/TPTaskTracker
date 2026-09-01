@@ -299,7 +299,7 @@ export const InternActivity: React.FC<Props> = ({ interns }) => {
                  <TaskUpdates 
                    taskId={activeCommentTaskId} 
                    taskName={activeCommentTaskName}
-                   readOnly={true}
+                   readOnly={false}
                  />
                </div>
             </motion.div>

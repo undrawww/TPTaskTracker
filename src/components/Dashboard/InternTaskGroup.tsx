@@ -70,7 +70,7 @@ export const InternTaskGroup: React.FC<Props> = ({ internId, internName, internU
   }, [internName]);
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Translate.toString(transform),
     transition,
   };
 
@@ -78,7 +78,7 @@ export const InternTaskGroup: React.FC<Props> = ({ internId, internName, internU
     <div 
       ref={setSortableRef} 
       style={style} 
-      className={`w-64 flex-shrink-0 space-y-2.5 ${isDragging ? 'opacity-50 relative z-50 bg-white dark:bg-[#002530] rounded-xl shadow-xl' : ''}`}
+      className={`w-64 flex-shrink-0 space-y-2.5 ${isDragging ? 'opacity-30' : ''}`}
     >
       <div className="flex items-center gap-2.5 px-1 group/intern">
         {/* Drag Handle */}

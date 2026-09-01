@@ -186,6 +186,8 @@ export const Dashboard: React.FC = () => {
     return []; // intern but not added yet sees nothing
   })().filter(i => {
     if ((i.department as string) === 'Administrator') return false;
+    if (i.status === 'inactive') return false;
+    if (i.status === 'Graduated' || i.status === 'Cancelled') return false;
     return true;
   });
 

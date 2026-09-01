@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { DepartmentPanel } from './DepartmentPanel';
-import { DEPARTMENTS, type Intern, type DailyTask, type TaskStatus, type Department } from '../../types';
+import { DEPARTMENTS, POOL_UUIDS, type Intern, type DailyTask, type TaskStatus, type Department } from '../../types';
 import { DndContext, DragOverlay, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates, arrayMove } from '@dnd-kit/sortable';
@@ -89,8 +89,16 @@ export const DailyTracker: React.FC<Props> = ({
         targetDept = overIntern.department;
       } else if (overInternId.startsWith('dept-container-')) {
         targetDept = overInternId.replace('dept-container-', '') as Department;
+      } else if (overInternId.startsWith('task-container-')) {
+        const tIntern = interns.find(i => i.id === overInternId.replace('task-container-', ''));
+        if (tIntern) targetDept = tIntern.department;
       } else {
-        return;
+        const deptFromPool = (Object.keys(POOL_UUIDS) as Department[]).find(dept => POOL_UUIDS[dept] === overInternId);
+        if (deptFromPool) {
+          targetDept = deptFromPool;
+        } else {
+          return;
+        }
       }
       
       const internsInDept = interns.filter(i => i.department === targetDept).sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
@@ -186,8 +194,9 @@ export const DailyTracker: React.FC<Props> = ({
     setActiveDragId(null);
   };
 
-  // Find the active task for drag overlay
+  // Find the active item for drag overlay
   const activeDragTask = activeDragId ? tasks.find(t => t.id === activeDragId) : null;
+  const activeDragIntern = activeDragId && !activeDragTask ? interns.find(i => i.id === activeDragId) : null;
 
   // Calculate max intern rows across regular departments for synchronized grid alignment
   const regularDepts = DEPARTMENTS.filter((dept: Department) => dept !== 'BizDev Leadership Team' && (dept as string) !== 'BizDev Team');
@@ -307,11 +316,18 @@ export const DailyTracker: React.FC<Props> = ({
           </div>
         </div>
       )}
-      {/* Drag overlay - renders a floating task preview that follows the cursor */}
-      <DragOverlay dropAnimation={null}>
+      {/* Drag overlay - renders a floating preview that follows the cursor */}
+      <DragOverlay>
         {activeDragTask ? (
           <div className="px-3 py-2 bg-white dark:bg-[#002530] rounded-lg shadow-xl border border-teal/20 dark:border-white/20 max-w-[260px] opacity-90">
             <span className="text-sm text-teal dark:text-cream truncate block">{activeDragTask.task_name}</span>
+          </div>
+        ) : activeDragIntern ? (
+          <div className="w-64 flex items-center gap-3 px-3 py-2 bg-white dark:bg-[#002530] rounded-xl shadow-2xl border border-teal/20 dark:border-white/20 opacity-95">
+             <div className="w-8 h-8 rounded-full bg-teal/10 dark:bg-white/5 flex items-center justify-center text-teal dark:text-cream font-bold text-xs">
+                {activeDragIntern.full_name.substring(0, 2).toUpperCase()}
+             </div>
+             <span className="font-bold text-teal dark:text-cream text-sm truncate">{activeDragIntern.full_name}</span>
           </div>
         ) : null}
       </DragOverlay>

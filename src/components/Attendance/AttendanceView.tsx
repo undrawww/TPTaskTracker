@@ -1,11 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAttendance } from '../../hooks/useAttendance';
 import { AttendanceInternCard } from './AttendanceInternCard';
 import { AttendanceSkeleton } from '../Skeleton/DashboardSkeleton';
-import { CustomDropdown } from '../common/CustomDropdown';
-
-export type SortOption = 'department' | 'name' | 'time_in';
 
 export const AttendanceView: React.FC<{initialDate?: string}> = ({ initialDate }) => {
   const { role, currentInternId } = useAuth();
@@ -25,52 +22,41 @@ export const AttendanceView: React.FC<{initialDate?: string}> = ({ initialDate }
     const saved = localStorage.getItem('padua_attendance_show_times');
     return saved !== null ? saved === 'true' : true;
   });
-  const [sortBy, setSortBy] = useState<SortOption>(() => {
-    const saved = localStorage.getItem('padua_attendance_sort_by');
-    return (saved as SortOption) || 'department';
-  });
 
   React.useEffect(() => {
     localStorage.setItem('padua_attendance_show_times', String(showTimeColumns));
   }, [showTimeColumns]);
 
-  React.useEffect(() => {
-    localStorage.setItem('padua_attendance_sort_by', sortBy);
-  }, [sortBy]);
-
   const isAdmin = role === 'admin';
 
   // Filter: Interns not added yet see nothing. Added interns and admins see everyone.
-  let displayRecords = records;
-  if (role === 'intern' && !currentInternId) {
-    displayRecords = [];
-  }
-    
-  displayRecords = displayRecords.filter(r => 
-    r.intern?.full_name !== 'Administrator (Invite)' && 
-    r.intern?.department !== 'BizDev Leadership Team' &&
-    (r.intern?.department as string) !== 'BizDev Team'
-  );
+  const displayRecords = useMemo(() => {
+    let filtered = records;
+    if (role === 'intern' && !currentInternId) {
+      filtered = [];
+    }
+      
+    filtered = filtered.filter(r => 
+      r.intern?.full_name !== 'Administrator (Invite)' && 
+      r.intern?.department !== 'BizDev Leadership Team' &&
+      (r.intern?.department as string) !== 'BizDev Team' &&
+      r.intern?.status !== 'inactive' &&
+      r.intern?.status !== 'Graduated' &&
+      r.intern?.status !== 'Cancelled'
+    );
 
-  displayRecords.sort((a, b) => {
-    if (sortBy === 'department') {
+    // Sort by department by default
+    return filtered.sort((a, b) => {
+      // 1. Department
       const deptA = a.intern?.department || '';
       const deptB = b.intern?.department || '';
-      if (deptA === deptB) {
-        return (a.intern?.full_name || '').localeCompare(b.intern?.full_name || '');
-      }
-      return deptA.localeCompare(deptB);
-    } else if (sortBy === 'name') {
+      const deptComparison = deptA.localeCompare(deptB);
+      if (deptComparison !== 0) return deptComparison;
+      
+      // 2. Name
       return (a.intern?.full_name || '').localeCompare(b.intern?.full_name || '');
-    } else if (sortBy === 'time_in') {
-      const timeA = a.time_in ? new Date(a.time_in).getTime() : Infinity;
-      const timeB = b.time_in ? new Date(b.time_in).getTime() : Infinity;
-      return timeA - timeB;
-    }
-    return 0;
-  });
-
-
+    });
+  }, [records, role, currentInternId]);
 
   /** Format date for the header display */
   const displayDate = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
@@ -160,29 +146,6 @@ export const AttendanceView: React.FC<{initialDate?: string}> = ({ initialDate }
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
               </button>
-
-              <button
-                onClick={() => setShowTimeColumns(!showTimeColumns)}
-                className={`ml-2 px-3 py-2 text-xs font-bold rounded-xl transition-all duration-200 border ${
-                  showTimeColumns 
-                    ? 'bg-teal/10 dark:bg-white/10 text-teal dark:text-cream border-teal/20 dark:border-white/20' 
-                    : 'bg-transparent text-teal/50 dark:text-cream/50 border-teal/10 dark:border-white/10 hover:bg-teal/5 dark:hover:bg-white/5'
-                }`}
-                title={showTimeColumns ? "Hide time columns" : "Show time columns"}
-              >
-                {showTimeColumns ? 'Hide Times' : 'Show Times'}
-              </button>
-
-              <CustomDropdown
-                value={sortBy}
-                onChange={(val) => setSortBy(val as SortOption)}
-                options={[
-                  { label: 'Sort by Dept', value: 'department' },
-                  { label: 'Sort by Name', value: 'name' },
-                  { label: 'Sort by Time In', value: 'time_in' }
-                ]}
-                className="ml-2 px-3 py-2 text-xs font-bold rounded-xl transition-all duration-200 border bg-white dark:bg-[#001a22] text-teal dark:text-cream border-teal/10 dark:border-white/10 hover:border-teal/20 dark:hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-gold/30"
-              />
             </div>
           </div>
 
