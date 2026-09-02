@@ -10,6 +10,14 @@ export const ProfileAbout: React.FC<ProfileAboutProps> = ({ intern, role }) => {
   return (
     <div className="bg-[#d9caa8]/30 dark:bg-[#001a22] rounded-3xl border border-teal/10 dark:border-white/5 shadow-sm p-8 animate-fade-in flex flex-col h-full">
       
+      <div className="flex items-center gap-2 mb-6">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-teal/40 dark:text-cream/40">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <h2 className="text-lg font-bold text-teal dark:text-cream">About Me</h2>
+      </div>
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
         <div>
           <p className="text-[11px] font-bold text-teal/50 dark:text-cream/40 uppercase tracking-wider mb-1">Department</p>
