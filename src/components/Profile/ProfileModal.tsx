@@ -867,16 +867,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
                     </div>
                     {role === 'intern' && (
                       <>
-                        <div>
-                          <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Bio / About Me</label>
-                          <textarea
-                            value={bio}
-                            onChange={(e) => setBio(e.target.value)}
-                            placeholder="Tell us a little about yourself..."
-                            rows={4}
-                            className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold resize-none"
-                          />
-                        </div>
+
                         <div>
                           <TagInput 
                             label="Skills"
