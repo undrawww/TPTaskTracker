@@ -59,6 +59,14 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
   const [requiredHours, setRequiredHours] = useState('');
   const [bio, setBio] = useState('');
   const [skills, setSkills] = useState<string[]>([]);
+  // New interest fields
+  const [favoriteQuote, setFavoriteQuote] = useState('');
+  const [favoriteColor, setFavoriteColor] = useState('');
+  const [favoriteFoods, setFavoriteFoods] = useState<string[]>([]);
+  const [favoriteMovies, setFavoriteMovies] = useState<string[]>([]);
+  const [careerAspirations, setCareerAspirations] = useState<string[]>([]);
+  const [businessInterests, setBusinessInterests] = useState<string[]>([]);
+  const [skillsToLearn, setSkillsToLearn] = useState<string[]>([]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [currentName, setCurrentName] = useState<string>('');
@@ -76,7 +84,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'profile' | 'academic' | 'security' | 'payment'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'academic' | 'security' | 'payment' | 'interests'>('profile');
 
   // Fetch current profile name on open
   React.useEffect(() => {
@@ -115,6 +123,13 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
             setRequiredHours(draft.requiredHours || '');
             setBio(draft.bio || '');
             setSkills(draft.skills || []);
+            setFavoriteQuote(draft.favoriteQuote || '');
+            setFavoriteColor(draft.favoriteColor || '');
+            setFavoriteFoods(draft.favoriteFoods || []);
+            setFavoriteMovies(draft.favoriteMovies || []);
+            setCareerAspirations(draft.careerAspirations || []);
+            setBusinessInterests(draft.businessInterests || []);
+            setSkillsToLearn(draft.skillsToLearn || []);
             
             setIsFormLoaded(true);
             return; // Skip supabase fetch
@@ -179,6 +194,14 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
                 // ignore
               }
             }
+            // Load interest fields
+            if (merged.favorite_quote) setFavoriteQuote(merged.favorite_quote);
+            if (merged.favorite_color) setFavoriteColor(merged.favorite_color);
+            if (merged.favorite_foods && Array.isArray(merged.favorite_foods)) setFavoriteFoods(merged.favorite_foods);
+            if (merged.favorite_movies && Array.isArray(merged.favorite_movies)) setFavoriteMovies(merged.favorite_movies);
+            if (merged.career_aspirations && Array.isArray(merged.career_aspirations)) setCareerAspirations(merged.career_aspirations);
+            if (merged.business_interests && Array.isArray(merged.business_interests)) setBusinessInterests(merged.business_interests);
+            if (merged.skills_to_learn && Array.isArray(merged.skills_to_learn)) setSkillsToLearn(merged.skills_to_learn);
           }
           setIsFormLoaded(true);
         });
@@ -199,11 +222,12 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
     if (isOpen && isFormLoaded) {
       const draft = {
         fullName, username, location, pinLocation, pinLocationName, program, currentYear, school, contactNumber, personalEmail, birthday, expectedGraduationDate, requiredHours, bio, skills,
+        favoriteQuote, favoriteColor, favoriteFoods, favoriteMovies, careerAspirations, businessInterests, skillsToLearn,
         timestamp: Date.now()
       };
       localStorage.setItem('tp_profile_draft', JSON.stringify(draft));
     }
-  }, [isOpen, isFormLoaded, fullName, username, location, pinLocation, pinLocationName, program, currentYear, school, contactNumber, personalEmail, birthday, expectedGraduationDate, requiredHours, bio, skills]);
+  }, [isOpen, isFormLoaded, fullName, username, location, pinLocation, pinLocationName, program, currentYear, school, contactNumber, personalEmail, birthday, expectedGraduationDate, requiredHours, bio, skills, favoriteQuote, favoriteColor, favoriteFoods, favoriteMovies, careerAspirations, businessInterests, skillsToLearn]);
 
   const handleSelectAvatar = async (idx: number) => {
     setAvatarIndex(idx);
@@ -472,7 +496,14 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
             .update({ 
               ...updateData,
               bio, 
-              skills: skills
+              skills: skills,
+              favorite_quote: favoriteQuote || null,
+              favorite_color: favoriteColor || null,
+              favorite_foods: favoriteFoods.length > 0 ? favoriteFoods : null,
+              favorite_movies: favoriteMovies.length > 0 ? favoriteMovies : null,
+              career_aspirations: careerAspirations.length > 0 ? careerAspirations : null,
+              business_interests: businessInterests.length > 0 ? businessInterests : null,
+              skills_to_learn: skillsToLearn.length > 0 ? skillsToLearn : null,
             })
             .eq('email', user.email);
           if (internError) throw internError;
@@ -558,6 +589,15 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
             >
               Payment
             </button>
+            {role === 'intern' && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('interests')}
+                className={`pb-3 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${activeTab === 'interests' ? 'border-gold text-teal dark:text-cream' : 'border-transparent text-teal/50 dark:text-cream/50 hover:text-teal dark:hover:text-cream'}`}
+              >
+                Interests
+              </button>
+            )}
           </div>
         )}
 
@@ -1032,6 +1072,78 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
                           </label>
                         </div>
                       )}
+                    </div>
+                  </div>
+                )}
+
+                {/* INTERESTS TAB */}
+                {activeTab === 'interests' && role === 'intern' && (
+                  <div className="space-y-5 animate-fade-in">
+                    <div>
+                      <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Favorite Quote</label>
+                      <textarea
+                        value={favoriteQuote}
+                        onChange={(e) => setFavoriteQuote(e.target.value)}
+                        placeholder="A quotation that inspires you..."
+                        rows={2}
+                        className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold resize-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-teal/70 dark:text-cream/70 uppercase tracking-wider mb-1.5">Favorite Color</label>
+                      <input
+                        type="text"
+                        value={favoriteColor}
+                        onChange={(e) => setFavoriteColor(e.target.value)}
+                        placeholder="e.g. Blue, Sage Green"
+                        className="w-full px-4 py-2.5 rounded-xl border border-cream-dark dark:border-teal-light bg-cream/40 dark:bg-[#003946] text-teal dark:text-cream placeholder:text-teal/30 dark:placeholder:text-cream/30 focus:outline-none focus:ring-2 focus:ring-gold"
+                      />
+                    </div>
+                    <div>
+                      <TagInput 
+                        label="Favorite Food (Top 3)"
+                        placeholder="e.g. Adobo, Sinigang, Fried Chicken" 
+                        tags={favoriteFoods} 
+                        onChange={(tags) => setFavoriteFoods(tags.slice(0, 3))} 
+                      />
+                      {favoriteFoods.length >= 3 && (
+                        <p className="text-[10px] text-teal/50 dark:text-cream/40 mt-1">Maximum of 3 items reached</p>
+                      )}
+                    </div>
+                    <div>
+                      <TagInput 
+                        label="Favorite Movies of All Time (Top 5)"
+                        placeholder="e.g. Inception, The Shawshank Redemption" 
+                        tags={favoriteMovies} 
+                        onChange={(tags) => setFavoriteMovies(tags.slice(0, 5))} 
+                      />
+                      {favoriteMovies.length >= 5 && (
+                        <p className="text-[10px] text-teal/50 dark:text-cream/40 mt-1">Maximum of 5 items reached</p>
+                      )}
+                    </div>
+                    <div>
+                      <TagInput 
+                        label="Career Aspirations"
+                        placeholder="e.g. Financial Advisor, Entrepreneur" 
+                        tags={careerAspirations} 
+                        onChange={setCareerAspirations} 
+                      />
+                    </div>
+                    <div>
+                      <TagInput 
+                        label="Business Interests"
+                        placeholder="e.g. Real Estate, E-commerce" 
+                        tags={businessInterests} 
+                        onChange={setBusinessInterests} 
+                      />
+                    </div>
+                    <div>
+                      <TagInput 
+                        label="Skills to Improve or Learn"
+                        placeholder="e.g. Public Speaking, Sales, Leadership" 
+                        tags={skillsToLearn} 
+                        onChange={setSkillsToLearn} 
+                      />
                     </div>
                   </div>
                 )}

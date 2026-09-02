@@ -63,6 +63,14 @@ export interface Intern {
   interests?: string[];
   strengths?: string[];
   career_goals?: string[];
+  // New profile interest fields
+  favorite_quote?: string;
+  favorite_color?: string;
+  favorite_foods?: string[];
+  favorite_movies?: string[];
+  career_aspirations?: string[];
+  business_interests?: string[];
+  skills_to_learn?: string[];
   created_at?: string;
   order_index?: number;
 }
