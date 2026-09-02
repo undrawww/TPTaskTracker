@@ -60,7 +60,7 @@ export const ProfileAbout: React.FC<ProfileAboutProps> = ({ intern, role }) => {
 
       {/* ── Interests & Favorites ──────────────────────── */}
       {(intern.favorite_quote || intern.favorite_color || (intern.favorite_foods && intern.favorite_foods.length > 0) || (intern.favorite_movies && intern.favorite_movies.length > 0) || (intern.career_aspirations && intern.career_aspirations.length > 0) || (intern.business_interests && intern.business_interests.length > 0) || (intern.skills_to_learn && intern.skills_to_learn.length > 0)) && (
-        <div className="mt-8 pt-8 border-t border-teal/10 dark:border-white/5 flex flex-col gap-8">
+        <div className="mt-8 pt-8 border-t border-teal/10 dark:border-white/5 flex flex-col gap-5">
           
           <div className="flex items-center gap-2">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gold">
@@ -71,7 +71,7 @@ export const ProfileAbout: React.FC<ProfileAboutProps> = ({ intern, role }) => {
           
           {/* Favorite Quote */}
           {intern.favorite_quote && (
-            <div className="relative py-4 px-6 md:px-12 flex justify-center">
+            <div className="relative pb-4 px-6 md:px-12 flex justify-center">
               <blockquote className="relative z-10 text-base md:text-lg italic font-medium text-teal-dark dark:text-cream/90 text-center max-w-2xl">
                 "{intern.favorite_quote}"
               </blockquote>
