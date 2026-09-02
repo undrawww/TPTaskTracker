@@ -154,7 +154,7 @@ export const ProfileAbout: React.FC<ProfileAboutProps> = ({ intern, role }) => {
                       <line x1="17" y1="7" x2="22" y2="7"></line>
                       <line x1="17" y1="17" x2="22" y2="17"></line>
                     </svg>
-                    Favorite Movies
+                    Favorite Movies or Series
                   </h3>
                   <div className="space-y-2">
                     {intern.favorite_movies.map((movie, idx) => (

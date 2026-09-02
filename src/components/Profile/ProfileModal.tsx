@@ -1103,8 +1103,8 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
                     </div>
                     <div>
                       <TagInput 
-                        label="Favorite Movies of All Time (Top 5)"
-                        placeholder="e.g. Inception, The Shawshank Redemption" 
+                        label="Favorite Movies or Series (Top 5)"
+                        placeholder="e.g. Inception, Stranger Things" 
                         tags={favoriteMovies} 
                         onChange={(tags) => setFavoriteMovies(tags.slice(0, 5))} 
                       />
