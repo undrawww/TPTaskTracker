@@ -98,7 +98,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
     }
 
     if (isOpen && user?.email) {
-      const draftStr = localStorage.getItem('tp_profile_draft');
+      const draftStr = localStorage.getItem('tp_profile_draft_v2');
       if (draftStr) {
         try {
           const draft = JSON.parse(draftStr);
@@ -135,10 +135,10 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
             return; // Skip supabase fetch
           } else {
             // Expired draft, clean it up
-            localStorage.removeItem('tp_profile_draft');
+            localStorage.removeItem('tp_profile_draft_v2');
           }
         } catch (e) {
-          localStorage.removeItem('tp_profile_draft');
+          localStorage.removeItem('tp_profile_draft_v2');
         }
       }
 
@@ -194,14 +194,15 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
                 // ignore
               }
             }
-            // Load interest fields
-            if (merged.favorite_quote) setFavoriteQuote(merged.favorite_quote);
-            if (merged.favorite_color) setFavoriteColor(merged.favorite_color);
-            if (merged.favorite_foods && Array.isArray(merged.favorite_foods)) setFavoriteFoods(merged.favorite_foods);
-            if (merged.favorite_movies && Array.isArray(merged.favorite_movies)) setFavoriteMovies(merged.favorite_movies);
-            if (merged.career_aspirations && Array.isArray(merged.career_aspirations)) setCareerAspirations(merged.career_aspirations);
-            if (merged.business_interests && Array.isArray(merged.business_interests)) setBusinessInterests(merged.business_interests);
-            if (merged.skills_to_learn && Array.isArray(merged.skills_to_learn)) setSkillsToLearn(merged.skills_to_learn);
+            // Load interest fields (they are only saved to interns table)
+            const iSource = iData || {};
+            if (iSource.favorite_quote) setFavoriteQuote(iSource.favorite_quote);
+            if (iSource.favorite_color) setFavoriteColor(iSource.favorite_color);
+            if (iSource.favorite_foods && Array.isArray(iSource.favorite_foods)) setFavoriteFoods(iSource.favorite_foods);
+            if (iSource.favorite_movies && Array.isArray(iSource.favorite_movies)) setFavoriteMovies(iSource.favorite_movies);
+            if (iSource.career_aspirations && Array.isArray(iSource.career_aspirations)) setCareerAspirations(iSource.career_aspirations);
+            if (iSource.business_interests && Array.isArray(iSource.business_interests)) setBusinessInterests(iSource.business_interests);
+            if (iSource.skills_to_learn && Array.isArray(iSource.skills_to_learn)) setSkillsToLearn(iSource.skills_to_learn);
           }
           setIsFormLoaded(true);
         });
@@ -225,7 +226,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
         favoriteQuote, favoriteColor, favoriteFoods, favoriteMovies, careerAspirations, businessInterests, skillsToLearn,
         timestamp: Date.now()
       };
-      localStorage.setItem('tp_profile_draft', JSON.stringify(draft));
+      localStorage.setItem('tp_profile_draft_v2', JSON.stringify(draft));
     }
   }, [isOpen, isFormLoaded, fullName, username, location, pinLocation, pinLocationName, program, currentYear, school, contactNumber, personalEmail, birthday, expectedGraduationDate, requiredHours, bio, skills, favoriteQuote, favoriteColor, favoriteFoods, favoriteMovies, careerAspirations, businessInterests, skillsToLearn]);
 
@@ -516,7 +517,7 @@ export const ProfileModal: React.FC<Props> = ({ isOpen, onClose, onLogout, onSav
       }
 
       setSuccess('Profile updated successfully!');
-      localStorage.removeItem('tp_profile_draft');
+      localStorage.removeItem('tp_profile_draft_v2');
       setPassword('');
       setConfirmPassword('');
       if (onSave) onSave();
