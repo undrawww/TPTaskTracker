@@ -20,6 +20,15 @@ export const PagesToFollow: React.FC = () => {
   const [pages, setPages] = useState<PageLink[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // View state
+  const [viewMode, setViewMode] = useState<'list' | 'large' | 'xlarge'>(() => {
+    return (localStorage.getItem('tp_pages_view') as 'list' | 'large' | 'xlarge') || 'list';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('tp_pages_view', viewMode);
+  }, [viewMode]);
+
   // Modal state
   const [showModal, setShowModal] = useState(false);
   const [editingPage, setEditingPage] = useState<PageLink | null>(null);
@@ -136,7 +145,7 @@ export const PagesToFollow: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="max-w-[1200px] mx-auto w-full animate-fade-in">
+      <div className="w-full animate-fade-in">
         <div className="space-y-4">
           {[1, 2, 3].map(i => (
             <div key={i} className="h-20 bg-teal/5 dark:bg-white/5 rounded-xl animate-pulse" />
@@ -147,25 +156,67 @@ export const PagesToFollow: React.FC = () => {
   }
 
   return (
-    <div className="max-w-[1200px] mx-auto w-full animate-fade-in">
+    <div className="w-full animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold text-teal dark:text-cream">Pages to Follow</h1>
           <p className="text-sm text-teal/50 dark:text-cream/40 mt-0.5">Important pages and links for all team members</p>
         </div>
-        {isAdmin && (
-          <button
-            onClick={openAddModal}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal dark:bg-teal-light text-white text-sm font-semibold hover:bg-teal-light dark:hover:bg-teal-lighter transition-all duration-200 shadow-sm hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Add Page
-          </button>
-        )}
+        
+        <div className="flex items-center gap-4">
+          <div className="flex bg-teal/5 dark:bg-white/5 rounded-lg p-1 border border-teal/10 dark:border-white/5">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-white dark:bg-white/10 text-teal dark:text-cream shadow-sm' : 'text-teal/40 dark:text-cream/40 hover:text-teal dark:hover:text-cream'}`}
+              title="List View"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="8" y1="6" x2="21" y2="6" />
+                <line x1="8" y1="12" x2="21" y2="12" />
+                <line x1="8" y1="18" x2="21" y2="18" />
+                <line x1="3" y1="6" x2="3.01" y2="6" />
+                <line x1="3" y1="12" x2="3.01" y2="12" />
+                <line x1="3" y1="18" x2="3.01" y2="18" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setViewMode('large')}
+              className={`p-1.5 rounded-md transition-all ${viewMode === 'large' ? 'bg-white dark:bg-white/10 text-teal dark:text-cream shadow-sm' : 'text-teal/40 dark:text-cream/40 hover:text-teal dark:hover:text-cream'}`}
+              title="Large Icons"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setViewMode('xlarge')}
+              className={`p-1.5 rounded-md transition-all ${viewMode === 'xlarge' ? 'bg-white dark:bg-white/10 text-teal dark:text-cream shadow-sm' : 'text-teal/40 dark:text-cream/40 hover:text-teal dark:hover:text-cream'}`}
+              title="Extra Large Icons"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="4" y="4" width="16" height="16" rx="2" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </button>
+          </div>
+
+          {isAdmin && (
+            <button
+              onClick={openAddModal}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal dark:bg-teal-light text-white text-sm font-semibold hover:bg-teal-light dark:hover:bg-teal-lighter transition-all duration-200 shadow-sm hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Add Page
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Empty State */}
@@ -186,65 +237,33 @@ export const PagesToFollow: React.FC = () => {
 
       {/* Pages List */}
       {categories.map(category => (
-        <div key={category} className="mb-6">
+        <div key={category} className="mb-8">
           {categories.length > 1 && (
-            <h2 className="text-xs font-bold text-teal/50 dark:text-cream/40 uppercase tracking-wider mb-3">{category}</h2>
+            <h2 className="text-xs font-bold text-teal/50 dark:text-cream/40 uppercase tracking-wider mb-4 border-b border-teal/10 dark:border-white/5 pb-2">{category}</h2>
           )}
-          <div className="space-y-2">
+          <div className={`
+            ${viewMode === 'list' ? 'space-y-2' : ''}
+            ${viewMode === 'large' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4' : ''}
+            ${viewMode === 'xlarge' ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6' : ''}
+          `}>
             {grouped[category].map(page => (
               <div
                 key={page.id}
-                className="group flex items-center gap-4 bg-[#d9caa8]/30 dark:bg-[#001a22] rounded-xl border border-teal/10 dark:border-white/5 p-4 hover:border-teal/20 dark:hover:border-white/10 transition-all duration-200"
+                className={`group relative bg-[#d9caa8]/30 dark:bg-[#001a22] rounded-xl border border-teal/10 dark:border-white/5 transition-all duration-200 hover:border-teal/20 dark:hover:border-white/10 hover:shadow-lg
+                  ${viewMode === 'list' ? 'flex items-center gap-4 p-4' : 'flex flex-col p-6 items-center text-center'}
+                `}
               >
-                {/* Favicon */}
-                <div className="w-10 h-10 rounded-lg bg-teal/5 dark:bg-white/5 flex items-center justify-center shrink-0">
-                  {getFaviconUrl(page.url) ? (
-                    <img
-                      src={getFaviconUrl(page.url)!}
-                      alt=""
-                      className="w-5 h-5"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                  ) : (
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal/40 dark:text-cream/40">
-                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                    </svg>
-                  )}
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <a
-                    href={page.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm font-semibold text-teal dark:text-cream hover:text-teal-light dark:hover:text-gold transition-colors"
-                  >
-                    {page.title}
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block ml-1.5 opacity-40">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                      <polyline points="15 3 21 3 21 9" />
-                      <line x1="10" y1="14" x2="21" y2="3" />
-                    </svg>
-                  </a>
-                  {page.description && (
-                    <p className="text-xs text-teal/50 dark:text-cream/40 mt-0.5 truncate">{page.description}</p>
-                  )}
-                  <p className="text-[10px] text-teal/30 dark:text-cream/20 mt-0.5 truncate">{page.url}</p>
-                </div>
-
-                {/* Admin Actions */}
+                {/* Admin Actions (Absolute pos for grid views) */}
                 {isAdmin && (
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                  <div className={`flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10
+                    ${viewMode === 'list' ? 'shrink-0' : 'absolute top-2 right-2 bg-cream/90 dark:bg-[#001f26]/90 p-1 rounded-lg backdrop-blur-sm border border-teal/10 dark:border-white/10'}
+                  `}>
                     <button
-                      onClick={() => openEditModal(page)}
-                      className="p-2 rounded-lg hover:bg-teal/10 dark:hover:bg-white/10 text-teal/40 dark:text-cream/40 hover:text-teal dark:hover:text-cream transition-colors"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); openEditModal(page); }}
+                      className="p-1.5 rounded-md hover:bg-teal/10 dark:hover:bg-white/10 text-teal/60 dark:text-cream/60 hover:text-teal dark:hover:text-cream transition-colors"
                       title="Edit"
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                       </svg>
@@ -252,25 +271,25 @@ export const PagesToFollow: React.FC = () => {
                     {deletingId === page.id ? (
                       <div className="flex items-center gap-1">
                         <button
-                          onClick={() => handleDelete(page.id)}
-                          className="px-2 py-1 text-[10px] font-bold text-red-500 bg-red-500/10 rounded-lg hover:bg-red-500/20 transition-colors"
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(page.id); }}
+                          className="px-2 py-1 text-[10px] font-bold text-red-500 bg-red-500/10 rounded-md hover:bg-red-500/20 transition-colors"
                         >
                           Confirm
                         </button>
                         <button
-                          onClick={() => setDeletingId(null)}
-                          className="px-2 py-1 text-[10px] font-bold text-teal/50 dark:text-cream/50 bg-teal/5 dark:bg-white/5 rounded-lg hover:bg-teal/10 dark:hover:bg-white/10 transition-colors"
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDeletingId(null); }}
+                          className="px-2 py-1 text-[10px] font-bold text-teal/50 dark:text-cream/50 hover:bg-teal/10 dark:hover:bg-white/10 transition-colors"
                         >
                           Cancel
                         </button>
                       </div>
                     ) : (
                       <button
-                        onClick={() => setDeletingId(page.id)}
-                        className="p-2 rounded-lg hover:bg-red-500/10 text-teal/40 dark:text-cream/40 hover:text-red-500 transition-colors"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDeletingId(page.id); }}
+                        className="p-1.5 rounded-md hover:bg-red-500/10 text-teal/60 dark:text-cream/60 hover:text-red-500 transition-colors"
                         title="Delete"
                       >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="3 6 5 6 21 6" />
                           <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                         </svg>
@@ -278,6 +297,78 @@ export const PagesToFollow: React.FC = () => {
                     )}
                   </div>
                 )}
+
+                {/* Card Clickable Area (Whole card in grid views) */}
+                <a
+                  href={page.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`
+                    ${viewMode === 'list' ? 'contents' : 'flex flex-col items-center w-full focus:outline-none'}
+                  `}
+                >
+                  {/* Favicon */}
+                  <div className={`
+                    rounded-2xl bg-teal/5 dark:bg-white/5 flex items-center justify-center shrink-0 mb-1 transition-transform group-hover:scale-105 group-hover:shadow-md
+                    ${viewMode === 'list' ? 'w-10 h-10 rounded-lg mb-0' : ''}
+                    ${viewMode === 'large' ? 'w-16 h-16' : ''}
+                    ${viewMode === 'xlarge' ? 'w-24 h-24 shadow-sm' : ''}
+                  `}>
+                    {getFaviconUrl(page.url) ? (
+                      <img
+                        src={getFaviconUrl(page.url)!}
+                        alt=""
+                        className={`
+                          ${viewMode === 'list' ? 'w-5 h-5' : ''}
+                          ${viewMode === 'large' ? 'w-8 h-8' : ''}
+                          ${viewMode === 'xlarge' ? 'w-12 h-12' : ''}
+                        `}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`text-teal/30 dark:text-cream/30
+                        ${viewMode === 'list' ? 'w-5 h-5' : ''}
+                        ${viewMode === 'large' ? 'w-8 h-8' : ''}
+                        ${viewMode === 'xlarge' ? 'w-12 h-12' : ''}
+                      `}>
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                      </svg>
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className={`min-w-0 ${viewMode === 'list' ? 'flex-1 ml-4' : 'mt-3 w-full px-2'}`}>
+                    <h3 className={`font-semibold text-teal dark:text-cream group-hover:text-gold transition-colors
+                      ${viewMode === 'list' ? 'text-sm' : 'text-base mb-1 truncate'}
+                      ${viewMode === 'xlarge' ? 'text-lg' : ''}
+                    `}>
+                      {page.title}
+                      {viewMode === 'list' && (
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="inline-block ml-1.5 opacity-40">
+                          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                          <polyline points="15 3 21 3 21 9" />
+                          <line x1="10" y1="14" x2="21" y2="3" />
+                        </svg>
+                      )}
+                    </h3>
+                    
+                    {page.description && (
+                      <p className={`text-teal/50 dark:text-cream/40 
+                        ${viewMode === 'list' ? 'text-xs mt-0.5 truncate' : 'text-[11px] line-clamp-2 leading-snug mx-auto max-w-[200px]'}
+                        ${viewMode === 'xlarge' ? 'text-xs' : ''}
+                      `}>
+                        {page.description}
+                      </p>
+                    )}
+                    
+                    {viewMode === 'list' && (
+                      <p className="text-[10px] text-teal/30 dark:text-cream/20 mt-0.5 truncate">{page.url}</p>
+                    )}
+                  </div>
+                </a>
               </div>
             ))}
           </div>
