@@ -22,13 +22,14 @@ import { useDailyTasks } from '../hooks/useDailyTasks';
 import { TaskUpdates } from '../components/Dashboard/TaskUpdates';
 import { DailyRecordTab } from '../components/Dashboard/DailyRecordTab';
 import { BizDevAllStars } from '../components/BizDev/BizDevAllStars';
+import { PagesToFollow } from '../components/Pages/PagesToFollow';
 
 import { useAnalytics } from '../hooks/useAnalytics';
 import { ProfilePage } from '../components/Profile/ProfilePage';
 import { isPoolId, type TaskStatus } from '../types';
 import { generateSlug } from '../utils/slugify';
 
-type ActiveView = 'tracker' | 'attendance' | 'interns' | 'profile' | 'videos' | 'allstars';
+type ActiveView = 'tracker' | 'attendance' | 'interns' | 'pages' | 'profile' | 'videos' | 'allstars';
 
 export const Dashboard: React.FC = () => {
   const { role, currentInternId } = useAuth();
@@ -42,6 +43,7 @@ export const Dashboard: React.FC = () => {
     tracker: '/tasktracker',
     attendance: '/attendance',
     interns: '/interns',
+    pages: '/pages',
     profile: '/profile',
     videos: '/videos',
     allstars: '/allstars',
@@ -52,6 +54,7 @@ export const Dashboard: React.FC = () => {
     '/tasktracker': 'tracker',
     '/attendance': 'attendance',
     '/interns': 'interns',
+    '/pages': 'pages',
     '/profile': 'profile',
     '/videos': 'videos',
     '/allstars': 'allstars',
@@ -474,6 +477,10 @@ export const Dashboard: React.FC = () => {
 
             {activeView === 'profile' && (
               <ProfilePage internId={viewingProfileId || undefined} />
+            )}
+
+            {activeView === 'pages' && (
+              <PagesToFollow />
             )}
 
             {activeView === 'videos' && (

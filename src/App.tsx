@@ -90,6 +90,16 @@ function App() {
               }
             />
 
+            {/* Pages route */}
+            <Route
+              path="/pages"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Videos route */}
             <Route
               path="/videos"
