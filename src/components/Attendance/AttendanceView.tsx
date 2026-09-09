@@ -32,14 +32,25 @@ export const AttendanceView: React.FC<{initialDate?: string}> = ({ initialDate }
       filtered = [];
     }
       
-    filtered = filtered.filter(r => 
-      r.intern?.full_name !== 'Administrator (Invite)' && 
-      r.intern?.department !== 'BizDev Leadership Team' &&
-      (r.intern?.department as string) !== 'BizDev Team' &&
-      r.intern?.status !== 'inactive' &&
-      r.intern?.status !== 'Graduated' &&
-      r.intern?.status !== 'Cancelled'
-    );
+    filtered = filtered.filter(r => {
+      // 1. Never show the Administrator invite account
+      if (r.intern?.full_name === 'Administrator (Invite)') return false;
+
+      // 2. Always show whitelisted interns, regardless of department or status
+      const name = r.intern?.full_name || '';
+      if (name.includes('Francheska') || name.includes('Mariz') || name.includes('Malaca') || name.includes('Estolas')) {
+        return true;
+      }
+
+      // 3. For everyone else, apply normal department and status filters
+      const dept = (r.intern?.department as string) || '';
+      const status = r.intern?.status;
+      
+      if (dept === 'BizDev Leadership Team' || dept === 'BizDev Team') return false;
+      if (status === 'inactive' || status === 'Graduated' || status === 'Cancelled') return false;
+
+      return true;
+    });
 
     // Sort by department by default
     return filtered.sort((a, b) => {
