@@ -458,7 +458,7 @@ export const Dashboard: React.FC = () => {
                 />
 
                 {showInternActivity && (
-                  <InternActivity interns={displayInterns} />
+                  <InternActivity interns={interns} />
                 )}
               </>
             )}

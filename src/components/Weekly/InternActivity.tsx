@@ -36,10 +36,10 @@ export const InternActivity: React.FC<Props> = ({ interns }) => {
   const [updates, setUpdates] = useState<any[]>([]);
   const [extraLoading, setExtraLoading] = useState(false);
 
-  // Filter out the admins and sort alphabetically
+  // Filter out the main admins but keep interns who might have 'admin' in email
   const adminNames = ['Daniel Padua', 'Nerizza', 'Wyn', 'Princess Isabel'];
   const sortedInterns = [...interns]
-    .filter(i => !adminNames.some(admin => i.full_name.includes(admin)) && !i.email.includes('admin'))
+    .filter(i => !adminNames.some(admin => i.full_name.includes(admin)))
     .sort((a, b) => a.full_name.localeCompare(b.full_name));
 
   const [dateSortDir, setDateSortDir] = useState<'asc' | 'desc'>('desc');
@@ -215,6 +215,10 @@ export const InternActivity: React.FC<Props> = ({ interns }) => {
     });
   }, [tasks, attendances, updates, dateSortDir]);
 
+  const totalHoursSum = useMemo(() => {
+    return attendances.reduce((sum, att) => sum + (att.total_hours || 0), 0);
+  }, [attendances]);
+
 
 
 
@@ -229,6 +233,13 @@ export const InternActivity: React.FC<Props> = ({ interns }) => {
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="flex items-center gap-2">
+            <div className="text-sm font-bold text-teal dark:text-cream whitespace-nowrap bg-teal/5 dark:bg-white/5 px-3 py-[9px] rounded-lg border border-teal/10 dark:border-white/10 flex items-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-teal/60 dark:text-cream/60">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              Total Hrs: {selectedInternId && attendances.length > 0 ? formatHours(totalHoursSum) : '--'}
+            </div>
             <CustomDropdown
               value={selectedInternId}
               onChange={setSelectedInternId}
