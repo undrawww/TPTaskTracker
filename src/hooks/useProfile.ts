@@ -16,28 +16,43 @@ export function useProfile(internId?: string) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    refreshProfile();
+    let isMounted = true;
+    
+    // Clear state before fetching to prevent showing the old profile during loading
+    setIntern(null);
+    setCertifications([]);
+    setTasks([]);
+    setWeeklyTasks([]);
+    setAttendance([]);
+
+    refreshProfile(isMounted);
+
+    return () => {
+      isMounted = false;
+    };
   }, [targetId, user?.email]);
 
-  const refreshProfile = async () => {
+  const refreshProfile = async (isMounted = true) => {
     if (!targetId && !user?.email && role !== 'admin') {
-      setLoading(false);
+      if (isMounted) setLoading(false);
       return;
     }
 
-    setLoading(true);
+    if (isMounted) setLoading(true);
     try {
         if (!isSupabaseConfigured) {
           if (role === 'admin' && !internId) {
-            setIntern({
-              id: 'admin',
-              full_name: 'Admin User',
-              department: 'Administrator' as Department,
-              email: user?.email || 'admin@example.com',
-              status: 'Active',
-              bio: 'System Administrator account.',
-            });
-            setLoading(false);
+            if (isMounted) {
+              setIntern({
+                id: 'admin',
+                full_name: 'Admin User',
+                department: 'Administrator' as Department,
+                email: user?.email || 'admin@example.com',
+                status: 'Active',
+                bio: 'System Administrator account.',
+              });
+              setLoading(false);
+            }
             return;
           }
           // Mock data or localStorage fallback for when Supabase isn't configured
@@ -55,15 +70,17 @@ export function useProfile(internId?: string) {
             current_year: '3rd Year',
             skills: ['Customer Support', 'Google Workspace', 'Communication', 'Problem Solving', 'Data Entry'],
           };
-          setIntern(mockIntern);
-          // Merge local storage certs
-          const storedCerts = JSON.parse(localStorage.getItem('padua_certifications') || '[]');
-          
-          setCertifications([
-            { id: '1', intern_id: targetId || 'demo-id', name: 'Google Workspace Fundamentals', issuer: 'Google', date_earned: '2026-05-15' },
-            { id: '2', intern_id: targetId || 'demo-id', name: 'Customer Service Excellence', issuer: 'Alison', date_earned: '2026-04-30' },
-            ...storedCerts.filter((c: any) => c.intern_id === targetId)
-          ]);
+          if (isMounted) {
+            setIntern(mockIntern);
+            // Merge local storage certs
+            const storedCerts = JSON.parse(localStorage.getItem('padua_certifications') || '[]');
+            
+            setCertifications([
+              { id: '1', intern_id: targetId || 'demo-id', name: 'Google Workspace Fundamentals', issuer: 'Google', date_earned: '2026-05-15' },
+              { id: '2', intern_id: targetId || 'demo-id', name: 'Customer Service Excellence', issuer: 'Alison', date_earned: '2026-04-30' },
+              ...storedCerts.filter((c: any) => c.intern_id === targetId)
+            ]);
+          }
 
           // Sync tasks with what Tracker uses in demo mode
           const storedTasks = localStorage.getItem('padua_daily_tasks');
@@ -78,16 +95,18 @@ export function useProfile(internId?: string) {
             // Fallback demo tasks
             const d = new Date();
             const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-            setTasks([
-              { id: 'dt-1', intern_id: targetId || 'demo-id', task_name: 'Review client onboarding checklist', status: 'Done', task_date: today },
-              { id: 'dt-2', intern_id: targetId || 'demo-id', task_name: 'Prepare advisor meeting notes', status: 'Done', task_date: today },
-              { id: 'dt-3', intern_id: targetId || 'demo-id', task_name: 'Update support documentation', status: 'Done', task_date: today },
-              { id: 'dt-4', intern_id: targetId || 'demo-id', task_name: 'Compile weekly financial report', status: 'Done', task_date: today },
-            ]);
-            setWeeklyTasks([]);
+            if (isMounted) {
+              setTasks([
+                { id: 'dt-1', intern_id: targetId || 'demo-id', task_name: 'Review client onboarding checklist', status: 'Done', task_date: today },
+                { id: 'dt-2', intern_id: targetId || 'demo-id', task_name: 'Prepare advisor meeting notes', status: 'Done', task_date: today },
+                { id: 'dt-3', intern_id: targetId || 'demo-id', task_name: 'Update support documentation', status: 'Done', task_date: today },
+                { id: 'dt-4', intern_id: targetId || 'demo-id', task_name: 'Compile weekly financial report', status: 'Done', task_date: today },
+              ]);
+              setWeeklyTasks([]);
+            }
           }
 
-          setLoading(false);
+          if (isMounted) setLoading(false);
           return;
         }
 
@@ -98,16 +117,18 @@ export function useProfile(internId?: string) {
             .eq('email', user?.email)
             .single();
 
-          setIntern({
-            id: user?.id || 'admin-id',
-            full_name: profileData?.full_name || 'Administrator',
-            email: user?.email || '',
-            department: 'Administrator' as Department,
-            status: 'Active',
-            avatar_index: profileData?.avatar_index || 0,
-            bio: 'System Administrator profile.',
-          });
-          setLoading(false);
+          if (isMounted) {
+            setIntern({
+              id: user?.id || 'admin-id',
+              full_name: profileData?.full_name || 'Administrator',
+              email: user?.email || '',
+              department: 'Administrator' as Department,
+              status: 'Active',
+              avatar_index: profileData?.avatar_index || 0,
+              bio: 'System Administrator profile.',
+            });
+            setLoading(false);
+          }
           return;
         }
 
@@ -163,37 +184,39 @@ export function useProfile(internId?: string) {
             // ignore parse error
           }
 
-          setIntern({
-            id: fallbackProfile.id || user?.id || 'unassigned-id',
-            full_name: fallbackProfile.full_name || user?.user_metadata?.full_name || 'Intern',
-            email: fallbackProfile.email || user?.email || '',
-            department: (fallbackProfile.department || 'Unassigned') as Department,
-            status: fallbackProfile.status || 'Active',
-            avatar_index: fallbackProfile.avatar_index ?? 0,
-            avatar_url: fallbackProfile.avatar_url,
-            created_at: fallbackProfile.created_at,
-            location: fallbackProfile.location,
-            pin_location: fallbackProfile.pin_location,
-            pin_location_name: fallbackProfile.pin_location_name,
-            program: fallbackProfile.program,
-            current_year: fallbackProfile.current_year,
-            school: fallbackProfile.school,
-            contact_number: fallbackProfile.contact_number,
-            personal_email: fallbackProfile.personal_email,
-            birthday: fallbackProfile.birthday,
-            expected_graduation_date: fallbackProfile.expected_graduation_date,
-            required_hours: fallbackProfile.required_hours,
-            businesses: fallbackProfile.businesses,
-            username: fallbackProfile.username,
-            gcash_qr_url: fallbackProfile.gcash_qr_url,
-            bio: fallbackProfile.bio || storedBio || 'No bio provided yet.',
-            skills: fallbackProfile.skills || storedSkills || [],
-          });
-          setCertifications([]);
-          setTasks([]);
-          setWeeklyTasks([]);
-          setAttendance([]);
-          setLoading(false);
+          if (isMounted) {
+            setIntern({
+              id: fallbackProfile.id || user?.id || 'unassigned-id',
+              full_name: fallbackProfile.full_name || user?.user_metadata?.full_name || 'Intern',
+              email: fallbackProfile.email || user?.email || '',
+              department: (fallbackProfile.department || 'Unassigned') as Department,
+              status: fallbackProfile.status || 'Active',
+              avatar_index: fallbackProfile.avatar_index ?? 0,
+              avatar_url: fallbackProfile.avatar_url,
+              created_at: fallbackProfile.created_at,
+              location: fallbackProfile.location,
+              pin_location: fallbackProfile.pin_location,
+              pin_location_name: fallbackProfile.pin_location_name,
+              program: fallbackProfile.program,
+              current_year: fallbackProfile.current_year,
+              school: fallbackProfile.school,
+              contact_number: fallbackProfile.contact_number,
+              personal_email: fallbackProfile.personal_email,
+              birthday: fallbackProfile.birthday,
+              expected_graduation_date: fallbackProfile.expected_graduation_date,
+              required_hours: fallbackProfile.required_hours,
+              businesses: fallbackProfile.businesses,
+              username: fallbackProfile.username,
+              gcash_qr_url: fallbackProfile.gcash_qr_url,
+              bio: fallbackProfile.bio || storedBio || 'No bio provided yet.',
+              skills: fallbackProfile.skills || storedSkills || [],
+            });
+            setCertifications([]);
+            setTasks([]);
+            setWeeklyTasks([]);
+            setAttendance([]);
+            setLoading(false);
+          }
           return;
         }
 
@@ -219,14 +242,16 @@ export function useProfile(internId?: string) {
             .eq('intern_id', targetId)
         ]);
 
-        if (certRes.data) setCertifications(certRes.data);
-        if (tasksRes.data) setTasks(tasksRes.data);
-        if (attendanceRes.data) setAttendance(attendanceRes.data);
-        if (weeklyRes.data) setWeeklyTasks(weeklyRes.data);
+        if (isMounted) {
+          if (certRes.data) setCertifications(certRes.data);
+          if (tasksRes.data) setTasks(tasksRes.data);
+          if (attendanceRes.data) setAttendance(attendanceRes.data);
+          if (weeklyRes.data) setWeeklyTasks(weeklyRes.data);
+        }
       } catch (err) {
         console.error('Error fetching profile data:', err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
   };
 

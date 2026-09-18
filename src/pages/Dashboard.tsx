@@ -96,6 +96,7 @@ export const Dashboard: React.FC = () => {
   };
 
   const handleViewProfile = (id: string) => {
+    setViewingProfileId(id);
     const intern = interns.find(i => i.id === id);
     if (intern) {
       const slug = generateSlug(intern.full_name);
@@ -125,7 +126,12 @@ export const Dashboard: React.FC = () => {
           setViewingProfileId(internId);
         } else if (interns.length > 0) {
           const matched = interns.find(i => generateSlug(i.full_name) === internId);
-          if (matched) setViewingProfileId(matched.id);
+          if (matched) {
+            setViewingProfileId(matched.id);
+          } else {
+            // Slug not found (e.g. invalid URL)
+            setViewingProfileId(null);
+          }
         }
       }
     }
